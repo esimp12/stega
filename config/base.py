@@ -21,7 +21,9 @@ def create_config(env: T.Optional[str] = None) -> BaseConfig:
 
 
 def source_config_value(
-    name: str, default: T.Optional[T.Any] = None
+    name: str,
+    default: T.Optional[T.Any] = None,
+    required: bool = False,
 ) -> T.Optional[T.Any]:
     """Load a config value from an environment variable.
 
@@ -29,12 +31,15 @@ def source_config_value(
         name: A string of the environment variable name to source.
         default: A default value to return if the given environment variable does not
             exist.
+        required: A bool indicating if the environment variable is required.
 
     Returns:
         The value corresponding to the given environment variable.
     """
     if name in os.environ:
         return os.environ[name]
+    if required:
+        raise ValueError(f"'{name}' is a required environment variable")
     return default
 
 
@@ -50,6 +55,21 @@ class BaseConfig(FrozenConfig):
     __CONFIGS: T.Dict[str, FrozenConfigMeta] = {}
 
     STEGA_ENV: str
+
+    STEGA_DBNAME: str = "stega"
+    STEGA_DBUSER: str = source_config_value("STEGA_DBUSER", required=True)
+    STEGA_DBPASSWORD: str = source_config_value("STEGA_DBPASSWORD", required=True)
+    STEGA_DBHOST: str = "db"
+    STEGA_DBPORT: int = 5432
+
+    STEGA_EOD_API_TOKEN: str = source_config_value("STEGA_EOD_API_TOKEN", required=True)
+    STEGA_EOD_API: str = "https://eodhistoricaldata.com/api"
+    STEGA_EOD_API_MAX: int = 1000
+    STEGA_EOD_API_PERIOD: int = 60
+    STEGA_EOD_DATEFMT: str = "%Y-%m-%d"
+    STEGA_EOD_EXCHANGE: str = "US"
+
+    STEGA_TEST_SYMBOLS: T.List[str] = ["APPL", "MCD", "MSFT", "AMZN", "TSLA"]
 
     def __init_subclass__(cls, *args, **kwargs):
         """Registers subclass config.

@@ -25,11 +25,3 @@ class DevConfig(BaseConfig):
     # pylint: disable=too-few-public-methods
 
     STEGA_ENV: str = "dev"
-
-
-class TestConfig(BaseConfig):
-    """See BaseConfig."""
-
-    # pylint: disable=too-few-public-methods
-
-    STEGA_ENV: str = "test"

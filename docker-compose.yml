@@ -1,0 +1,52 @@
+services:
+  ingest:
+    image: stega-ingest:latest
+    env_file:
+      - .env
+    build:
+      context: .
+      dockerfile: ingest.Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+    links:
+      - db
+    networks:
+      - write
+  db:
+    image: postgres:latest
+    restart: always
+    env_file:
+      - .dbenv
+    environment:
+      POSTGRES_DB: stega
+    ports:
+      - "5432:5432"
+    networks:
+      - write
+      - read
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  external:
+    image: stega-external:latest
+    env_file:
+      - .env
+    build:
+      context: .
+      dockerfile: external.Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+    links:
+      - db
+    ports:
+      - "8000:5000"
+    networks:
+      - read
+
+networks:
+  write: {}
+  read: {}
