@@ -1,0 +1,78 @@
+[tool.poetry]
+name = "stega"
+version = "0.1.0"
+description = "Financial application for portfolio optimization and asset analysis."
+authors = ["Eric Simpson <eric.gr.simpson@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = ">=3.10,<4"
+
+[tool.poetry.group.dev.dependencies]
+pytest = ">=7.2.1"
+pytest-cov = ">=4.0.0"
+pre-commit = ">=3.0.4"
+pyright = ">=1.1.292"
+black = ">=23.1.0"
+pydocstyle = ">=6.3.0"
+tomli = ">=2.0.1"
+pylint = ">=2.16.1"
+isort = ">=5.12.0"
+bandit = ">=1.7.4"
+skjold = ">=0.6.1"
+flake8 = ">=6.0.0"
+coverage = ">=7.2.7"
+
+[tool.coverage.html]
+skip_empty = true
+
+[tool.coverage.missing]
+show_missing = true
+
+[tool.coverage.run]
+omit = ["*.pyc", "*__init__.py"]
+
+[tool.pytest.ini_options]
+addopts = "--tb=short --cov=src --cov-report=html --cov-report=term --cov-config=pyproject.toml"
+testpaths = ["tests"]
+
+[tool.pyright]
+exclude = ["tests"]
+venvPath = "."
+venv = ".venv"
+
+[tool.pydocstyle]
+convention = "google"
+
+[tool.black]
+line-length = 88
+
+[tool.isort]
+profile = "black"
+
+[tool.pylint]
+ignore-paths = ["tests"]
+
+[tool.bandit]
+exclude_dirs = ["tests"]
+
+[tool.skjold]
+report_only = false
+report_format = "cli"
+sources = ["pyup", "gemnasium"]
+cache_dir = ".skjold_cache"
+cache_expires = 43200
+ignore_file = ".skjoldignore"
+
+[tool.vulture]
+exclude = ["tests"]
+ignore_decorators = []
+make_whitelist = true
+min_confidence = 80
+paths = ["src", "config"]
+sort_by_size = true
+verbose = true
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
