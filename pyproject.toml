@@ -4,9 +4,14 @@ version = "0.1.0"
 description = "Financial application for portfolio optimization and asset analysis."
 authors = ["Eric Simpson <eric.gr.simpson@gmail.com>"]
 readme = "README.md"
+packages = [{ include = "src" }]
 
 [tool.poetry.dependencies]
 python = ">=3.10,<4"
+httpx = {extras = ["http2"], version = "^0.28.1"}
+requests = "^2.32.3"
+psycopg2-binary = "^2.9.10"
+flask = "^3.1.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = ">=7.2.1"
@@ -22,6 +27,13 @@ bandit = ">=1.7.4"
 skjold = ">=0.6.1"
 flake8 = ">=6.0.0"
 coverage = ">=7.2.7"
+
+[tool.poetry.scripts]
+ingest = "src.ingest.entrypoint:main"
+stega = "src.cli.entrypoint:run"
+
+[tool.poetry-exec-plugin.commands]
+rest = "FLASK_APP=src.external FLASK_RUN_HOST=0.0.0.0 flask run"
 
 [tool.coverage.html]
 skip_empty = true

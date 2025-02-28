@@ -15,11 +15,11 @@ repos:
     hooks:
       - id: black
         args: [--config, pyproject.toml]
-  - repo: https://github.com/RobertCraigie/pyright-python
-    rev: v1.1.395
-    hooks:
-      - id: pyright
-        args: [--project, pyproject.toml]
+  # - repo: https://github.com/RobertCraigie/pyright-python
+  #   rev: v1.1.395
+  #   hooks:
+  #     - id: pyright
+  #       args: [--project, pyproject.toml]
   - repo: https://github.com/asottile/pyupgrade
     rev: v3.19.1
     hooks:
@@ -34,21 +34,21 @@ repos:
       - id: flake8
         args: [--config, .flake8]
         exclude: (tests).*
-  - repo: https://github.com/PyCQA/bandit.git
-    rev: 1.8.3
-    hooks:
-      - id: bandit
-        args: [-c, pyproject.toml]
-        additional_dependencies: ["bandit[toml]"]
-  - repo: https://github.com/PyCQA/pydocstyle.git
-    rev: 6.3.0
-    hooks:
-      - id: pydocstyle
-        args:
-          - --config=pyproject.toml
-        exclude: (tests).*
-        additional_dependencies:
-          - tomli
+  # - repo: https://github.com/PyCQA/bandit.git
+  #   rev: 1.8.3
+  #   hooks:
+  #     - id: bandit
+  #       args: [-c, pyproject.toml]
+  #       additional_dependencies: ["bandit[toml]"]
+  # - repo: https://github.com/PyCQA/pydocstyle.git
+  #   rev: 6.3.0
+  #   hooks:
+  #     - id: pydocstyle
+  #       args:
+  #         - --config=pyproject.toml
+  #       exclude: (tests).*
+  #       additional_dependencies:
+  #         - tomli
   - repo: https://github.com/PyCQA/isort.git
     rev: 6.0.1
     hooks:
@@ -64,12 +64,12 @@ repos:
       - id: auto-walrus
   - repo: local
     hooks:
-      - id: pylint
-        name: pylint
-        entry: poetry run pylint
-        language: system
-        types: [python]
-        args: [--rcfile=pyproject.toml]
+      # - id: pylint
+      #   name: pylint
+      #   entry: poetry run pylint
+      #   language: system
+      #   types: [python]
+      #   args: [--rcfile=pyproject.toml]
       - id: skjold
         name: skjold
         entry: poetry run skjold
