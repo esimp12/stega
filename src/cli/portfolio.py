@@ -1,10 +1,12 @@
+from datetime import date
+
 import click
 import pandas as pd
 import requests
 import typing_extensions as T
 
 from src.cli.entrypoint import cli
-from src.models import get_daily_returns, json_to_df
+from src.models import get_annual_returns, json_to_df
 
 
 @cli.group()
@@ -14,14 +16,26 @@ def portfolio():
 
 @portfolio.command()
 @click.argument("filename")
-def create(filename: str):
+@click.option("--starting-year", type=int, default=2015)
+def create(
+    filename: str,
+    starting_year: int,
+):
     weights = parse_weights(filename)
     symbols = list(weights.keys())
-    prices_df = get_prices_df(symbols)
-    prices_df = get_daily_returns(prices_df)
-    click.echo("Portfolio")
-    click.echo(banner("Portfolio"))
-    click.echo(" ".join(symbols))
+    df = get_prices_df(symbols)
+    df = get_annual_returns(df, starting_year)
+
+    title = "Portfolio Returns"
+    click.echo(f"TIME RANGE => {starting_year} - {date.today().year}")
+    click.echo(title)
+    click.echo(banner(title))
+
+    for symbol in symbols:
+        avg_return = df.loc[df.index.get_level_values("symbol") == symbol][
+            "annual_ret"
+        ].mean()
+        click.echo(f"{symbol}: {avg_return:.2%}")
 
 
 def parse_weights(filename: str) -> T.Mapping[str, float]:
