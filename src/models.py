@@ -30,6 +30,16 @@ def get_daily_returns(
     return new_df
 
 
+def get_cov_matrix(
+    df: pd.DataFrame,
+    starting_year: int = 2015,
+    trading_days: int = 252,
+) -> pd.DataFrame:
+    df = get_daily_returns(df, starting_year)
+    df = df.pivot_table(index="date", columns="symbol", values="daily_ret")
+    return df.cov() * trading_days
+
+
 def get_annual_returns(
     df: pd.DataFrame,
     starting_year: int = 2015,
