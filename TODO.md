@@ -1,9 +1,7 @@
 ### Working
 
-- [ ] Add portfolio command that takes a file of stock symbols with corresponding weights and returns the expected return and volatility of the portfolio (according to MPT)
-  - [ ] Compute the annualized returns for each stock
-  - [ ] Compute the covariance matrix of the stocks returns
-    - _NOTE_: The covariance matrix is computed using the stocks daily returns. Note that not all companies have been public for the same amount of time, so there will be discrepancies in the number of data points for each company. We will only consider companies that have been public for at least 4 years as a result (e.g. 252 trading days/yr \* 4 = ~1000 data points).
+- [ ] Come up with an app architecture
+  - MVP feature is daily price ingestion of SP500 tickers with a CLI tool to get portfolio returns and volatility
 
 ### Documentation
 
@@ -21,3 +19,8 @@
 - [ ] Update requests to use Session context managers
 - [ ] Scrape wikipedia for list of S&P500 companies
 - [ ] Compute annualized returns for each company
+- [ ] Prototype strategy for updating daily prices for each company (e.g. cron job that ingests data)
+  - Validate we have no repeats (should not happen based on insertion query)
+  - Validate we have no missing data (should not happen based on insertion query)
+  - Update API call to only request data from last date in DB to today (wasteful to request more data)
+  - Quick estimate of how long it will take to ingest data for ~500 companies, ~3000 companies, and ~N companies

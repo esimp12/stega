@@ -69,6 +69,8 @@ class BaseConfig(FrozenConfig):
     STEGA_EOD_DATEFMT: str = "%Y-%m-%d"
     STEGA_EOD_EXCHANGE: str = "US"
 
+    STEGA_SP500_URL: str = "https://en.wikipedia.org/wiki/List_of_S&P_500_companies"
+
     STEGA_TEST_SYMBOLS: T.List[str] = ["APPL", "MCD", "MSFT", "AMZN", "TSLA"]
 
     def __init_subclass__(cls, *args, **kwargs):
