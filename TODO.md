@@ -2,6 +2,12 @@
 
 - [ ] Come up with an app architecture
   - MVP feature is daily price ingestion of SP500 tickers with a CLI tool to get portfolio returns and volatility
+  - create core container w/ REST API -> portfolio CRUD container setup initially
+    - each container has its own REST API wrapper layer that allows core container to interact with it
+    - each container maintains its own tables in the DB (they all share the same DB instance)
+    - start with running all containers on same docker network so they can share communications with each other (allows simple deployment with docker compose)
+      - later on, we can split each of these containers into their own dedicated docker swarm services and we can also move the DB to its own dedicated hosts (on-prem setup)
+  - use internal postgres DB for volatile data storage (non-volatile storage data will be a future feature when have access to on-prem setup)
 
 ### Documentation
 
