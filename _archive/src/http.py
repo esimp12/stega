@@ -7,7 +7,7 @@ import httpx
 import typing_extensions as T
 
 
-class AsyncRateLimiter:
+class RateLimiter:
     def __init__(self, limit: int = 1, period: int = 1):
         self.limit = limit
         self.period = period
@@ -21,7 +21,7 @@ class AsyncRateLimiter:
             await asyncio.sleep(self.period / self.limit)
             self.signal.set()
 
-    async def __aenter__(self) -> AsyncRateLimiter:
+    async def __aenter__(self) -> RateLimiter:
         async with self.lock:
             await self.signal.wait()
             self.signal.clear()
@@ -31,39 +31,19 @@ class AsyncRateLimiter:
         pass
 
 
-def fetch(
-    session: httpx.Client,
-    url: str,
-):
-    return session.get(url)
-
-
-@contextlib.contextmanager
-def acquire_session(
-    base_url: str,
-    params: T.Optional[T.Dict[str, T.Any]] = None,
-):
-    with httpx.Client(
-        base_url=base_url,
-        params=params,
-        http2=True,
-    ) as client:
-        yield client
-
-
-async def fetch_async(
-    rate: AsyncRateLimiter,
+async def fetch(
+    rate: RateLimiter,
     session: httpx.AsyncClient,
     url: str,
-):
+) -> T.Dict[str, T.Any]:
     async with rate:
         return await session.get(url)
 
 
 @contextlib.asynccontextmanager
-async def acquire_async_session(
+async def acquire_session(
     base_url: str,
-    params: T.Optional[T.Dict[str, T.Any]] = None,
+    params: T.Dict[str, T.Any] = None,
 ):
     async with httpx.AsyncClient(
         base_url=base_url,
