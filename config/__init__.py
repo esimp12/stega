@@ -1,5 +1,10 @@
 """Public config entrypoint for stega."""
 
-from config.base import create_config
+import typing_extensions as T
 
-CONFIG = create_config()
+from config.base import BaseConfig, BasePortfolioConfig, ConfigType, create_config
+
+CONFIG = T.cast(BaseConfig, create_config())
+PORTFOLIO_CONFIG = T.cast(
+    BasePortfolioConfig, create_config(config_type=ConfigType.PORTFOLIO)
+)
