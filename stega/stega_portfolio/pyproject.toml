@@ -1,0 +1,55 @@
+[project]
+authors = [{ name = "Eric Simpson", email = "eric.gr.simpson@gmail.com" }]
+name = "stega_portfolio"
+requires-python = ">=3.12"
+version = "0.1.0"
+description = "Portfolio microservice for stega application"
+dependencies = [
+    "flask>=3.1.1",
+    "sqlalchemy>=2.0.41",
+    "stega_lib",
+    "stega_config",
+    "gunicorn>=23.0.0",
+    "psycopg2-binary>=2.9.10",
+]
+
+[tool.stega]
+service = true
+
+[project.scripts]
+serve = "stega_portfolio.entrypoint:run"
+
+[build-system]
+requires = ["uv_build>=0.7.20,<0.8.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "alembic>=1.16.4",
+    "coverage>=7.9.2",
+    "pytest>=8.4.1",
+    "pytest-cov>=6.2.1",
+]
+
+[tool.uv.sources]
+stega_lib = { workspace = true }
+stega_config = { workspace = true }
+
+[tool.alembic]
+script_location = "%(here)s/alembic"
+prepend_sys_path = [
+    "."
+]
+
+[tool.coverage.html]
+skip_empty = true
+
+[tool.coverage.missing]
+show_missing = true
+
+[tool.coverage.run]
+omit = ["*.pyc", "*__init__.py"]
+
+[tool.pytest.ini_options]
+addopts = "--tb=short --cov=src --cov-report=html --cov-report=term --cov-config=pyproject.toml"
+testpaths = ["tests"]

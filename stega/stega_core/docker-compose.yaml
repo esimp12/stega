@@ -1,0 +1,7 @@
+services:
+  core:
+    image: stega-core:latest
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile
