@@ -1,94 +1,47 @@
-[tool.poetry]
+[project]
 name = "stega"
 version = "0.1.0"
-description = "Financial application for portfolio optimization and asset analysis."
-authors = ["Eric Simpson <eric.gr.simpson@gmail.com>"]
+description = "Application for portfolio management & investment analysis"
 readme = "README.md"
-packages = [{ include = "src" }]
+requires-python = ">=3.12"
+dependencies = []
 
-[tool.poetry.dependencies]
-python = ">=3.11,<4"
-httpx = {extras = ["http2"], version = "^0.28.1"}
-requests = "^2.32.3"
-psycopg2-binary = "^2.9.10"
-flask = "^3.1.0"
-pandas = "^2.2.3"
-beautifulsoup4 = "^4.13.3"
+[tool.uv]
+package = false
 
-[tool.poetry.group.dev.dependencies]
-pytest = ">=7.2.1"
-pytest-cov = ">=4.0.0"
-pre-commit = ">=3.0.4"
-pyright = ">=1.1.292"
-black = ">=23.1.0"
-pydocstyle = ">=6.3.0"
-tomli = ">=2.0.1"
-pylint = ">=2.16.1"
-isort = ">=5.12.0"
-bandit = ">=1.7.4"
-skjold = ">=0.6.1"
-flake8 = ">=6.0.0"
-coverage = ">=7.2.7"
-jupyter = "^1.1.1"
-ipython = "^9.0.0"
+[tool.uv.workspace]
+members = [
+    "stega/stega_core",
+    "stega/stega_portfolio",
+    "stega/stega_lib",
+    "stega/stega_config",
+]
 
-[tool.poetry.scripts]
-ingest = "src.ingest.entrypoint:main"
-stega = "src.cli.entrypoint:run"
+[dependency-groups]
+dev = [
+    "invoke>=2.2.0",
+    "ruff>=0.12.4",
+]
 
-[tool.poetry-exec-plugin.commands]
-rest = "FLASK_APP=src.external FLASK_RUN_HOST=0.0.0.0 flask run"
+[tool.ruff]
+line-length = 120
+extend-exclude = [
+    "tasks.py", 
+    "tests",
+    "stega_lib",
+    "stega_core",
+    "stega_config",
+]
 
-[tool.coverage.html]
-skip_empty = true
+[tool.ruff.lint]
+select = ["ALL"]
+ignore = [
+    "D203",
+    "D213",
+]
 
-[tool.coverage.missing]
-show_missing = true
+[tool.ruff.lint.pep8-naming]
+extend-ignore-names = ["T"]
 
-[tool.coverage.run]
-omit = ["*.pyc", "*__init__.py"]
-
-[tool.pytest.ini_options]
-addopts = "--tb=short --cov=src --cov-report=html --cov-report=term --cov-config=pyproject.toml"
-testpaths = ["tests"]
-
-[tool.pyright]
-exclude = ["tests"]
-venvPath = "."
-venv = ".venv"
-
-[tool.pydocstyle]
+[tool.ruff.lint.pydocstyle]
 convention = "google"
-
-[tool.black]
-line-length = 88
-
-[tool.isort]
-profile = "black"
-
-[tool.pylint]
-ignore-paths = ["tests"]
-
-[tool.bandit]
-exclude_dirs = ["tests"]
-
-[tool.skjold]
-report_only = false
-report_format = "cli"
-sources = ["pyup", "gemnasium"]
-cache_dir = ".skjold_cache"
-cache_expires = 43200
-ignore_file = ".skjoldignore"
-
-[tool.vulture]
-exclude = ["tests"]
-ignore_decorators = []
-make_whitelist = true
-min_confidence = 80
-paths = ["src", "config"]
-sort_by_size = true
-verbose = true
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"

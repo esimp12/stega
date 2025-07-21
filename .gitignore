@@ -1,21 +1,18 @@
-# Python
-.venv
+# Distribution / packaging
+dist/
+
+# Unit test / coverage reports
+htmlcov/
 .coverage
-htmlcov/**
-.skjold_cache/**
+.pytest_cache/
 
-# Node
-node_modules/**
+# Environments
+.env*
+.venv
 
-# VS Code
-.vscode/**
+# Ruff stuff
+.ruff_cache/
 
-# Vim
-.vim/**
-
-# Environment
-.env
-.dbenv
-
-# Text
+# Application stuff
+.config
 *.txt

@@ -1,0 +1,11 @@
+[project]
+authors = [{ name = "Eric Simpson", email = "eric.gr.simpson@gmail.com" }]
+name = "stega_config"
+requires-python = ">=3.12"
+version = "0.1.0"
+description = "Immutable config singleton data struct for stega services"
+dependencies = []
+
+[build-system]
+requires = ["uv_build>=0.7.20,<0.8.0"]
+build-backend = "uv_build"

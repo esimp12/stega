@@ -1,0 +1,3 @@
+include:
+  # - stega/stega_core/docker-compose.yaml
+  - stega/stega_portfolio/docker-compose.yaml
