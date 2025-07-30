@@ -4,6 +4,8 @@ import abc
 import types
 import typing as T
 
+from stega_lib.events import Event
+
 from stega_portfolio.ports.repos.base import AbstractPortfolioRepository
 
 
@@ -51,6 +53,17 @@ class AbstractUnitOfWork(abc.ABC):
 
         """
         self.rollback()
+
+    def collect_new_events(self) -> T.Generator[Event, None, None]:
+        """Collect any new events that have been generated in the unit of work.
+
+        Yields:
+            The latest event that has been generated in the unit of work.
+
+        """
+        for portfolio in self.portfolios.seen:
+            while portfolio.events:
+                yield portfolio.events.pop(0)
 
     @abc.abstractmethod
     def commit(self) -> None:

@@ -1,18 +1,31 @@
-from dataclasses import dataclass
+"""Domain model for a portfolio of stocks."""
 
-import typing_extensions as T
+from dataclasses import dataclass
 
 
 @dataclass
-class Portfolio:
+class PortfolioAsset:
+    """Class to represent an asset in a portfolio.
+
+    Attributes:
+        symbol (str): The stock symbol of the asset.
+        weight (float): The weight of the asset in the portfolio.
+
+    """
+
+    symbol: str
+    weight: float
+
+
+@dataclass
+class PortfolioData:
     """Portfolio class to represent a portfolio of stocks.
 
     Attributes:
         name (str): The name of the portfolio.
-        assets (Mapping[str, float]): A mapping of stock symbols to their
-            respective weights in the portfolio.
+        assets (list[PortfolioAsset]): A list of assets in the portfolio.
 
     """
 
     name: str
-    assets: T.Mapping[str, float]
+    assets: list[PortfolioAsset]

@@ -9,7 +9,7 @@ class Aggregate:
     """Abstract base class for all domain aggregates.
 
     Attributes:
-        id: An integer of the unique identity of an aggregate.
+        id: A str of the unique identity of an aggregate.
         version_number: An integer of the currently loaded version of this aggregate.
         events: A list of any domain events collected on this aggregate.
 
@@ -17,9 +17,9 @@ class Aggregate:
 
     def __init__(
         self,
-        id: int | None = None,
+        id: str,  # noqa: A002
         version_number: int = 0,
-    ):
+    ) -> None:
         """Inits a domain aggregate."""
         self.id = id
         self.version_number = version_number
@@ -30,14 +30,14 @@ class DomainEntity:
     """Abstract base class for all domain entities.
 
     Attributes:
-        id: An integer of the unique identity of a domain entity.
+        id: A str of the unique identity of a domain entity.
 
     """
 
     def __init__(
         self,
-        id: int | None = None,
-    ):
+        id: str,  # noqa: A002
+    ) -> None:
         """Inits a domain entity."""
         self.id = id
 
