@@ -11,6 +11,7 @@ package = false
 
 [tool.uv.workspace]
 members = [
+    "stega/stega_cli",
     "stega/stega_core",
     "stega/stega_portfolio",
     "stega/stega_lib",
@@ -20,16 +21,14 @@ members = [
 [dependency-groups]
 dev = [
     "invoke>=2.2.0",
+    "ipython>=9.4.0",
     "ruff>=0.12.4",
 ]
 
 [tool.ruff]
 line-length = 120
 extend-exclude = [
-    "tasks.py", 
-    "tests",
-    "stega_lib",
-    "stega_core",
+    "tasks.py",
     "stega_config",
 ]
 
@@ -45,3 +44,8 @@ extend-ignore-names = ["T"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
+
+[tool.ruff.lint.extend-per-file-ignores]
+"*tests/*.py" = [
+    "S101", # Ignore "use of assert detected" in tests
+]

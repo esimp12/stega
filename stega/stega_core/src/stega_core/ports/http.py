@@ -1,43 +1,54 @@
-import typing_extensions as T
+"""HTTP REST implementation of the PortfolioServicePort interface."""
+
 from stega_lib import http
 
-from stega_core.domain.portfolio import Portfolio
-
-PORTFOLIO_BASE_URL = "http://localhost:8001/api"
-PORTFOLIO_RETRIEVE_URL = f"{PORTFOLIO_BASE_URL}/portfolios"
+from stega_core.domain.portfolio import PortfolioData
+from stega_core.ports.base import PortfolioServicePort
 
 
-class HttpRestPortfolioRepository:
-    """Implementation of PortfolioRepository using HTTP REST API."""
+class HttpRestPortfolioServicePort(PortfolioServicePort):
+    """Implementation of PortfolioServicePort using HTTP REST API."""
 
-    def add_portfolio(self, portfolio: Portfolio) -> None:
-        """Add a portfolio to the repository.
+    def create(self, portfolio: PortfolioData) -> str:
+        """Create a new portfolio.
 
         Args:
-            portfolio (Portfolio): The portfolio to add.
-
-        """
-        # Implementation for adding a portfolio using HTTP POST request
-
-    def get_portfolio(self, name: str) -> Portfolio:
-        """Get a portfolio by name.
-
-        Args:
-            name (str): The name of the portfolio.
+            portfolio (PortfolioData): The portfolio data to create.
 
         Returns:
-            Portfolio: The portfolio with the specified name.
+            str: The ID of the created portfolio.
 
         """
-        with http.acquire_session(PORTFOLIO_BASE_URL, params={"name": name}) as session:
-            resp = http.fetch(session, PORTFOLIO_RETRIEVE_URL)
+        with http.acquire_session(self.config.portfolio_service_url) as session:
+            resp = session.post(
+                "portfolios",
+                json={
+                    "name": portfolio.name,
+                    "assets": {asset.symbol: asset.weight for asset in portfolio.assets},
+                },
+            )
             resp.raise_for_status()
             data = resp.json()
-            return _extract_from_json(data)
+            return data["id"]
 
+    def get(self, id: str) -> PortfolioData:
+        """Get a portfolio by its unique ID.
 
-def _extract_from_json(data: T.Mapping[str, T.Any]) -> Portfolio:
-    return Portfolio(
-        name=data["name"],
-        assets={asset["symbol"]: asset["weight"] for asset in data["assets"]},
-    )
+        Args:
+            id (str): The unique ID of the portfolio.
+
+        Returns:
+            PortfolioData: The portfolio with the specified ID.
+
+        """
+        with http.acquire_session(self.config.portfolio_service_url) as session:
+            resp = session.get(f"portfolios/{id}")
+            resp.raise_for_status()
+            data = resp.json()
+            return PortfolioData(id=data["id"], name=data["name"], assets=data["assets"])
+
+    def update(self, id: str, portfolio: PortfolioData) -> None:
+        return None
+
+    def delete(self, id: str) -> None:
+        return None

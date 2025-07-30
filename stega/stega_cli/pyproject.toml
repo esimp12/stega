@@ -1,14 +1,18 @@
 [project]
 authors = [{ name = "Eric Simpson", email = "eric.gr.simpson@gmail.com" }]
-name = "stega_lib"
+name = "stega_cli"
 requires-python = ">=3.12"
 version = "0.1.0"
-description = "Common library for stega application"
-dependencies = [
-    "httpx[http2]>=0.28.1",
-    "uuid-utils>=0.11.0",
-]
+description = "CLI tool for stega application"
+dependencies = []
+
+[tool.stega]
+service = false
 
 [build-system]
 requires = ["uv_build>=0.7.20,<0.8.0"]
 build-backend = "uv_build"
+
+[tool.uv.sources]
+stega_lib = { workspace = true }
+stega_config = { workspace = true }

@@ -1,0 +1,77 @@
+"""Portfolio service module for creating and managing portfolios."""
+
+from stega_core.domain.commands import CreatePortfolio, DeletePortfolio, UpdatePortfolio
+from stega_core.domain.portfolio import PortfolioAsset, PortfolioData
+from stega_core.ports.base import PortfolioServicePort
+
+
+def create_portfolio(cmd: CreatePortfolio, service: PortfolioServicePort) -> str:
+    """Create a new portfolio with the given name and assets.
+
+    Args:
+        cmd (CreatePortfolio): The command containing the portfolio details.
+        service (PortfolioServicePort): The portfolio service to use for creating the portfolio.
+
+    Returns:
+        str: The ID of the newly created portfolio.
+
+    """
+    data = _create_portfolio_data(cmd.name, cmd.assets)
+    return service.create(data)
+
+
+def get_portfolio(
+    id: str,  # noqa: A002
+    service: PortfolioServicePort,
+) -> dict:
+    """Retrieve a portfolio by its ID.
+
+    Args:
+        id (str): The ID of the portfolio to retrieve.
+        service (PortfolioServicePort): The portfolio service to use for retrieving the portfolio.
+
+    Returns:
+        dict: The portfolio data.
+
+    """
+    return service.get(id)
+
+
+def update_portfolio(
+    cmd: UpdatePortfolio,
+    service: PortfolioServicePort,
+) -> None:
+    """Update an existing portfolio.
+
+    Args:
+        cmd (UpdatePortfolio): The command containing the portfolio details.
+        service (PortfolioServicePort): The portfolio service to use for updating the portfolio.
+
+    """
+    data = _create_portfolio_data(cmd.name, cmd.assets)
+    service.update(cmd.id, data)
+
+
+def delete_portfolio(
+    cmd: DeletePortfolio,
+    service: PortfolioServicePort,
+) -> None:
+    """Delete a portfolio by its ID.
+
+    Args:
+        cmd (DeletePortfolio): The command containing the portfolio ID to delete.
+        service (PortfolioServicePort): The portfolio service to use for deleting the portfolio.
+
+    """
+    service.delete(cmd.id)
+
+
+def _create_portfolio_data(
+    name: str,
+    assets: dict[str, float],
+) -> PortfolioData:
+    """Helper function to create PortfolioData from name and assets."""
+    return PortfolioData(
+        name=name,
+        assets=[PortfolioAsset(name=asset_name, amount=amount) for asset_name, amount in assets.items()],
+    )

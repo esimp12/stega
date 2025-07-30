@@ -7,6 +7,7 @@ from stega_portfolio.adapters.rest.api import api as portfolio_api
 from stega_portfolio.adapters.rest.utils import ResponseType
 from stega_portfolio.bootstrap import bootstrap
 from stega_portfolio.config import PortfolioConfig, create_config, create_logger
+from stega_portfolio.domain.errors import ConflictError, PortfolioAppError, ResourceNotFoundError
 from stega_portfolio.ports.orm import get_engine
 from stega_portfolio.services.uow.db import SqlAlchemyUnitOfWork
 
@@ -76,5 +77,20 @@ def _api_exception_handler(error: Exception) -> ResponseType:
     """Handle exceptions raised by the API."""
     config = create_config()
     logger = create_logger(config)
-    logger.exception(error)
-    return {"msg": str(error), "ok": False}, 500
+
+    if isinstance(error, ConflictError):
+        err_msg = str(error)
+        logger.warning(err_msg)
+        resp = {"msg": err_msg, "ok": False}, 409
+    elif isinstance(error, ResourceNotFoundError):
+        err_msg = str(error)
+        logger.warning(err_msg)
+        resp = {"msg": err_msg, "ok": False}, 404
+    elif isinstance(error, PortfolioAppError):
+        err_msg = str(error)
+        logger.warning(err_msg)
+        resp = {"msg": err_msg, "ok": False}, 400
+    else:
+        logger.exception(error)
+        resp = {"msg": str(error), "ok": False}, 500
+    return resp

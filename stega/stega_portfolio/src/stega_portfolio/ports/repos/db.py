@@ -11,9 +11,10 @@ class SqlAlchemyPortfolioRepository(AbstractPortfolioRepository):
 
     def __init__(self, session: Session) -> None:
         """Initialize the PostgreSQL portfolio repository."""
+        super().__init__()
         self.session = session
 
-    def add_portfolio(self, portfolio: Portfolio) -> None:
+    def _add(self, portfolio: Portfolio) -> None:
         """Add a portfolio to the PostgreSQL database.
 
         Args:
@@ -22,21 +23,29 @@ class SqlAlchemyPortfolioRepository(AbstractPortfolioRepository):
         """
         self.session.add(portfolio)
 
-    def get_portfolio(self, name: str) -> Portfolio:
-        """Get a portfolio by name from the PostgreSQL database.
+    def _get(
+        self,
+        id: str,  # noqa: A002
+    ) -> Portfolio | None:
+        """Get a portfolio by its ID from the PostgreSQL database.
 
         Args:
-            name (str): The name of the portfolio.
+            id (str): The unique UUIDv7 id of the portfolio to retrieve.
 
         Returns:
-            Portfolio: The portfolio with the specified name.
-
-        Raises:
-            ValueError: If the portfolio with the specified name does not exist.
+            Portfolio: The portfolio with the specified ID, or None if not found.
 
         """
-        res = self.session.query(Portfolio).first()
-        if res is None:
-            err_msg = f"Portfolio '{name}' not found."
-            raise ValueError(err_msg)
-        return res
+        return self.session.query(Portfolio).where(Portfolio.id == id).first()
+
+    def _delete(
+        self,
+        portfolio: Portfolio,
+    ) -> None:
+        """Delete a portfolio by its ID from the PostgreSQL database.
+
+        Args:
+            portfolio (Portfolio): The portfolio to delete.
+
+        """
+        self.session.delete(portfolio)

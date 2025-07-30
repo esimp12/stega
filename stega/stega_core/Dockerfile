@@ -10,4 +10,4 @@ RUN uv pip sync --system requirements.txt
 COPY dist/*.whl /workspace/dist/
 RUN uv pip install --system dist/*.whl
 
-# CMD ["uv", "run", "server"]
+CMD ["uv", "run", "serve"]

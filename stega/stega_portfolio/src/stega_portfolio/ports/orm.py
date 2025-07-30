@@ -28,9 +28,8 @@ _PORTFOLIOS_TABLE = Table(
 _PORTFOLIO_ASSETS_TABLE = Table(
     "portfolio_assets",
     metadata,
-    Column("id", String(255), primary_key=True),
-    Column("portfolio_id", ForeignKey("portfolios.id"), nullable=False),
-    Column("symbol", String(10), nullable=False),
+    Column("portfolio_id", ForeignKey("portfolios.id"), primary_key=True, nullable=False),
+    Column("symbol", String(10), primary_key=True, nullable=False),
     Column("weight", Float, nullable=False),
 )
 

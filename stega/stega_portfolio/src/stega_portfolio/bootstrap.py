@@ -4,10 +4,8 @@ import functools
 import inspect
 import typing as T
 
-from stega_lib.domain import Command
-
 from stega_portfolio.ports.orm import start_mappers
-from stega_portfolio.services.handlers.mapping import COMMAND_HANDLERS
+from stega_portfolio.services.handlers.mapping import COMMAND_HANDLERS, EVENT_HANDLERS
 from stega_portfolio.services.messagebus import Message, MessageBus
 from stega_portfolio.services.uow.base import AbstractUnitOfWork
 
@@ -34,14 +32,17 @@ def bootstrap(
     injected_command_handlers = {
         command_type: inject_dependencies(handler, dependencies) for command_type, handler in COMMAND_HANDLERS.items()
     }
+    injected_event_handlers = {
+        event_type: inject_dependencies(handler, dependencies) for event_type, handler in EVENT_HANDLERS.items()
+    }
 
-    return MessageBus(uow=uow, command_handlers=injected_command_handlers)
+    return MessageBus(uow=uow, command_handlers=injected_command_handlers, event_handlers=injected_event_handlers)
 
 
 def inject_dependencies(
-    handler: T.Callable[[Command], T.Any],
-    dependencies: T.Mapping[str, T.Any],
-) -> T.Callable[[Message], T.Any]:
+    handler: T.Callable[[Message, AbstractUnitOfWork], None],
+    dependencies: dict[str, AbstractUnitOfWork],
+) -> T.Callable[[Message], None]:
     """Inject runtime dependencies for service handlers.
 
     Args:

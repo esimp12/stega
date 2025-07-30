@@ -1,28 +1,76 @@
-import typing_extensions as T
+"""Abstract base class for stega core service ports."""
 
-from stega_core.domain.portfolio import Portfolio
+import abc
+
+from stega_core.config import create_config, create_logger
+from stega_core.domain.portfolio import PortfolioData
 
 
-class PortfolioRepository(T.Protocol):
-    """Abstract base class for portfolio repositories."""
+class PortfolioServicePort(abc.ABC):
+    """Abstract base class for portfolio services."""
 
-    def add_portfolio(self, portfolio: Portfolio) -> None:
-        """Add a portfolio to the repository.
+    def __init__(self) -> None:
+        """Initialize the portfolio service port."""
+        self.config = create_config()
+        self.logger = create_logger(self.config)
+
+    @abc.abstractmethod
+    def create(self, portfolio: PortfolioData) -> None:
+        """Create a new portfolio.
 
         Args:
-            portfolio (Portfolio): The portfolio to add.
+            portfolio (PortfolioData): The portfolio to create.
 
         """
-        raise NotImplementedError
+        err_msg = "create method not implemented"
+        raise NotImplementedError(err_msg)
 
-    def get_portfolio(self, name: str) -> Portfolio:
-        """Get a portfolio by name.
+    @abc.abstractmethod
+    def get(
+        self,
+        id: str,  # noqa: A002
+    ) -> PortfolioData:
+        """Get a portfolio by its unique ID.
 
         Args:
-            name (str): The name of the portfolio.
+            id (str): The unique ID of the portfolio.
 
         Returns:
-            Portfolio: The portfolio with the specified name.
+            PortfolioData: The portfolio with the specified ID.
 
         """
-        raise NotImplementedError
+        err_msg = "get method not implemented"
+        raise NotImplementedError(err_msg)
+
+    @abc.abstractmethod
+    def update(
+        self,
+        id: str,  # noqa: A002
+        portfolio: PortfolioData,
+    ) -> None:
+        """Update an existing portfolio.
+
+        Args:
+            id (str): The unique ID of the portfolio to update.
+            portfolio (PortfolioData): The portfolio data to update.
+
+        """
+        err_msg = "update method not implemented"
+        raise NotImplementedError(err_msg)
+
+    @abc.abstractmethod
+    def delete(
+        self,
+        id: str,  # noqa: A002
+    ) -> None:
+        """Delete a portfolio by its unique ID.
+
+        Args:
+            id (str): The unique ID of the portfolio to delete.
+
+        """
+        err_msg = "delete method not implemented"
+        raise NotImplementedError(err_msg)
+
+
+ServiceType = PortfolioServicePort
