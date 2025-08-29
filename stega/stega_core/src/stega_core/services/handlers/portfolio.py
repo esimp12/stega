@@ -23,7 +23,7 @@ def create_portfolio(cmd: CreatePortfolio, service: PortfolioServicePort) -> str
 def get_portfolio(
     id: str,  # noqa: A002
     service: PortfolioServicePort,
-) -> dict:
+) -> PortfolioData:
     """Retrieve a portfolio by its ID.
 
     Args:
@@ -31,7 +31,7 @@ def get_portfolio(
         service (PortfolioServicePort): The portfolio service to use for retrieving the portfolio.
 
     Returns:
-        dict: The portfolio data.
+        PortfolioData: The portfolio data.
 
     """
     return service.get(id)
@@ -73,5 +73,5 @@ def _create_portfolio_data(
     """Helper function to create PortfolioData from name and assets."""
     return PortfolioData(
         name=name,
-        assets=[PortfolioAsset(name=asset_name, amount=amount) for asset_name, amount in assets.items()],
+        assets=[PortfolioAsset(symbol=asset_name, weight=amount) for asset_name, amount in assets.items()],
     )

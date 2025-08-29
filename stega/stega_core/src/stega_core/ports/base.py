@@ -15,11 +15,14 @@ class PortfolioServicePort(abc.ABC):
         self.logger = create_logger(self.config)
 
     @abc.abstractmethod
-    def create(self, portfolio: PortfolioData) -> None:
+    def create(self, portfolio: PortfolioData) -> str:
         """Create a new portfolio.
 
         Args:
             portfolio (PortfolioData): The portfolio to create.
+
+        Returns:
+            str: The ID of the newly created portfolio.
 
         """
         err_msg = "create method not implemented"
