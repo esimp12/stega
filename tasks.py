@@ -1,7 +1,7 @@
 import tomllib
 from pathlib import Path
 
-from invoke import task
+from invoke.tasks import task
 
 _ROOT_CONFIG = "uv.lock"
 
@@ -67,7 +67,7 @@ def build_images(c):
 
 
 @task(pre=[build_images])
-def build(c):
+def build(_):
     """Build all service packages and their dependencies."""
 
 
