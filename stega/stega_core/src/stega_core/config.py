@@ -4,8 +4,9 @@ import inspect
 import logging
 import os
 from pathlib import Path
+from urllib.parse import quote_plus
 
-from stega_config import BaseConfig
+from stega_config import BaseConfig, source
 
 
 class CoreConfig(BaseConfig):
@@ -17,29 +18,12 @@ class CoreConfig(BaseConfig):
     STEGA_CORE_ENV: str
     STEGA_CORE_DEBUG: bool = False
     STEGA_CORE_GUNICORN: bool = False
+
     STEGA_CORE_LOG_LEVEL: str = "INFO"
 
     STEGA_CORE_GUNICORN_WORKERS: int = 4
     STEGA_CORE_SERVER_ADDRESS: str = "127.0.0.1"
     STEGA_CORE_SERVER_PORT: int = 5000
-
-    STEGA_PORTFOLIO_SERVICE_ADDRESS: str = ""
-    STEGA_PORTFOLIO_SERVICE_PORT: int = 8001
-
-    @property
-    def root(self) -> Path:
-        """Root file path of the application.
-
-        Returns:
-            A Path object.
-
-        """
-        return Path(__file__).parent.parent.absolute()
-
-    @property
-    def portfolio_service_url(self) -> str:
-        """Returns the URL for the portfolio service."""
-        return f"http://{self.STEGA_PORTFOLIO_SERVICE_ADDRESS}:{self.STEGA_PORTFOLIO_SERVICE_PORT}/api"
 
 
 class ProdConfig(CoreConfig):
@@ -56,6 +40,8 @@ class DevConfig(CoreConfig):
     STEGA_CORE_DEBUG: bool = True
 
     STEGA_CORE_LOG_LEVEL: str = "DEBUG"
+
+    STEGA_CORE_SERVER_ADDRESS: str = "127.0.0.1"
 
 
 def create_config(env: str | None = None) -> CoreConfig:
