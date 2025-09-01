@@ -2,16 +2,16 @@
 
 from flask import current_app
 
-# from stega_portfolio.services.messagebus import MessageBus
+from stega_core.bootstrap import Dispatcher
 
 ResponseType = tuple[dict[str, str | int | bool], int]
 
 
-# def get_bus() -> MessageBus:
-#     """Get the current application MessageBus.
-# 
-#     Returns:
-#         A MessageBus instance.
-# 
-#     """
-#     return current_app.extensions["bus"]
+def get_dispatcher() -> Dispatcher:
+    """Get the current application service Dispatcher.
+
+    Returns:
+        A service handler Dispatcher.
+
+    """
+    return current_app.extensions["dispatcher"]
