@@ -5,3 +5,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    environment:
+      STEGA_CORE_ENV: ${STEGA_CORE_ENV}
+      STEGA_CORE_LOG_LEVEL: ${STEGA_CORE_LOG_LEVEL}

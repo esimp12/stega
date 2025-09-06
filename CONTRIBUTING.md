@@ -54,6 +54,22 @@ Note the `.env.prod` file is at the project root and should contain the necessar
 docker compose --env-file .env.prod up -d
 ```
 
+### Shutdown the Entire Application
+
+Note that `--env-file .env.prod` is not required in the following commands, but, a benign warning about non-existant environment variables will appear if ommitted.
+
+#### Pausing the Entire Application
+
+```
+docker compose --env-file .env.prod stop
+```
+
+#### Destroying the Entire Application
+
+```
+docker compose --env-file .env.prod down
+```
+
 ### Deploying a Single Service (for Development)
 
 ```

@@ -18,7 +18,7 @@ if T.TYPE_CHECKING:
 class StandaloneApp(BaseApplication):
     """Gunicorn application for the portfolio service."""
 
-    def __init__(self, app: Flask, options: dict[str, T.Any] | None = None) -> StandaloneApp:
+    def __init__(self, app: Flask, options: dict[str, T.Any] | None = None) -> None:
         """Initialize the Gunicorn application."""
         self.options = options or {}
         self.app = app

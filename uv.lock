@@ -713,11 +713,19 @@ name = "stega-core"
 version = "0.1.0"
 source = { editable = "stega/stega_core" }
 dependencies = [
+    { name = "flask" },
+    { name = "gunicorn" },
+    { name = "stega-config" },
     { name = "stega-lib" },
 ]
 
 [package.metadata]
-requires-dist = [{ name = "stega-lib", editable = "stega/stega_lib" }]
+requires-dist = [
+    { name = "flask", specifier = ">=3.1.2" },
+    { name = "gunicorn", specifier = ">=23.0.0" },
+    { name = "stega-config", editable = "stega/stega_config" },
+    { name = "stega-lib", editable = "stega/stega_lib" },
+]
 
 [[package]]
 name = "stega-lib"

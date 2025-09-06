@@ -1,4 +1,4 @@
-"""Entrypoint for the stega portfolio service."""
+"""Entrypoint for the stega core service."""
 
 from __future__ import annotations
 
@@ -8,7 +8,7 @@ import typing as T
 from gunicorn import glogging
 from gunicorn.app.base import BaseApplication
 
-from stega_portfolio.adapters.rest.app import create_app
+from stega_core.adapters.rest.app import create_app
 from stega_core.config import CoreConfig, create_config, create_logger
 
 if T.TYPE_CHECKING:
@@ -18,7 +18,7 @@ if T.TYPE_CHECKING:
 class StandaloneApp(BaseApplication):
     """Gunicorn application for the core service."""
 
-    def __init__(self, app: Flask, options: dict[str, T.Any] | None = None) -> StandaloneApp:
+    def __init__(self, app: Flask, options: dict[str, T.Any] | None = None) -> None:
         """Initialize the Gunicorn application."""
         self.options = options or {}
         self.app = app
@@ -61,7 +61,7 @@ def create_core_app(
     envvars_str = "\n  ".join(f"{k} => {v!r}" for k, v in config.get_envvars())
     envvars_str = "\n  " + envvars_str
     logger.debug("Using following configuration... %s", envvars_str)
-    return create_app(config=config)
+    return create_app()
 
 
 def run() -> None:

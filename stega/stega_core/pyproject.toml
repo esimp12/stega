@@ -4,13 +4,18 @@ name = "stega_core"
 requires-python = ">=3.12"
 version = "0.1.0"
 description = "Core business logic microservice for Stega application"
-dependencies = ["stega_lib"]
+dependencies = [
+    "flask>=3.1.2",
+    "gunicorn>=23.0.0",
+    "stega_config",
+    "stega_lib",
+]
 
 [tool.stega]
 service = true
 
 [project.scripts]
-serve = "stega_portfolio.entrypoint:run"
+serve = "stega_core.entrypoint:run"
 
 [build-system]
 requires = ["uv_build>=0.7.20,<0.8.0"]
@@ -18,3 +23,4 @@ build-backend = "uv_build"
 
 [tool.uv.sources]
 stega_lib = { workspace = true }
+stega-config = { workspace = true }
