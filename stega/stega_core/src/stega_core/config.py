@@ -22,7 +22,7 @@ class CoreConfig(BaseConfig):
     STEGA_CORE_LOG_LEVEL: str = "INFO"
 
     STEGA_CORE_GUNICORN_WORKERS: int = 4
-    STEGA_CORE_SERVER_ADDRESS: str = "127.0.0.1"
+    STEGA_CORE_SERVER_ADDRESS: str = "0.0.0.0"
     STEGA_CORE_SERVER_PORT: int = 5000
 
 
@@ -41,7 +41,7 @@ class DevConfig(CoreConfig):
 
     STEGA_CORE_LOG_LEVEL: str = "DEBUG"
 
-    STEGA_CORE_SERVER_ADDRESS: str = "127.0.0.1"
+    STEGA_CORE_SERVER_ADDRESS: str = "0.0.0.0"
 
 
 def create_config(env: str | None = None) -> CoreConfig:

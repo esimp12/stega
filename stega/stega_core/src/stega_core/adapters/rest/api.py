@@ -23,7 +23,19 @@ def create_portfolio() -> ResponseType:
     return {
         "ok": True,
         "msg": f"Successfully created portfolio '{cmd.name}' with result '{result}'.",
+        "result": result,
     }, 201
+
+
+#@api.route("/portfolios", methods=["GET"])
+#def get_portfolios() -> ResponseType:
+#    dispatcher =  get_dispatcher()
+#    result = dispatcher.handle(cmd)
+#    return {
+#        "ok": True,
+#        "msg": "Fetched ...",
+#        "result": result,
+#    }, 200
 
 
 def _extract_create_portfolio_command(payload: T.Mapping[str, T.Any]) -> CreatePortfolio:

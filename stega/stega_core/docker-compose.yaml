@@ -8,3 +8,5 @@ services:
     environment:
       STEGA_CORE_ENV: ${STEGA_CORE_ENV}
       STEGA_CORE_LOG_LEVEL: ${STEGA_CORE_LOG_LEVEL}
+    ports:
+      - "127.0.0.1:20000:5000"
