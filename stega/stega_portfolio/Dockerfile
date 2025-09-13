@@ -1,5 +1,7 @@
 FROM ghcr.io/astral-sh/uv:python3.12-alpine
 
+RUN apk add --no-cache curl
+
 WORKDIR /workspace
 
 # Handle third party dependencies
