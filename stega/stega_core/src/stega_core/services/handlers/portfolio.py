@@ -66,6 +66,19 @@ def delete_portfolio(
     service.delete(cmd.id)
 
 
+def list_portfolios(service: PortfolioServicePort) -> list[PortfolioData]:
+    """Get a list of all portfolios.
+
+    Args:
+        service (PortfolioServicePort): The portfolio service to use for retrieving the portfolio.
+
+    Returns:
+        list[PortfolioData]: A list of all portfolio data.
+
+    """
+    return service.list()
+ 
+
 def _create_portfolio_data(
     name: str,
     assets: dict[str, float],

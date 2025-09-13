@@ -25,6 +25,16 @@ class CoreConfig(BaseConfig):
     STEGA_CORE_SERVER_ADDRESS: str = "0.0.0.0"
     STEGA_CORE_SERVER_PORT: int = 5000
 
+    STEGA_PORTFOLIO_SERVER_NAME: str = "portfolio"
+    STEGA_PORTFOLIO_SERVER_PORT: int = 5000
+
+    @property
+    def portfolio_service_url(self) -> str:
+        """Get the portfolio service API url."""
+        return (
+            f"{self.STEGA_PORTFOLIO_SERVER_NAME}:{self.STEGA_PORTFOLIO_SERVER_PORT}/api"
+        )
+
 
 class ProdConfig(CoreConfig):
     """Production configuration for the core service."""

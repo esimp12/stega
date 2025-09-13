@@ -4,6 +4,7 @@ from flask import Flask
 from sqlalchemy.orm import sessionmaker
 
 from stega_portfolio.adapters.rest.api import api as portfolio_api
+from stega_portfolio.adapters.rest.health import api as health_api
 from stega_portfolio.adapters.rest.utils import ResponseType
 from stega_portfolio.bootstrap import bootstrap
 from stega_portfolio.config import PortfolioConfig, create_config, create_logger
@@ -69,6 +70,7 @@ def register_blueprints(app: Flask) -> None:
         app (Flask): Flask app to register blueprints with.
 
     """
+    app.register_blueprint(health_api, url_prefix="/api")
     app.register_blueprint(portfolio_api, url_prefix="/api")
     app.register_error_handler(Exception, _api_exception_handler)
 

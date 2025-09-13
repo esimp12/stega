@@ -4,10 +4,23 @@ import typing as T
 
 from flask import Blueprint, request
 
-from stega_portfolio.adapters.rest.utils import ResponseType, get_bus
+from stega_portfolio.adapters.rest.utils import ViewResponseType, ResponseType, get_bus
 from stega_portfolio.domain.commands import CreatePortfolio
+from stega_portfolio.views.portfolio import list_portfolios
 
 api = Blueprint("portfolio_api", __name__)
+
+
+@api.route("/portfolios", methods=["GET"])
+def get_portfolios() -> ViewResponseType:
+    """Get a list of existing portfolios."""
+    bus = get_bus()
+    view = list_portfolios(bus.uow)
+    return {
+        "ok": True,
+        "msg": "Successfully retrieved all portfolios.",
+        "view": view,
+    }, 200
 
 
 @api.route("/portfolios", methods=["POST"])

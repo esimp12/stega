@@ -2,9 +2,13 @@
 
 from flask import current_app
 
+from stega_portfolio.views.views import View
 from stega_portfolio.services.messagebus import MessageBus
 
-ResponseType = tuple[dict[str, str | int | bool], int]
+Response = dict[str, str | int | bool]
+ViewResponse = dict[str, str | bool | View | list[View]]
+ResponseType = tuple[Response, int]
+ViewResponseType = tuple[ViewResponse, int]
 
 
 def get_bus() -> MessageBus:

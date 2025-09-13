@@ -1,8 +1,12 @@
 """Abstract base class for portfolio repositories."""
 
-import abc
+from __future__ import annotations
 
-from stega_portfolio.domain.portfolio import Portfolio
+import abc
+import typing as T
+
+if T.TYPE_CHECKING:
+    from stega_portfolio.domain.portfolio import Portfolio
 
 
 class AbstractPortfolioRepository(abc.ABC):
@@ -50,6 +54,18 @@ class AbstractPortfolioRepository(abc.ABC):
         self._delete(portfolio)
         self.seen.add(portfolio)
 
+    def list(self) -> list[Portfolio]:
+        """Get all portfolios.
+
+        Returns:
+            list[Portforlio]: A list of existing portfolios.
+
+        """
+        portfolios = self._list()
+        for portfolio in portfolios:
+            self.seen.add(portfolio)
+        return portfolios
+
     @abc.abstractmethod
     def _add(self, portfolio: Portfolio) -> None:
         """Add a portfolio to the repository.
@@ -87,4 +103,15 @@ class AbstractPortfolioRepository(abc.ABC):
 
         """
         err_msg = "_delete method not implemented."
+        raise NotImplementedError(err_msg)
+
+    @abc.abstractmethod
+    def _list(self) -> list[Portfolio]:
+        """Get all portfolios.
+
+        Returns:
+            list[Portfolio]: A list of existing portfolios.
+
+        """
+        err_msg = "_list method not implemented."
         raise NotImplementedError(err_msg)

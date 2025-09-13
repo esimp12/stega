@@ -16,6 +16,12 @@ services:
     secrets:
       - STEGA_PORTFOLIO_DBUSER
       - STEGA_PORTFOLIO_DBPASSWORD
+    healthcheck:
+      test: ["CMD-SHELL", "sh -c 'curl http://127.0.0.1:5000/api/health'"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
   portfolio_db:
     image: postgres:latest
     restart: always
@@ -26,8 +32,6 @@ services:
     secrets:
       - STEGA_PORTFOLIO_DBUSER
       - STEGA_PORTFOLIO_DBPASSWORD
-    ports:
-      - "5432:5432"
     healthcheck:
       test: ["CMD-SHELL", "sh -c 'pg_isready -U `cat $$POSTGRES_USER_FILE` -d $$POSTGRES_DB'"]
       interval: 10s

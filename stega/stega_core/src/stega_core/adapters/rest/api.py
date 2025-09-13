@@ -6,6 +6,8 @@ from flask import Blueprint, request
 
 from stega_core.adapters.rest.utils import ResponseType, get_dispatcher
 from stega_core.domain.commands import CreatePortfolio
+from stega_core.services.handlers.portfolio import list_portfolios
+from stega_core.ports.http import HttpRestPortfolioServicePort
 
 api = Blueprint("core_portfolio_api", __name__)
 
@@ -27,15 +29,16 @@ def create_portfolio() -> ResponseType:
     }, 201
 
 
-#@api.route("/portfolios", methods=["GET"])
-#def get_portfolios() -> ResponseType:
-#    dispatcher =  get_dispatcher()
-#    result = dispatcher.handle(cmd)
-#    return {
-#        "ok": True,
-#        "msg": "Fetched ...",
-#        "result": result,
-#    }, 200
+@api.route("/portfolios", methods=["GET"])
+def list_all_portfolios() -> ResponseType:
+    """List all portfolios."""
+    service = HttpRestPortfolioServicePort()
+    portfolios = list_portfolios(service)
+    return {
+        "ok": True,
+        "msg": "Successfully fetched all portfolios.",
+        "result": portfolios,
+    }, 200
 
 
 def _extract_create_portfolio_command(payload: T.Mapping[str, T.Any]) -> CreatePortfolio:

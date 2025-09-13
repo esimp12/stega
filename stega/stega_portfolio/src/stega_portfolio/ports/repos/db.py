@@ -49,3 +49,11 @@ class SqlAlchemyPortfolioRepository(AbstractPortfolioRepository):
 
         """
         self.session.delete(portfolio)
+
+    def _list(self) -> list[Portfolio]:
+        """Get all portfolios.
+
+        Returns:
+            list[Portfolio]: A list of existing portfolios.
+        """
+        return self.session.query(Portfolio).all()

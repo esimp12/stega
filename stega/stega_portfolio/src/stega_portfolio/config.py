@@ -19,11 +19,11 @@ class PortfolioConfig(BaseConfig):
     STEGA_PORTFOLIO_DEBUG: bool = False
     STEGA_PORTFOLIO_GUNICORN: bool = False
 
-    STEGA_PORTFOLIO_CONFIG_DIR: str = ".config"
+    STEGA_PORTFOLIO_CONFIG_DIR: str = ".portfolio"
     STEGA_PORTFOLIO_LOG_LEVEL: str = "INFO"
 
     STEGA_PORTFOLIO_GUNICORN_WORKERS: int = 4
-    STEGA_PORTFOLIO_SERVER_ADDRESS: str = "127.0.0.1"
+    STEGA_PORTFOLIO_SERVER_ADDRESS: str = "0.0.0.0"
     STEGA_PORTFOLIO_SERVER_PORT: int = 5000
 
     STEGA_PORTFOLIO_DBNAME: str = "stega_portfolio"

@@ -75,5 +75,16 @@ class PortfolioServicePort(abc.ABC):
         err_msg = "delete method not implemented"
         raise NotImplementedError(err_msg)
 
+    @abc.abstractmethod
+    def list(self) -> list[PortfolioData]:
+        """Get all existing portfolios.
+
+        Returns:
+            list[PortfolioData]: A list of portfolios with their ids.
+
+        """
+        err_msg = "list method not implemented"
+        raise NotImplementedError(err_msg)
+
 
 ServiceType = PortfolioServicePort

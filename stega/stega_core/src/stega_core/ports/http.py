@@ -52,3 +52,19 @@ class HttpRestPortfolioServicePort(PortfolioServicePort):
 
     def delete(self, id: str) -> None:
         return None
+
+    def list(self) -> list[PortfolioData]:
+        """Get all existing portfolios.
+
+        Returns:
+            list[PortfolioData]: A list of existing portfolios.
+
+        """
+        with http.acquire_session(self.config.portfolio_service_url) as session:
+            resp = session.get("/portfolios")
+            resp.raise_for_status()
+            data = resp.json()
+            return [
+                PortfolioData(id="", name=view["name"], assets=view["assets"])
+                for view in data["view"]
+            ]
