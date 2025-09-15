@@ -702,6 +702,18 @@ dev = [
 name = "stega-cli"
 version = "0.1.0"
 source = { editable = "stega/stega_cli" }
+dependencies = [
+    { name = "click" },
+    { name = "stega-config" },
+    { name = "stega-lib" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "click", specifier = ">=8.2.1" },
+    { name = "stega-config", editable = "stega/stega_config" },
+    { name = "stega-lib", editable = "stega/stega_lib" },
+]
 
 [[package]]
 name = "stega-config"

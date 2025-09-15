@@ -4,10 +4,17 @@ name = "stega_cli"
 requires-python = ">=3.12"
 version = "0.1.0"
 description = "CLI tool for stega application"
-dependencies = []
+dependencies = [
+    "click>=8.2.1",
+    "stega_lib",
+    "stega_config",
+]
 
 [tool.stega]
 service = false
+
+[project.scripts]
+stega = "stega_cli.entrypoint:run"
 
 [build-system]
 requires = ["uv_build>=0.7.20,<0.8.0"]
