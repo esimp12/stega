@@ -66,17 +66,18 @@ class MessageBus:
             command: A Command instance to submit to a service handler.
 
         """
+        command_type = type(command)
         try:
-            handler = self.command_handlers[type(command)]
+            handler = self.command_handlers[command_type]
             handler(command)
             self.queue.extend(self.uow.collect_new_events())
         # Warn when expected application errors occur
         except PortfolioAppError:
-            self.logger.warning("Application error occurred while handling command %s", command.__name__)
+            self.logger.warning("Application error occurred while handling command %s", command_type)
             raise
         # Indicate exceptions when unexpected errors occur
         except Exception:
-            self.logger.exception("Failed to handle command %s", command.__name__)
+            self.logger.exception("Failed to handle command %s", command_type)
             raise
 
     def handle_event(self, event: Event) -> None:
@@ -86,13 +87,14 @@ class MessageBus:
             event: An Event instance to submit to a service handler.
 
         """
+        event_type = type(event)
         try:
-            handler = self.event_handlers[type(event)]
+            handler = self.event_handlers[event_type]
             handler(event)
             self.queue.extend(self.uow.collect_new_events())
         except PortfolioAppError:
-            self.logger.warning("Application error occurred while handling event %s", event.__name__)
+            self.logger.warning("Application error occurred while handling event %s", event_type)
             raise
         except Exception:
-            self.logger.exception("Failed to handle event %s", event.__name__)
+            self.logger.exception("Failed to handle event %s", event_type)
             raise

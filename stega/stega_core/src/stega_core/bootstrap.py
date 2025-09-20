@@ -29,7 +29,7 @@ class Dispatcher:
         Returns:
             A PrimitiveType of the result of the commands service call.
         """
-        cmd_type = type(Command)
+        cmd_type = type(cmd)
         if cmd_type not in self._handlers:
             err_msg = f"Command type {cmd_type} unknown!"
             raise ValueError(err_msg)

@@ -45,7 +45,7 @@ class HttpRestPortfolioServicePort(PortfolioServicePort):
             resp = session.get(f"portfolios/{id}")
             resp.raise_for_status()
             data = resp.json()
-            return PortfolioData(id=data["id"], name=data["name"], assets=data["assets"])
+            return PortfolioData(name=data["name"], assets=data["assets"])
 
     def update(self, id: str, portfolio: PortfolioData) -> None:
         return None
@@ -65,6 +65,6 @@ class HttpRestPortfolioServicePort(PortfolioServicePort):
             resp.raise_for_status()
             data = resp.json()
             return [
-                PortfolioData(id="", name=view["name"], assets=view["assets"])
+                PortfolioData(name=view["name"], assets=view["assets"])
                 for view in data["view"]
             ]

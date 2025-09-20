@@ -1,6 +1,8 @@
+- [ ] PortfolioCreated event not handled
+- [ ] duplicate portfolio name not handled
+
 - [ ] Setup integration tests for portfolio service
 - [ ] Update database migration for new schema changes (just blow up existing scipts and start fresh)
-
 
 - [ ] Setup external event system for portfolio service 
     - Use RabbitMQ
@@ -9,13 +11,12 @@
     - Consumer in each service that runs in separate container
 
 - [ ] Setup following CLI commands that run through stega core
-    - `stega portfolio list`
-    - `stega portfolio create --name <name> --assets <symbol>:<weight>,<symbol>:<weight>`
-    - `stega portfolio create --portfolio-file <file>`
-    - `stega portfolio update --id <id> --name <name> --assets <symbol>:<weight>,<symbol>:<weight>`
-    - `stega portfolio update --id <id> --portfolio-file <file>`
-    - `stega portfolio delete --id <id>`
-    - `stega portfolio get --id <id>`
+    - `stega list-portfolios`
+    - `stega create-portfolio -f port.csv NAME`
+    - `stega update-portfolio -f port.csv ID`
+    - `stega delete-portfolio ID`
+    - `stega get-portfolio ID`
+    - NOTE: we don't nest the portfolio commands right now as it adds another level of nesting we aren't ready for yet
 
     - For the create commands etc. we want to subscribe to the appropriate event and then display the result when completed
 

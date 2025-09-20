@@ -1,5 +1,6 @@
 """Service handler implementations for stega portfolio."""
 
+from stega_lib.events import PortfolioCreated, PortfolioUpdated, PortfolioDeleted
 from stega_portfolio.domain.commands import CreatePortfolio, DeletePortfolio, UpdatePortfolio
 from stega_portfolio.domain.errors import ConflictError, ResourceNotFoundError
 from stega_portfolio.domain.portfolio import Portfolio, PortfolioAsset
@@ -66,3 +67,33 @@ def update_portfolio(cmd: UpdatePortfolio, uow: AbstractUnitOfWork) -> None:
         )
         uow.portfolios.add(portfolio)
         uow.commit()
+
+
+def portfolio_created(event: PortfolioCreated, uow: AbstractUnitOfWork) -> None:
+    """Handle event where a new portfolio was created.
+
+    Args:
+        event (PortfolioCreated): The event containing the portfolio ID that was created.
+        uow (AbstractUnitOfWork): The unit of work to manage the database session.
+
+    """
+
+
+def portfolio_updated(event: PortfolioUpdated, uow: AbstractUnitOfWork) -> None:
+    """Handle event where a portfolio was updated.
+
+    Args:
+        event (PortfolioUpdated): The event containing the portfolio ID that was updated.
+        uow (AbstractUnitOfWork): The unit of work to manage the database session.
+
+    """
+
+
+def portfolio_deleted(event: PortfolioDeleted, uow: AbstractUnitOfWork) -> None:
+    """Handle event where a portfolio was deleted.
+
+    Args:
+        event (PortfolioDeleted): The event containing the portfolio ID that was deleted.
+        uow (AbstractUnitOfWork): The unit of work to manage the database session.
+
+    """

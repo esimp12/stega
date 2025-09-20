@@ -3,10 +3,17 @@
 import typing as T
 
 from stega_lib.domain import Command
-from stega_lib.events import Event
+from stega_lib.events import Event, PortfolioCreated, PortfolioDeleted, PortfolioUpdated
 
 from stega_portfolio.domain.commands import CreatePortfolio, DeletePortfolio, UpdatePortfolio
-from stega_portfolio.services.handlers.portfolio import create_portfolio, delete_portfolio, update_portfolio
+from stega_portfolio.services.handlers.portfolio import (
+    create_portfolio,
+    delete_portfolio,
+    update_portfolio,
+    portfolio_created,
+    portfolio_deleted,
+    portfolio_updated,
+)
 from stega_portfolio.services.uow.base import AbstractUnitOfWork
 
 CommandType = type[Command]
@@ -20,5 +27,7 @@ COMMAND_HANDLERS: dict[CommandType, T.Callable[[Command, AbstractUnitOfWork], No
 }
 
 EVENT_HANDLERS: dict[EventType, T.Callable[[Event, AbstractUnitOfWork], None]] = {
-    # Define your event handlers here
+    PortfolioCreated: portfolio_created,
+    PortfolioDeleted: portfolio_deleted,
+    PortfolioUpdated: portfolio_updated,
 }

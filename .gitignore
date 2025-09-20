@@ -19,3 +19,7 @@ htmlcov/
 # Application stuff
 .config
 *.txt
+*.csv
+
+# Local installs
+install-local

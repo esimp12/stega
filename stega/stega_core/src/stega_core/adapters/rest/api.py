@@ -1,7 +1,5 @@
 """API entrypoint for stega core service."""
 
-import typing as T
-
 from flask import Blueprint, request
 
 from stega_core.adapters.rest.utils import ResponseType, get_dispatcher
@@ -41,7 +39,7 @@ def list_all_portfolios() -> ResponseType:
     }, 200
 
 
-def _extract_create_portfolio_command(payload: T.Mapping[str, T.Any]) -> CreatePortfolio:
+def _extract_create_portfolio_command(payload: dict[str, str | dict[str, float]]) -> CreatePortfolio:
     if "name" not in payload:
         err_msg = "'name' is required for create portfolio request"
         raise ValueError(err_msg)
