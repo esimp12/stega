@@ -18,6 +18,7 @@ service = true
 
 [project.scripts]
 serve = "stega_portfolio.entrypoint:run"
+consume = "stega_portfolio.entrypoint:consume"
 
 [build-system]
 requires = ["uv_build>=0.7.20,<0.8.0"]

@@ -81,3 +81,9 @@ def run() -> None:
             port=config.STEGA_PORTFOLIO_SERVER_PORT,
             debug=config.STEGA_PORTFOLIO_DEBUG,
         )
+
+
+def consume() -> None:
+    """Run the events listener for the portfolio service."""
+    config = create_config()
+

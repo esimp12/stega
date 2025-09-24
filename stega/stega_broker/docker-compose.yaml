@@ -1,0 +1,13 @@
+services:
+  broker:
+    image: rabbitmq:latest
+    hostname: broker
+    restart: always
+    environment:
+      RABBITMQ_DEFAULT_USER: test
+      RABBITMQ_DEFAULT_PASS: test
+    volumes:
+      - broker_data:/var/lib/rabbitmq
+
+volumes:
+  broker_data:
