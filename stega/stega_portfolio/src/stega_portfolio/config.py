@@ -32,6 +32,12 @@ class PortfolioConfig(BaseConfig):
     STEGA_PORTFOLIO_DBHOST: str = "portfolio_db"
     STEGA_PORTFOLIO_DBPORT: int = 5432
 
+    STEGA_PORTFOLIO_BROKER_EXCHANGE: str = "events"
+    STEGA_PORTFOLIO_BROKER_USER: str
+    STEGA_PORTFOLIO_BROKER_PASS: str
+    STEGA_PORTFOLIO_BROKER_HOST: str = "broker"
+    STEGA_PORTFOLIO_BROKER_PORT: str = 5000
+
     @property
     def root(self) -> Path:
         """Root file path of the application.

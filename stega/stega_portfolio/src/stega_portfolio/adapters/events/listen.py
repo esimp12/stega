@@ -1,4 +1,5 @@
 import contextlib
+import functools
 import typing as T
 
 import pika
@@ -13,18 +14,43 @@ def listener_callback(
     method,
     properties,
     body,
+    bus: MessageBus,
 ) -> None:
-    event = Event.from_message(method.routing_key, body)
-    dispatch(event)
+    """Callback for handling incoming events.
+
+    Args:
+        bus (MessageBus): The message bus to handle incoming events for.
+
+    """
+    event = Event.from_message(
+        topic=method.routing_key,
+        body=body,
+    )
+    bus.handle(event)
 
 
 def start_listening(
-    event_types: list[EventType],
-    exchange: str = "events",
-    listener_callback: T.Callable,
+    config: PortfolioConfig,
+    listener_callback: T.Callable = listener_callback,
 ) -> None:
+    """Start a blocking connection for the application event consumer.
+
+    Args:
+        config (PortfolioConfig): Configuration for the portfolio service.  
+        listener_callback (Callable): A Callable callback for handling
+            incoming events.
+
     """
-    """
+    default_session_factory = sessionmaker(
+        bind=get_engine(config.db_uri),
+        expire_on_commit=False,
+    )
+    bus = bootstrap(
+        uow=SqlAlchemyUnitOfWork(default_session_factory),
+    )
+    event_types = bus.get_event_types()
+    exchange = config.STEGA_PORTFOLIO_BROKER_EXCHANGE
+
     conn = pika.BlockingConnection()
     channel = conn.channel()
     channel.exchange_declare(
@@ -42,9 +68,10 @@ def start_listening(
             queue=queue_name,
             routing_key=event_type.routing_key,
         )
+    callback = functools.partial(listener_callback, bus=bus)
     channel.basic_consume(
         queue=queue_name,
-        on_message_callback=listener_callback,
+        on_message_callback=callback,
         auto_ack=True,
     )
     channel.start_consuming()

@@ -38,6 +38,15 @@ class MessageBus:
         self.config = create_config()
         self.logger = create_logger(self.config)
 
+    def get_event_types(self) -> list[EventType]:
+        """Get the list of event types supported for hanlding by the message bus.
+
+        Returns:
+            A list of EventTypes.
+
+        """
+        return list(self.event_handlers.keys())
+
     def handle(self, message: Message) -> None:
         """Process a Message by routing it to the appropriate service handler.
 

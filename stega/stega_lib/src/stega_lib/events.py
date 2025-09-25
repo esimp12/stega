@@ -1,10 +1,42 @@
 """Module for common event types used across the stega application."""
 
+from __future__ import annotations
+
+import typing as T
+
 
 class Event:
     """Base class for all events."""
 
     topic: str = "events"
+
+    events_mapping: dict[str, T.Type[Event]] = {
+        event_type.topic: event_type
+        for event_type in [
+            PortfolioCreated,
+            PortfolioUpdated,
+            PortfolioDeleted,
+        ]
+    }
+
+    @classmethod
+    def from_message(cls, topic: str, body: dict[str, T.Any]) -> Event:
+        """Create an Event from its topic and incoming raw message.
+        
+        Args:
+            topic (str): The event topic to source an event for.
+            body (Mapping): The raw event message to extract into event args.
+
+        Returns:
+            An Event to process.
+
+        """
+        if topic not in cls.events_mapping:
+            err_msg = f"'{topic}' is not a recognized event topic"
+            raise ValueError(err_msg)
+
+        event_type = cls.events_mapping[topic]
+        return event_type(**body)
 
 
 class PortfolioCreated(Event):
@@ -56,3 +88,4 @@ class PortfolioUpdated(Event):
     ) -> None:
         """Initialize the PortfolioUpdated event."""
         self.id = id
+
