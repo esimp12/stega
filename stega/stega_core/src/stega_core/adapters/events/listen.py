@@ -30,7 +30,7 @@ def listener_callback(
 
 
 def start_listening(
-    config: PortfolioConfig,
+    config: CoreConfig,
     listener_callback: T.Callable = listener_callback,
 ) -> None:
     """Start a blocking connection for the application event consumer.
@@ -53,7 +53,7 @@ def start_listening(
     if not event_types:
         return
 
-    exchange = config.STEGA_PORTFOLIO_BROKER_EXCHANGE
+    exchange = config.STEGA_CORE_BROKER_EXCHANGE
     conn = pika.BlockingConnection()
     channel = conn.channel()
     channel.exchange_declare(

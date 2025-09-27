@@ -13,8 +13,7 @@ ServiceHandlers = dict[CommandType, T.Callable[[Command], PrimitiveType]]
 
 
 class Dispatcher:
-    """Class for dispatching commands to associated service calls.
-    """
+    """Class for dispatching commands to associated service calls."""
 
     def __init__(self, handlers: ServiceHandlers) -> None:
         """Inits a Dispatcher."""

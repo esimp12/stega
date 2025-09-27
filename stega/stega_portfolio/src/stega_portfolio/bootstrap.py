@@ -5,13 +5,19 @@ import inspect
 import typing as T
 
 from stega_portfolio.ports.orm import start_mappers
-from stega_portfolio.services.handlers.mapping import COMMAND_HANDLERS, EVENT_HANDLERS
+from stega_portfolio.ports.events.publish import publish_event 
+from stega_portfolio.services.handlers.mapping import (
+    COMMAND_HANDLERS,
+    EVENT_HANDLERS,
+    INTERNAL_EVENTS,
+)
 from stega_portfolio.services.messagebus import Message, MessageBus
 from stega_portfolio.services.uow.base import AbstractUnitOfWork
 
 
 def bootstrap(
     uow: AbstractUnitOfWork,
+    publish: T.Callable = publish_event,
     *,
     start_orm: bool = True,
 ) -> MessageBus:
@@ -28,15 +34,24 @@ def bootstrap(
     if start_orm:
         start_mappers()
 
-    dependencies = {"uow": uow}
+    command_dependencies = {"uow": uow}
     injected_command_handlers = {
-        command_type: inject_dependencies(handler, dependencies) for command_type, handler in COMMAND_HANDLERS.items()
+        command_type: inject_dependencies(handler, command_dependencies)
+        for command_type, handler in COMMAND_HANDLERS.items()
     }
+    event_dependencies = {"uow": uow, "publish": publish}
     injected_event_handlers = {
-        event_type: inject_dependencies(handler, dependencies) for event_type, handler in EVENT_HANDLERS.items()
+        event_type: inject_dependencies(handler, event_dependencies)
+        for event_type, handlers in EVENT_HANDLERS.items()
+        for handler in handlers
     }
 
-    return MessageBus(uow=uow, command_handlers=injected_command_handlers, event_handlers=injected_event_handlers)
+    return MessageBus(
+        uow=uow,
+        command_handlers=injected_command_handlers,
+        event_handlers=injected_event_handlers,
+        internal_events=INTERNAL_EVENTS,
+    )
 
 
 def inject_dependencies(

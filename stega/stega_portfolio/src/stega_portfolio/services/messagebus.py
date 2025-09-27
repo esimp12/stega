@@ -27,25 +27,32 @@ class MessageBus:
     def __init__(
         self,
         uow: AbstractUnitOfWork,
-        command_handlers: T.Mapping[CommandType, T.Callable[[Command], None]],
-        event_handlers: T.Mapping[EventType, T.Callable[[Event], None]],
+        command_handlers: dict[CommandType, T.Callable[[Command], None]],
+        event_handlers: dict[EventType, list[T.Callable[[Event], None]]],
+        internal_events: T.Optional[list[EventType]] = None, 
     ) -> None:
         """Initialize the MessageBus."""
+        if internal_events is None:
+            internal_events = []
         self.uow = uow
         self.command_handlers = command_handlers
         self.event_handlers = event_handlers
+        self.internal_events = internal_events
         self.queue = []
         self.config = create_config()
         self.logger = create_logger(self.config)
 
-    def get_event_types(self) -> list[EventType]:
-        """Get the list of event types supported for hanlding by the message bus.
+    def get_external_event_types(self) -> list[EventType]:
+        """Get the list of event types supported for handling by the message bus.
 
         Returns:
             A list of EventTypes.
 
         """
-        return list(self.event_handlers.keys())
+        return [
+            event_type for event_type in self.event_handlers.keys()
+            if event_type not in self.internal_events
+        ]
 
     def handle(self, message: Message) -> None:
         """Process a Message by routing it to the appropriate service handler.
@@ -97,13 +104,13 @@ class MessageBus:
 
         """
         event_type = type(event)
-        try:
-            handler = self.event_handlers[event_type]
-            handler(event)
-            self.queue.extend(self.uow.collect_new_events())
-        except PortfolioAppError:
-            self.logger.warning("Application error occurred while handling event %s", event_type)
-            raise
-        except Exception:
-            self.logger.exception("Failed to handle event %s", event_type)
-            raise
+        for handler in self.event_handlers[event_type]:
+            try:
+                handler(event)
+                self.queue.extend(self.uow.collect_new_events())
+            except PortfolioAppError:
+                self.logger.warning("Application error occurred while handling event %s", event_type)
+                continue
+            except Exception:
+                self.logger.exception("Failed to handle event %s", event_type)
+                continue

@@ -2,15 +2,16 @@
 
 from __future__ import annotations
 
+import abc
 import typing as T
 
 
-class Event:
+class Event(abc.ABC):
     """Base class for all events."""
 
     topic: str = "events"
 
-    events_mapping: dict[str, T.Type[Event]] = {
+    events_mapping: dict[str, type[Event]] = {
         event_type.topic: event_type
         for event_type in [
             PortfolioCreated,
@@ -38,6 +39,17 @@ class Event:
         event_type = cls.events_mapping[topic]
         return event_type(**body)
 
+    @abc.abstractmethod
+    def to_message(self) -> dict[str, T.Any]:
+        """Serialize an event so that it may be sent as a raw message.
+
+        Returns:
+            A serialized event as a dict.
+
+        """
+        err_msg = "'to_message' not implemented"
+        raise NotImplementedError(err_msg)
+
 
 class PortfolioCreated(Event):
     """Event indicating that a portfolio has been created.
@@ -54,6 +66,12 @@ class PortfolioCreated(Event):
     ) -> None:
         """Initialize the PortfolioCreated event."""
         self.id = id
+
+    def to_message(self) -> dict[str, T.Any]:
+        """See Event."""
+        return {
+            "id": self.id,
+        }
 
 
 class PortfolioDeleted(Event):
@@ -72,6 +90,12 @@ class PortfolioDeleted(Event):
         """Initialize the PortfolioDeleted event."""
         self.id = id
 
+    def to_message(self) -> dict[str, T.Any]:
+        """See Event."""
+        return {
+            "id": self.id,
+        }
+
 
 class PortfolioUpdated(Event):
     """Event indicating that a portfolio has been updated.
@@ -89,3 +113,8 @@ class PortfolioUpdated(Event):
         """Initialize the PortfolioUpdated event."""
         self.id = id
 
+    def to_message(self) -> dict[str, T.Any]:
+        """See Event."""
+        return {
+            "id": self.id,
+        }

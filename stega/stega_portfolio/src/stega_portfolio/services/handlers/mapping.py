@@ -10,14 +10,15 @@ from stega_portfolio.services.handlers.portfolio import (
     create_portfolio,
     delete_portfolio,
     update_portfolio,
-    portfolio_created,
-    portfolio_deleted,
-    portfolio_updated,
 )
 from stega_portfolio.services.uow.base import AbstractUnitOfWork
 
 CommandType = type[Command]
 EventType = type[Event]
+
+
+def _publish_external_event(event: Event, publish: T.Callable) -> None:
+    publish(event)
 
 
 COMMAND_HANDLERS: dict[CommandType, T.Callable[[Command, AbstractUnitOfWork], None]] = {
@@ -26,8 +27,14 @@ COMMAND_HANDLERS: dict[CommandType, T.Callable[[Command, AbstractUnitOfWork], No
     UpdatePortfolio: update_portfolio,
 }
 
-EVENT_HANDLERS: dict[EventType, T.Callable[[Event, AbstractUnitOfWork], None]] = {
-    PortfolioCreated: portfolio_created,
-    PortfolioDeleted: portfolio_deleted,
-    PortfolioUpdated: portfolio_updated,
+EVENT_HANDLERS: dict[EventType, list[T.Callable]] = {
+    PortfolioCreated: [_publish_external_event],
+    PortfolioDeleted: [_publish_external_event],
+    PortfolioUpdated: [_publish_external_event],
 }
+
+INTERNAL_EVENTS: list[EventType] = [
+    PortfolioCreated,
+    PortfolioDeleted,
+    PortfolioUpdated,
+]
