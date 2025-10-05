@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 import logging
+import multiprocessing
 import typing as T
 
 from gunicorn import glogging
 from gunicorn.app.base import BaseApplication
 
 from stega_core.adapters.rest.app import create_app
+from stega_core.adapters.events.listen import start_listening
 from stega_core.config import CoreConfig, create_config, create_logger
 
 if T.TYPE_CHECKING:
@@ -64,8 +66,8 @@ def create_core_app(
     return create_app()
 
 
-def run() -> None:
-    """Run the core service."""
+def run_app() -> None:
+    """Run the core app service."""
     config = create_config()
     app = create_core_app(config)
     if config.STEGA_CORE_GUNICORN:
@@ -81,3 +83,24 @@ def run() -> None:
             port=config.STEGA_CORE_SERVER_PORT,
             debug=config.STEGA_CORE_DEBUG,
         )
+
+
+def run_events_consumer() -> None:
+    """Run the events listener for the core service."""
+    config = create_config()
+    start_listening(
+        config=config,
+    )
+
+
+def run() -> None:
+    """Run the core service."""
+    app_process = multiprocessing.Process(target=run_app)
+    events_process = multiprocess.Process(target=run_events_consumer)
+    processes = (app_process, events_process)
+    # start processes
+    for process in processes:
+        process.start()
+    # join processes
+    for process in processes:
+        process.join()

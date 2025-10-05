@@ -11,15 +11,6 @@ class Event(abc.ABC):
 
     topic: str = "events"
 
-    events_mapping: dict[str, type[Event]] = {
-        event_type.topic: event_type
-        for event_type in [
-            PortfolioCreated,
-            PortfolioUpdated,
-            PortfolioDeleted,
-        ]
-    }
-
     @classmethod
     def from_message(cls, topic: str, body: dict[str, T.Any]) -> Event:
         """Create an Event from its topic and incoming raw message.
@@ -32,11 +23,11 @@ class Event(abc.ABC):
             An Event to process.
 
         """
-        if topic not in cls.events_mapping:
+        if topic not in EVENTS_MAPPING:
             err_msg = f"'{topic}' is not a recognized event topic"
             raise ValueError(err_msg)
 
-        event_type = cls.events_mapping[topic]
+        event_type = EVENTS_MAPPING[topic]
         return event_type(**body)
 
     @abc.abstractmethod
@@ -118,3 +109,15 @@ class PortfolioUpdated(Event):
         return {
             "id": self.id,
         }
+
+
+EventType = type[Event]
+
+EVENTS_MAPPING: dict[str, EventType] = {
+    event_type.topic: event_type
+    for event_type in [
+        PortfolioCreated,
+        PortfolioUpdated,
+        PortfolioDeleted,
+    ]
+}

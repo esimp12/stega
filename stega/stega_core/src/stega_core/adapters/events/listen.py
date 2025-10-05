@@ -4,9 +4,9 @@ import typing as T
 
 import pika
 
-from stega_lib.events import Event
+from stega_lib.events import Event, EventType
+from stega_core.
 
-EventType = type[Event]
 
 
 def listener_callback(
@@ -14,7 +14,7 @@ def listener_callback(
     method,
     properties,
     body,
-    bus: MessageBus,
+    bus,
 ) -> None:
     """Callback for handling incoming events.
 
