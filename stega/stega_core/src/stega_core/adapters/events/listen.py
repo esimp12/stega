@@ -6,6 +6,8 @@ import pika
 
 from stega_lib.events import Event, EventType
 from stega_core.config import CoreConfig
+from stega_core.services.messagebus import MessageBus
+from stega_core.bootstrap import bootstrap_event_bus
 
 
 def listener_callback(
@@ -13,7 +15,7 @@ def listener_callback(
     method,
     properties,
     body,
-    bus,
+    bus: MessageBus,
 ) -> None:
     """Callback for handling incoming events.
 
@@ -40,11 +42,8 @@ def start_listening(
             incoming events.
 
     """
-    bus = bootstrap(
-        uow=SqlAlchemyUnitOfWork(default_session_factory),
-    )
+    bus = bootstrap_event_bus()
     event_types = bus.get_event_types()
-    # exit if no events to subscribe to
 
     exchange = config.STEGA_CORE_BROKER_EXCHANGE
     conn = pika.BlockingConnection()

@@ -55,3 +55,6 @@ class Command:
 
         """
         return str(uuid.uuid7())
+
+
+CommandType = type[Command]

@@ -4,10 +4,17 @@ import functools
 import inspect
 import typing as T
 
-from stega_lib.domain import Command
+from stega_lib.domain import Command, CommandType
 
 from stega_core.ports.base import ServiceType
-from stega_core.services.handlers.mapping import COMMAND_HANDLERS, CommandHandlerType, CommandType, PrimitiveType
+from stega_core.services.handlers.mapping import (
+    COMMAND_HANDLERS,
+    CommandHandlerType,
+    PrimitiveType,
+    EVENT_HANDLERS,
+)
+from stega_core.services.messagebus import MessageBus
+
 
 ServiceHandlers = dict[CommandType, T.Callable[[Command], PrimitiveType]]
 
@@ -35,7 +42,7 @@ class Dispatcher:
         return self._handlers[cmd_type](cmd)
 
 
-def bootstrap(
+def bootstrap_dispatcher(
     services: list[ServiceType],
 ) -> Dispatcher:
     """Provisions the application with the selected runtime service ports.
@@ -52,6 +59,16 @@ def bootstrap(
         command_type: inject_dependencies(handler, dependencies) for command_type, handler in COMMAND_HANDLERS.items()
     }
     return Dispatcher(handlers=handlers)
+
+
+def bootstrap_event_bus() -> MessageBus:
+    """Provisions the application with the selected event consumers.
+
+    Returns:
+        A MessageBus for mapping events to their respective service handlers.
+
+    """
+    return MessageBus(event_handlers=EVENT_HANDLERS)
 
 
 def inject_dependencies(

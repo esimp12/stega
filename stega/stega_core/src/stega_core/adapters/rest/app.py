@@ -6,7 +6,7 @@ from flask import Flask
 
 from stega_core.adapters.rest.api import api as core_portfolio_api
 from stega_core.adapters.rest.utils import ResponseType
-from stega_core.bootstrap import bootstrap
+from stega_core.bootstrap import bootstrap_dispatcher
 from stega_core.config import create_config, create_logger
 from stega_core.domain.errors import ConflictError, CoreAppError, ResourceNotFoundError
 from stega_core.ports.http import HttpRestPortfolioServicePort
@@ -54,7 +54,7 @@ class FlaskCoreApp:
         services: list[ServiceType] = [
             HttpRestPortfolioServicePort(),
         ]
-        app.extensions["dispatcher"] = bootstrap(services)
+        app.extensions["dispatcher"] = bootstrap_dispatcher(services)
 
 
 def register_blueprints(app: Flask) -> None:
