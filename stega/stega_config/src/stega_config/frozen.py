@@ -32,7 +32,7 @@ class Source:
             else:
                 val = rt(val)
         except (TypeError, ValueError):
-            warnings.warn(f"Could not convert value '{val}' to type {rt.__name__}. Casting to str.")
+            warnings.warn(f"Could not convert value '{val}' to type {rt}. Casting to str.")
             val = str(val)
         return val
 

@@ -81,7 +81,8 @@ def serve(c, package, env_file=".env.dev"):
         raise FileNotFoundError(f"Environment file '{env_file}' does not exist.")
 
     print(f"Serving package {package} locally...")
-    c.run(f"uv run --env-file {env_file} --package {package} serve")
+    pkg_suffix = package.split("-")[-1]
+    c.run(f"uv run --env-file {env_file} --package {package} serve-{pkg_suffix}")
 
 
 @task(pre=[build_services])

@@ -5,8 +5,7 @@ import typing as T
 import pika
 
 from stega_lib.events import Event, EventType
-from stega_core.
-
+from stega_core.config import CoreConfig
 
 
 def listener_callback(
@@ -41,17 +40,11 @@ def start_listening(
             incoming events.
 
     """
-    default_session_factory = sessionmaker(
-        bind=get_engine(config.db_uri),
-        expire_on_commit=False,
-    )
     bus = bootstrap(
         uow=SqlAlchemyUnitOfWork(default_session_factory),
     )
     event_types = bus.get_event_types()
     # exit if no events to subscribe to
-    if not event_types:
-        return
 
     exchange = config.STEGA_CORE_BROKER_EXCHANGE
     conn = pika.BlockingConnection()

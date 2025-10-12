@@ -96,7 +96,7 @@ def run_events_consumer() -> None:
 def run() -> None:
     """Run the core service."""
     app_process = multiprocessing.Process(target=run_app)
-    events_process = multiprocess.Process(target=run_events_consumer)
+    events_process = multiprocessing.Process(target=run_events_consumer)
     processes = (app_process, events_process)
     # start processes
     for process in processes:

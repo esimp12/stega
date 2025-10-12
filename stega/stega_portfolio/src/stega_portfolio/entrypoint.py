@@ -9,7 +9,6 @@ from gunicorn import glogging
 from gunicorn.app.base import BaseApplication
 
 from stega_portfolio.adapters.rest.app import create_app
-from stega_portfolio.adapters.events.listen import start_listening
 from stega_portfolio.config import PortfolioConfig, create_config, create_logger
 
 if T.TYPE_CHECKING:
@@ -68,6 +67,7 @@ def create_portfolio_app(
 def run() -> None:
     """Run the portfolio service."""
     config = create_config()
+    print(config)
     app = create_portfolio_app(config)
     if config.STEGA_PORTFOLIO_GUNICORN:
         options = {
@@ -82,12 +82,4 @@ def run() -> None:
             port=config.STEGA_PORTFOLIO_SERVER_PORT,
             debug=config.STEGA_PORTFOLIO_DEBUG,
         )
-
-
-def consume() -> None:
-    """Run the events listener for the portfolio service."""
-    config = create_config()
-    start_listening(
-        config=config,
-    )
 

@@ -97,6 +97,9 @@ class DevConfig(PortfolioConfig):
     STEGA_PORTFOLIO_DBUSER: str = source("env")
     STEGA_PORTFOLIO_DBPASSWORD: str = source("env")
 
+    STEGA_PORTFOLIO_BROKER_USER: str = source("env")
+    STEGA_PORTFOLIO_BROKER_PASS: str = source("env")
+
     @property
     def db_uri(self) -> str:
         """Returns the database URI for the portfolio service."""

@@ -15,7 +15,7 @@ dependencies = [
 service = true
 
 [project.scripts]
-serve = "stega_core.entrypoint:run"
+serve-core = "stega_core.entrypoint:run"
 
 [build-system]
 requires = ["uv_build>=0.7.20,<0.8.0"]

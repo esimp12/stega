@@ -1,16 +1,10 @@
 services:
-  portfolio_events:
-    image: stega-portfolio-events:latest
-    restart: always
-    build:
-      context: .
-      dockerfile: Dockerfile.events
   portfolio:
     image: stega-portfolio:latest
     restart: always
     build:
       context: .
-      dockerfile: Dockerfile.service
+      dockerfile: Dockerfile
     depends_on:
       portfolio_db:
         condition: service_healthy
