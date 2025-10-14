@@ -5,6 +5,7 @@ import typing as T
 from flask import Flask
 
 from stega_core.adapters.rest.api import api as core_portfolio_api
+from stega_core.adapters.rest.sse import api as core_events_api
 from stega_core.adapters.rest.utils import ResponseType
 from stega_core.bootstrap import bootstrap_dispatcher
 from stega_core.config import create_config, create_logger
@@ -65,6 +66,7 @@ def register_blueprints(app: Flask) -> None:
 
     """
     app.register_blueprint(core_portfolio_api, url_prefix="/api")
+    app.register_blueprint(core_events_api, url_prefix="/api")
     app.register_error_handler(Exception, _api_exception_handler)
 
 

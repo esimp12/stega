@@ -15,7 +15,7 @@ CommandHandlerType = T.Callable[[Command, ServiceType], PrimitiveType]
 CommandHandlerMappingType = dict[CommandType, CommandHandlerType]
 
 EventHandlerType = T.Callable[[Event], None]
-EventHandlerMappingType = dict[EventType, EventHandlerMappingType]
+EventHandlerMappingType = dict[EventType, EventHandlerType]
 
 COMMAND_HANDLERS: CommandHandlerMappingType = {
     CreatePortfolio: create_portfolio,
