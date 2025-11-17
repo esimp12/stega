@@ -1,5 +1,6 @@
 """Service handler mapping for stega core service."""
 
+import multiprocessing
 import typing as T
 
 from stega_lib.domain import Command, CommandType
@@ -14,7 +15,7 @@ PrimitiveType = str | None
 CommandHandlerType = T.Callable[[Command, ServiceType], PrimitiveType]
 CommandHandlerMappingType = dict[CommandType, CommandHandlerType]
 
-EventHandlerType = T.Callable[[Event], None]
+EventHandlerType = T.Callable[[Event, multiprocessing.Queue], None]
 EventHandlerMappingType = dict[EventType, EventHandlerType]
 
 COMMAND_HANDLERS: CommandHandlerMappingType = {
@@ -23,4 +24,8 @@ COMMAND_HANDLERS: CommandHandlerMappingType = {
     UpdatePortfolio: update_portfolio,
 }
 
-EVENT_HANDLERS: EventHandlerMappingType = {}
+EVENT_HANDLERS: EventHandlerMappingType = {
+    PortfolioCreated: ,
+    PortfolioDeleted: ,
+    PortfolioUpdated: ,
+}

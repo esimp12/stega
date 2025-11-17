@@ -1,5 +1,6 @@
 """Flask app factory for the core service."""
 
+import multiprocessing
 import typing as T
 
 from flask import Flask
@@ -30,25 +31,30 @@ def create_app() -> Flask:
 
 
 class FlaskCoreApp:
-    """Extension for Flask app to bootstrap MessageBus.
+    """Extension for Flask app to bootstrap MessageBus and IPC queue.
 
     Attributes:
+        ipc_queue (multiprocessing.Queue): Queue for inter-process communication
+            between event consumer and event streaming routes.
         app (Flask): Flask app to bootstrap MessageBus with.
 
     """
 
     def __init__(
         self,
+        ipc_queue: multiprocessing.Queue,
         app: Flask | None = None,
     ) -> None:
         """Initialize FlaskCoreApp extension with current Flask app."""
         if app is not None:
-            self.init_app(app)
+            self.init_app(app, ipc_queue)
 
-    def init_app(self, app: Flask) -> None:
+    def init_app(self, app: Flask, ipc_queue: multiprocessing.Queue) -> None:
         """Initialize custom Flask app with appropriate runtime settings.
 
         Args:
+            ipc_queue (multiprocessing.Queue): Queue for inter-process communication
+                between event consumer and event streaming routes.
             app (Flask): Flask app to bootstrap.
 
         """
@@ -56,6 +62,7 @@ class FlaskCoreApp:
             HttpRestPortfolioServicePort(),
         ]
         app.extensions["dispatcher"] = bootstrap_dispatcher(services)
+        app.extensions["ipc_queue"] = ipc_queue
 
 
 def register_blueprints(app: Flask) -> None:

@@ -1,5 +1,7 @@
 """Flask app utilities for the stega core service."""
 
+import multiprocessing
+
 from flask import current_app
 
 from stega_core.bootstrap import Dispatcher
@@ -15,3 +17,14 @@ def get_dispatcher() -> Dispatcher:
 
     """
     return current_app.extensions["dispatcher"]
+
+
+def get_ipc_queue() -> multiprocessing.Queue:
+    """Get the current application IPC multiprocessing queue.
+
+    Returns:
+        A multiprocessing Queue.
+
+    """
+    return current_app.extensions["ipc_queue"]
+

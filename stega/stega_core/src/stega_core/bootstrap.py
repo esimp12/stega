@@ -2,6 +2,7 @@
 
 import functools
 import inspect
+import multiprocessing
 import typing as T
 
 from stega_lib.domain import Command, CommandType
@@ -56,22 +57,32 @@ def bootstrap_dispatcher(
     """
     dependencies = {"services": services}
     handlers = {
-        command_type: inject_dependencies(handler, dependencies) for command_type, handler in COMMAND_HANDLERS.items()
+        command_type: inject_dispatcher_dependencies(handler, dependencies)
+        for command_type, handler in COMMAND_HANDLERS.items()
     }
     return Dispatcher(handlers=handlers)
 
 
-def bootstrap_event_bus() -> MessageBus:
+def bootstrap_event_bus(ipc_queue: multiprocessing.Queue) -> MessageBus:
     """Provisions the application with the selected event consumers.
+
+    Args:
+        ipc_queue (multiprocessing.Queue): Queue for inter-process communication
+            between event consumer and event streaming routes.
 
     Returns:
         A MessageBus for mapping events to their respective service handlers.
 
     """
-    return MessageBus(event_handlers=EVENT_HANDLERS)
+    dependencies = {"ipc_queue": ipc_queue}
+    handlers = {
+        event_type: inject_bus_dependencies(handler, dependencies)
+        for event_type, handler in EVENT_HANDLERS.items()
+    }
+    return MessageBus(event_handlers=handlers)
 
 
-def inject_dependencies(
+def inject_dispatcher_dependencies(
     handler: CommandHandlerType,
     dependencies: dict[str, list[ServiceType]],
 ) -> T.Callable[[Command], PrimitiveType]:
@@ -103,4 +114,25 @@ def inject_dependencies(
         # know the common argument names for each service function and they don't have to be unique.
         else:
             deps[name] = service_types[param.annotation]
+    return functools.partial(handler, **deps)
+
+
+def inject_bus_dependencies(
+    handler: T.Callable[[Message, multiprocessing.Queue], None],
+    dependencies: dict[str, multiprocessing.Queue],
+) -> T.Callable[[Message], None]:
+    """Inject runtime dependencies for service handlers.
+
+    Args:
+        handler: A Callable of a service handler without any runtime dependencies
+            injected yet.
+        dependencies: A Mapping of shared runtime kwargs to inject into service
+            handlers.
+
+    Returns:
+        A Callable of a service handler with a Message as the sole argument.
+
+    """
+    params = inspect.signature(handler).parameters
+    deps = {name: dependency for name, dependency in dependencies.items() if name in params}
     return functools.partial(handler, **deps)
