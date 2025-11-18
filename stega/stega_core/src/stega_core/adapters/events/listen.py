@@ -1,6 +1,5 @@
 import contextlib
 import functools
-import multiprocessing
 import typing as T
 
 import pika
@@ -32,7 +31,6 @@ def listener_callback(
 
 
 def start_listening(
-    ipc_queue: multiprocessing.Queue,
     config: CoreConfig,
     listener_callback: T.Callable = listener_callback,
 ) -> None:

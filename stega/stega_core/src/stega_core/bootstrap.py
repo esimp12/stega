@@ -2,7 +2,6 @@
 
 import functools
 import inspect
-import multiprocessing
 import typing as T
 
 from stega_lib.domain import Command, CommandType
@@ -14,6 +13,7 @@ from stega_core.services.handlers.mapping import (
     PrimitiveType,
     EVENT_HANDLERS,
 )
+from stega_core.services.handlers.streams import ClientStreams
 from stega_core.services.messagebus import MessageBus
 
 
@@ -63,18 +63,16 @@ def bootstrap_dispatcher(
     return Dispatcher(handlers=handlers)
 
 
-def bootstrap_event_bus(ipc_queue: multiprocessing.Queue) -> MessageBus:
+def bootstrap_event_bus(streams: ClientStreams) -> MessageBus:
     """Provisions the application with the selected event consumers.
 
     Args:
-        ipc_queue (multiprocessing.Queue): Queue for inter-process communication
-            between event consumer and event streaming routes.
 
     Returns:
         A MessageBus for mapping events to their respective service handlers.
 
     """
-    dependencies = {"ipc_queue": ipc_queue}
+    dependencies = {"streams": streams}
     handlers = {
         event_type: inject_bus_dependencies(handler, dependencies)
         for event_type, handler in EVENT_HANDLERS.items()
@@ -118,8 +116,8 @@ def inject_dispatcher_dependencies(
 
 
 def inject_bus_dependencies(
-    handler: T.Callable[[Message, multiprocessing.Queue], None],
-    dependencies: dict[str, multiprocessing.Queue],
+    handler: T.Callable[[Message, ClientStreams], None],
+    dependencies: dict[str, ClientStreams],
 ) -> T.Callable[[Message], None]:
     """Inject runtime dependencies for service handlers.
 

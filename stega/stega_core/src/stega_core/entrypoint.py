@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import functools
 import logging
-import multiprocessing
+import threading
 import typing as T
 
 from gunicorn import glogging
@@ -54,7 +54,6 @@ class StubbedGunicornLogger(glogging.Logger):
 
 
 def create_core_app(
-    ipc_queue: multiprocessing.Queue,
     config: CoreConfig | None = None,
 ) -> Flask:
     """Create the core service Flask application."""
@@ -65,13 +64,13 @@ def create_core_app(
     envvars_str = "\n  ".join(f"{k} => {v!r}" for k, v in config.get_envvars())
     envvars_str = "\n  " + envvars_str
     logger.debug("Using following configuration... %s", envvars_str)
-    return create_app(ipc_queue)
+    return create_app()
 
 
-def run_app(ipc_queue: multiprocessing.Queue) -> None:
+def run_app() -> None:
     """Run the core app service."""
     config = create_config()
-    app = create_core_app(ipc_queue, config)
+    app = create_core_app(config)
     if config.STEGA_CORE_GUNICORN:
         options = {
             "bind": f"{config.STEGA_CORE_SERVER_ADDRESS}:{config.STEGA_CORE_SERVER_PORT}",
@@ -87,22 +86,16 @@ def run_app(ipc_queue: multiprocessing.Queue) -> None:
         )
 
 
-def run_events_consumer(ipc_queue: multiprocessing.Queue) -> None:
+def run_events_consumer() -> None:
     """Run the events listener for the core service."""
     config = create_config()
     start_listening(
-        ipc_queue=ipc_queue,
         config=config,
     )
 
 
 def run() -> None:
     """Run the core service."""
-    ipc_queue = multiprocessing.Queue() 
-    
-    run_app_partial = functools.partial(run_app, ipc_queue=ipc_queue)
-    run_events_consumer_partial = functools.partial(run_events_consumer, ipc_queue=ipc_queue)
-
     app_process = multiprocessing.Process(target=run_app_partial)
     events_process = multiprocessing.Process(target=run_events_consumer_partial)
     processes = (app_process, events_process)

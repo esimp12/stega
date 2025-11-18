@@ -1,9 +1,10 @@
 import multiprocessing
 
 from stega_lib.events import Event
+from stega_core.services.handlers.streams import ClientStreams
 
 
-def enqueue_streamed_event(event: Event, ipc_queue: multiprocessing.Queue) -> None:
+def enqueue_streamed_event(event: Event, streams: ClientStreams) -> None:
     """
     """
-    ipc_queue.put(event.to_message())
+    streams.broadcast_topic(topic, event.to_message())
