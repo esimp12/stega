@@ -7,7 +7,6 @@ import pika
 from stega_lib.events import Event, EventType
 from stega_core.config import CoreConfig
 from stega_core.services.messagebus import MessageBus
-from stega_core.bootstrap import bootstrap_event_bus
 
 
 def listener_callback(
@@ -32,6 +31,7 @@ def listener_callback(
 
 def start_listening(
     config: CoreConfig,
+    bus: MessageBus,
     listener_callback: T.Callable = listener_callback,
 ) -> None:
     """Start a blocking connection for the application event consumer.
@@ -42,7 +42,6 @@ def start_listening(
             incoming events.
 
     """
-    bus = bootstrap_event_bus()
     event_types = bus.get_event_types()
 
     exchange = config.STEGA_CORE_BROKER_EXCHANGE

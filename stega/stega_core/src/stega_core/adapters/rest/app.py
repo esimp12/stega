@@ -1,7 +1,6 @@
 """Flask app factory for the core service."""
 
 import typing as T
-
 from flask import Flask
 
 from stega_core.adapters.rest.api import api as core_portfolio_api
@@ -11,12 +10,13 @@ from stega_core.bootstrap import bootstrap_dispatcher
 from stega_core.config import create_config, create_logger
 from stega_core.domain.errors import ConflictError, CoreAppError, ResourceNotFoundError
 from stega_core.ports.http import HttpRestPortfolioServicePort
+from stega_core.services.handlers.streams import ClientStreams
 
 if T.TYPE_CHECKING:
     from stega_core.ports.base import ServiceType
 
 
-def create_app() -> Flask:
+def create_app(streams: ClientStreams) -> Flask:
     """Create a Flask core api app.
 
     Returns:
@@ -24,7 +24,7 @@ def create_app() -> Flask:
 
     """
     app = Flask(__name__)
-    FlaskCoreApp(app)
+    FlaskCoreApp(streams, app)
     register_blueprints(app)
     return app
 
@@ -39,13 +39,14 @@ class FlaskCoreApp:
 
     def __init__(
         self,
+        streams: ClientStreams,
         app: Flask | None = None,
     ) -> None:
         """Initialize FlaskCoreApp extension with current Flask app."""
         if app is not None:
-            self.init_app(app)
+            self.init_app(streams, app)
 
-    def init_app(self, app: Flask) -> None:
+    def init_app(self, streams: ClientStreams, app: Flask) -> None:
         """Initialize custom Flask app with appropriate runtime settings.
 
         Args:
@@ -55,9 +56,8 @@ class FlaskCoreApp:
         services: list[ServiceType] = [
             HttpRestPortfolioServicePort(),
         ]
-        streams = ClientStreams()
         app.extensions["dispatcher"] = bootstrap_dispatcher(services)
-        app.extensions["streams"] = bootstrap_event_bus(streams)
+        app.extensions["streams"] = streams
 
 
 def register_blueprints(app: Flask) -> None:

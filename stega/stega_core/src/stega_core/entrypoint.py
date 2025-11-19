@@ -12,6 +12,8 @@ from gunicorn.app.base import BaseApplication
 
 from stega_core.adapters.rest.app import create_app
 from stega_core.adapters.events.listen import start_listening
+from stega_core.services.handlers.streams import ClientStreams
+from stega_core.bootstrap import bootstrap_event_bus
 from stega_core.config import CoreConfig, create_config, create_logger
 
 if T.TYPE_CHECKING:
@@ -54,6 +56,7 @@ class StubbedGunicornLogger(glogging.Logger):
 
 
 def create_core_app(
+    streams: ClientStreams,
     config: CoreConfig | None = None,
 ) -> Flask:
     """Create the core service Flask application."""
@@ -64,13 +67,13 @@ def create_core_app(
     envvars_str = "\n  ".join(f"{k} => {v!r}" for k, v in config.get_envvars())
     envvars_str = "\n  " + envvars_str
     logger.debug("Using following configuration... %s", envvars_str)
-    return create_app()
+    return create_app(streams)
 
 
-def run_app() -> None:
+def run_app(streams: ClientStreams) -> None:
     """Run the core app service."""
     config = create_config()
-    app = create_core_app(config)
+    app = create_core_app(streams, config)
     if config.STEGA_CORE_GUNICORN:
         options = {
             "bind": f"{config.STEGA_CORE_SERVER_ADDRESS}:{config.STEGA_CORE_SERVER_PORT}",
@@ -86,22 +89,28 @@ def run_app() -> None:
         )
 
 
-def run_events_consumer() -> None:
+def run_events_consumer(streams: ClientStreams) -> None:
     """Run the events listener for the core service."""
     config = create_config()
+    bus = bootstrap_event_bus(streams)
     start_listening(
         config=config,
+        bus=bus, 
     )
 
 
 def run() -> None:
-    """Run the core service."""
-    app_process = multiprocessing.Process(target=run_app_partial)
-    events_process = multiprocessing.Process(target=run_events_consumer_partial)
-    processes = (app_process, events_process)
-    # start processes
-    for process in processes:
-        process.start()
-    # join processes
-    for process in processes:
-        process.join()
+    # Create shared client topic queues
+    streams = ClientStreams()
+    
+    # Start events consumer listener
+    events_consumer_target = functools.partial(run_events_consumer, streams=streams) 
+    events_thread = threading.Thread(target=events_consumer_target, daemon=True)
+    events_thread.start()
+
+    # Start flask app
+    run_app(streams)
+
+    # Join on events thread when app exits
+    events_thread.join()
+
