@@ -40,7 +40,7 @@ def publish_event(event: Event) -> None:
 
     """
     config = create_config()
-    exchange_name = config.STEGA_PORTFOLIO_BROKER_EXCHANGE
+    exchange_name = config.STEGA_BROKER_EXCHANGE
     with acquire_events_channel(
         exchnage_name=exchange_name,
         exchange_type="direct",

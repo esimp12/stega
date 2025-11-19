@@ -6,7 +6,7 @@ import os
 from pathlib import Path
 from urllib.parse import quote_plus
 
-from stega_config import BaseConfig
+from stega_config import BaseConfig, source
 
 
 class CoreConfig(BaseConfig):
@@ -28,6 +28,12 @@ class CoreConfig(BaseConfig):
     STEGA_PORTFOLIO_SERVER_NAME: str = "portfolio"
     STEGA_PORTFOLIO_SERVER_PORT: int = 5000
 
+    STEGA_BROKER_EXCHANGE: str = "events"
+    STEGA_BROKER_USER: str
+    STEGA_BROKER_PASS: str
+    STEGA_BROKER_HOST: str = "broker"
+    STEGA_BROKER_PORT: int = 5000
+
     @property
     def portfolio_service_url(self) -> str:
         """Get the portfolio service API url."""
@@ -42,6 +48,9 @@ class ProdConfig(CoreConfig):
     STEGA_CORE_ENV: str = "prod"
     STEGA_CORE_GUNICORN: bool = True
 
+    STEGA_BROKER_USER: str = source("env")
+    STEGA_BROKER_PASS: str = source("env")
+
 
 class DevConfig(CoreConfig):
     """Development configuration for the core service."""
@@ -52,6 +61,9 @@ class DevConfig(CoreConfig):
     STEGA_CORE_LOG_LEVEL: str = "DEBUG"
 
     STEGA_CORE_SERVER_ADDRESS: str = "0.0.0.0"
+
+    STEGA_BROKER_USER: str = source("env")
+    STEGA_BROKER_PASS: str = source("env")
 
 
 def create_config(env: str | None = None) -> CoreConfig:

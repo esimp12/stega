@@ -5,12 +5,13 @@ import typing as T
 from flask import Blueprint, stream_with_context
 
 from stega_core.adapters.rest.utils import ResponseType, get_client_streams
+from stega_core.services.handlers.streams import ClientStreams 
 
 
 api = Blueprint("core_events_api", __name__)
 
 
-@api.route("/events/<topic:string>")
+@api.route("/events/<string:topic>")
 def stream_events(topic: str) -> T.Generator[ResponseType, None, None]:
     """Stream server side events processed from events consumer."""
     new_queue = Queue()

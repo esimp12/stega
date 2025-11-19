@@ -7,14 +7,13 @@ import typing as T
 from stega_lib.domain import Command, CommandType
 
 from stega_core.ports.base import ServiceType
-from stega_core.services.handlers.mapping import (
-    COMMAND_HANDLERS,
+from stega_core.services.handlers.mapping import ( COMMAND_HANDLERS,
     CommandHandlerType,
     PrimitiveType,
     EVENT_HANDLERS,
 )
 from stega_core.services.handlers.streams import ClientStreams
-from stega_core.services.messagebus import MessageBus
+from stega_core.services.messagebus import MessageBus, Message
 
 
 ServiceHandlers = dict[CommandType, T.Callable[[Command], PrimitiveType]]

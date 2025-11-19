@@ -13,5 +13,7 @@ services:
     environment:
       STEGA_CORE_ENV: ${STEGA_CORE_ENV}
       STEGA_CORE_LOG_LEVEL: ${STEGA_CORE_LOG_LEVEL}
+      STEGA_BROKER_USER: ${STEGA_BROKER_USER}
+      STEGA_BROKER_PASS: ${STEGA_BROKER_PASS}
     ports:
       - "127.0.0.1:20000:5000"

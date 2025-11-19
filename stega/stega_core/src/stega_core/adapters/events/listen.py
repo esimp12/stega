@@ -37,14 +37,14 @@ def start_listening(
     """Start a blocking connection for the application event consumer.
 
     Args:
-        config (PortfolioConfig): Configuration for the portfolio service.  
+        config (CoreConfig): Configuration for the core service.  
         listener_callback (Callable): A Callable callback for handling
             incoming events.
 
     """
     event_types = bus.get_event_types()
 
-    exchange = config.STEGA_CORE_BROKER_EXCHANGE
+    exchange = config.STEGA_BROKER_EXCHANGE
     conn = pika.BlockingConnection()
     channel = conn.channel()
     channel.exchange_declare(

@@ -32,11 +32,11 @@ class PortfolioConfig(BaseConfig):
     STEGA_PORTFOLIO_DBHOST: str = "portfolio_db"
     STEGA_PORTFOLIO_DBPORT: int = 5432
 
-    STEGA_PORTFOLIO_BROKER_EXCHANGE: str = "events"
-    STEGA_PORTFOLIO_BROKER_USER: str
-    STEGA_PORTFOLIO_BROKER_PASS: str
-    STEGA_PORTFOLIO_BROKER_HOST: str = "broker"
-    STEGA_PORTFOLIO_BROKER_PORT: str = 5000
+    STEGA_BROKER_EXCHANGE: str = "events"
+    STEGA_BROKER_USER: str
+    STEGA_BROKER_PASS: str
+    STEGA_BROKER_HOST: str = "broker"
+    STEGA_BROKER_PORT: int = 5000
 
     @property
     def root(self) -> Path:
@@ -97,8 +97,8 @@ class DevConfig(PortfolioConfig):
     STEGA_PORTFOLIO_DBUSER: str = source("env")
     STEGA_PORTFOLIO_DBPASSWORD: str = source("env")
 
-    STEGA_PORTFOLIO_BROKER_USER: str = source("env")
-    STEGA_PORTFOLIO_BROKER_PASS: str = source("env")
+    STEGA_BROKER_USER: str = source("env")
+    STEGA_BROKER_PASS: str = source("env")
 
     @property
     def db_uri(self) -> str:
