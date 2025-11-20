@@ -43,30 +43,39 @@ def start_listening(
 
     """
     event_types = bus.get_event_types()
-
     exchange = config.STEGA_BROKER_EXCHANGE
-    conn = pika.BlockingConnection()
-    channel = conn.channel()
-    channel.exchange_declare(
-        exchange=exchange,
-        exchange_type="direct",
+
+    credentials = pika.PlainCredentials(
+        config.STEGA_BROKER_USER,
+        config.STEGA_BROKER_PASS,
     )
-    result = channel.queue_declare(
-        queue="",
-        exclusive=True,
+    parameters = pika.ConnectionParameters(
+        host=config.STEGA_BROKER_HOST,
+        port=config.STEGA_BROKER_PORT,
+        credentials=credentials,
     )
-    queue_name = result.method.queue
-    for event_type in events_types:
-        channel.queue_bind(
+    with pika.BlockingConnection(parameters) as conn:
+        channel = conn.channel()
+        channel.exchange_declare(
             exchange=exchange,
-            queue=queue_name,
-            routing_key=event_type.routing_key,
+            exchange_type="direct",
         )
-    callback = functools.partial(listener_callback, bus=bus)
-    channel.basic_consume(
-        queue=queue_name,
-        on_message_callback=callback,
-        auto_ack=True,
-    )
-    channel.start_consuming()
+        result = channel.queue_declare(
+            queue="",
+            exclusive=True,
+        )
+        queue_name = result.method.queue
+        for event_type in event_types:
+            channel.queue_bind(
+                exchange=exchange,
+                queue=queue_name,
+                routing_key=event_type.topic,
+            )
+        callback = functools.partial(listener_callback, bus=bus)
+        channel.basic_consume(
+            queue=queue_name,
+            on_message_callback=callback,
+            auto_ack=True,
+        )
+        channel.start_consuming()
 

@@ -9,6 +9,7 @@ from stega_lib.events import Event
 
 @contextlib.contextmanager
 def acquire_events_channel(
+    config: PortfolioConfig,
     exchange_name: str,
     exchange_type: str = "direct",
 ) -> T.Generator:
@@ -22,14 +23,22 @@ def acquire_events_channel(
         A channel to publish events to.
 
     """
-    conn = pika.BlockingConnection()
-    channel = conn.channel()
-    channel.exchange_declare(
-        exchange=exchange_name,
-        exchange_type="direct",
+    credentials = pika.PlainCredentials(
+        config.STEGA_BROKER_USER,
+        config.STEGA_BROKER_PASS,
     )
-    yield channel
-    conn.close()
+    parameters = pika.ConnectionParameters(
+        host=config.STEGA_BROKER_HOST,
+        port=config.STEGA_BROKER_PORT,
+        credentials=credentials,
+    )
+    with pika.BlockingConnection(parameters) as conn:
+        channel = conn.channel()
+        channel.exchange_declare(
+            exchange=exchange_name,
+            exchange_type=exchange_type,
+        )
+        yield channel
 
 
 def publish_event(event: Event) -> None:
@@ -42,7 +51,8 @@ def publish_event(event: Event) -> None:
     config = create_config()
     exchange_name = config.STEGA_BROKER_EXCHANGE
     with acquire_events_channel(
-        exchnage_name=exchange_name,
+        config=config,
+        exchange_name=exchange_name,
         exchange_type="direct",
     ) as channel:
         channel.basic_publish(

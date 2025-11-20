@@ -1,3 +1,3 @@
-- Run all event listener in background threads, these were separate processes before
-- Implement per-client, per-topic queues for SSE streams
+- Fix issue where publishing event doesn't work when creating portfolio, KeyError: slice...
+- Add flow for client being able to 1) submit a request id for a known Create, Update, Delete action, 2) subscribe to the corresponding SSE topic and 3) check the incoming stream to see that the action with the associated request id was successful.
 - Write up architecture design for scheduled jobs

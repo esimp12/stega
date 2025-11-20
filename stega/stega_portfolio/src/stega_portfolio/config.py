@@ -36,7 +36,7 @@ class PortfolioConfig(BaseConfig):
     STEGA_BROKER_USER: str
     STEGA_BROKER_PASS: str
     STEGA_BROKER_HOST: str = "broker"
-    STEGA_BROKER_PORT: int = 5000
+    STEGA_BROKER_PORT: int = 5672
 
     @property
     def root(self) -> Path:
@@ -72,6 +72,9 @@ class ProdConfig(PortfolioConfig):
 
     STEGA_PORTFOLIO_DBUSER: str = source("file", path="/run/secrets")
     STEGA_PORTFOLIO_DBPASSWORD: str = source("file", path="/run/secrets")
+
+    STEGA_BROKER_USER: str = source("env")
+    STEGA_BROKER_PASS: str = source("env")
 
     @property
     def db_uri(self) -> str:

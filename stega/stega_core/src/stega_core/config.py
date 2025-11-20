@@ -32,7 +32,7 @@ class CoreConfig(BaseConfig):
     STEGA_BROKER_USER: str
     STEGA_BROKER_PASS: str
     STEGA_BROKER_HOST: str = "broker"
-    STEGA_BROKER_PORT: int = 5000
+    STEGA_BROKER_PORT: int = 5672
 
     @property
     def portfolio_service_url(self) -> str:

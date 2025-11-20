@@ -67,7 +67,6 @@ def create_portfolio_app(
 def run() -> None:
     """Run the portfolio service."""
     config = create_config()
-    print(config)
     app = create_portfolio_app(config)
     if config.STEGA_PORTFOLIO_GUNICORN:
         options = {

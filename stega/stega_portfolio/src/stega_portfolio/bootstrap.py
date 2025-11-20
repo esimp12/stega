@@ -9,7 +9,6 @@ from stega_portfolio.ports.events.publish import publish_event
 from stega_portfolio.services.handlers.mapping import (
     COMMAND_HANDLERS,
     EVENT_HANDLERS,
-    INTERNAL_EVENTS,
 )
 from stega_portfolio.services.messagebus import Message, MessageBus
 from stega_portfolio.services.uow.base import AbstractUnitOfWork
@@ -41,16 +40,16 @@ def bootstrap(
     }
     event_dependencies = {"uow": uow, "publish": publish}
     injected_event_handlers = {
-        event_type: inject_dependencies(handler, event_dependencies)
+        event_type: [
+            inject_dependencies(handler, event_dependencies) for handler in handlers
+        ]
         for event_type, handlers in EVENT_HANDLERS.items()
-        for handler in handlers
     }
 
     return MessageBus(
         uow=uow,
         command_handlers=injected_command_handlers,
         event_handlers=injected_event_handlers,
-        internal_events=INTERNAL_EVENTS,
     )
 
 
