@@ -27,7 +27,7 @@ COMMAND_HANDLERS: CommandHandlerMappingType = {
 }
 
 EVENT_HANDLERS: EventHandlerMappingType = {
-    PortfolioCreated: enqueue_streamed_event,
-    PortfolioDeleted: enqueue_streamed_event,
-    PortfolioUpdated: enqueue_streamed_event,
+    PortfolioCreated: [enqueue_streamed_event],
+    PortfolioDeleted: [enqueue_streamed_event],
+    PortfolioUpdated: [enqueue_streamed_event],
 }

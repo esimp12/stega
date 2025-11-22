@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import abc
+import json
 import typing as T
-
 
 class Event(abc.ABC):
     """Base class for all events."""
@@ -12,12 +12,12 @@ class Event(abc.ABC):
     topic: str = "events"
 
     @classmethod
-    def from_message(cls, topic: str, body: dict[str, T.Any]) -> Event:
+    def from_message(cls, topic: str, body: str) -> Event:
         """Create an Event from its topic and incoming raw message.
         
         Args:
             topic (str): The event topic to source an event for.
-            body (Mapping): The raw event message to extract into event args.
+            body (str): The raw event message to extract into event args.
 
         Returns:
             An Event to process.
@@ -28,14 +28,15 @@ class Event(abc.ABC):
             raise ValueError(err_msg)
 
         event_type = EVENTS_MAPPING[topic]
-        return event_type(**body)
+        kwargs = json.loads(body)
+        return event_type(**kwargs)
 
     @abc.abstractmethod
-    def to_message(self) -> dict[str, T.Any]:
+    def to_message(self) -> str:
         """Serialize an event so that it may be sent as a raw message.
 
         Returns:
-            A serialized event as a dict.
+            A serialized event as a str.
 
         """
         err_msg = "'to_message' not implemented"
@@ -49,7 +50,7 @@ class PortfolioCreated(Event):
         id: The unique identifier of the created portfolio.
     """
 
-    topic: str = "events.portfolio.created"
+    topic: str = "portfolio_created"
 
     def __init__(
         self,
@@ -58,11 +59,12 @@ class PortfolioCreated(Event):
         """Initialize the PortfolioCreated event."""
         self.id = id
 
-    def to_message(self) -> dict[str, T.Any]:
+    def to_message(self) -> str:
         """See Event."""
-        return {
+        body = {
             "id": self.id,
         }
+        return json.dumps(body)
 
 
 class PortfolioDeleted(Event):
@@ -72,7 +74,7 @@ class PortfolioDeleted(Event):
         id: The unique identifier of the deleted portfolio.
     """
 
-    topic: str = "events.portfolio.deleted"
+    topic: str = "portfolio_deleted"
 
     def __init__(
         self,
@@ -81,11 +83,12 @@ class PortfolioDeleted(Event):
         """Initialize the PortfolioDeleted event."""
         self.id = id
 
-    def to_message(self) -> dict[str, T.Any]:
+    def to_message(self) -> str:
         """See Event."""
-        return {
+        body = {
             "id": self.id,
         }
+        return json.dumps(body)
 
 
 class PortfolioUpdated(Event):
@@ -95,7 +98,7 @@ class PortfolioUpdated(Event):
         id: The unique identifier of the updated portfolio.
     """
 
-    topic: str = "events.portfolio.updated"
+    topic: str = "portfolio_updated"
 
     def __init__(
         self,
@@ -104,11 +107,12 @@ class PortfolioUpdated(Event):
         """Initialize the PortfolioUpdated event."""
         self.id = id
 
-    def to_message(self) -> dict[str, T.Any]:
+    def to_message(self) -> str:
         """See Event."""
-        return {
+        body = {
             "id": self.id,
         }
+        return json.dumps(body)
 
 
 EventType = type[Event]
@@ -121,3 +125,6 @@ EVENTS_MAPPING: dict[str, EventType] = {
         PortfolioDeleted,
     ]
 }
+
+ALL_EVENT_TOPICS = list(EVENTS_MAPPING.keys())
+

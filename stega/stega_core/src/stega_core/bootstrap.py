@@ -72,11 +72,14 @@ def bootstrap_event_bus(streams: ClientStreams) -> MessageBus:
 
     """
     dependencies = {"streams": streams}
-    handlers = {
-        event_type: inject_bus_dependencies(handler, dependencies)
-        for event_type, handler in EVENT_HANDLERS.items()
+    event_handlers = {
+        event_type: [
+            inject_bus_dependencies(handler, dependencies)
+            for handler in handlers
+        ]
+        for event_type, handlers in EVENT_HANDLERS.items()
     }
-    return MessageBus(event_handlers=handlers)
+    return MessageBus(event_handlers=event_handlers)
 
 
 def inject_dispatcher_dependencies(

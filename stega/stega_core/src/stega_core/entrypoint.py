@@ -56,7 +56,6 @@ class StubbedGunicornLogger(glogging.Logger):
 
 
 def create_core_app(
-    streams: ClientStreams,
     config: CoreConfig | None = None,
 ) -> Flask:
     """Create the core service Flask application."""
@@ -67,18 +66,28 @@ def create_core_app(
     envvars_str = "\n  ".join(f"{k} => {v!r}" for k, v in config.get_envvars())
     envvars_str = "\n  " + envvars_str
     logger.debug("Using following configuration... %s", envvars_str)
-    return create_app(streams)
+    return create_app()
 
 
-def run_app(streams: ClientStreams) -> None:
+def run_app() -> None:
     """Run the core app service."""
     config = create_config()
-    app = create_core_app(streams, config)
+    app = create_core_app(config)
+    
+    # Post fork callback to run in each gunicorn worker
+    def post_fork(server, worker):
+        streams = ClientStreams()
+        worker_app = worker.app.app
+        worker_app.extensions["streams"] = streams
+        events_thread = threading.Thread(target=run_events_consumer, args=(streams,), daemon=True)
+        events_thread.start()
+
     if config.STEGA_CORE_GUNICORN:
         options = {
             "bind": f"{config.STEGA_CORE_SERVER_ADDRESS}:{config.STEGA_CORE_SERVER_PORT}",
             "workers": config.STEGA_CORE_GUNICORN_WORKERS,
             "logger_class": StubbedGunicornLogger,
+            "post_fork": post_fork, 
         }
         StandaloneApp(app, options).run()
     else:
@@ -100,17 +109,6 @@ def run_events_consumer(streams: ClientStreams) -> None:
 
 
 def run() -> None:
-    # Create shared client topic queues
-    streams = ClientStreams()
-    
-    # Start events consumer listener
-    events_consumer_target = functools.partial(run_events_consumer, streams=streams) 
-    events_thread = threading.Thread(target=events_consumer_target, daemon=True)
-    events_thread.start()
-
     # Start flask app
-    run_app(streams)
-
-    # Join on events thread when app exits
-    events_thread.join()
+    run_app()
 
