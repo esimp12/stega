@@ -1,4 +1,8 @@
 - Add flow for client being able to 1) submit a request id for a known Create, Update, Delete action, 2) subscribe to the corresponding SSE topic and 3) check the incoming stream to see that the action with the associated request id was successful.
 - Create a daemon for the CLI to use
+    - General flow for write/update commands, client (user) <> server (daemon). Client issues commands, sent to background daemon, submits to core service in background thread, subscribes for topic updates via SSE, updates sqlite db with updates. 
+    - Create server.py that listens for JSON commands to dispatch to core service.
+        - Deserialize command, create background thread, dispatch command, respond to client with correlation id (used for future lookups/event tracing).
+    - Create client.py that sends JSON commands (and listens for returning correlation ids).
 - Write up architecture design for scheduled jobs
 - make conveinence command in stega cli to watch a specific topic, e.g. stega watch-topic ... 

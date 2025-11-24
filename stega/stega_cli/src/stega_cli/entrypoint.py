@@ -4,11 +4,28 @@ import click
 
 from stega_lib import http
 from stega_cli.config import create_config
+from stega_cli.daemon import acquire_connection, send_command
 
 
 @click.group()
 def stega() -> None:
     """CLI for stega portfolio management application."""
+
+
+@click.argument("portfolio_id")
+@stega.command()
+def get_portfolio(portfolio_id: str) -> None:
+    """Command to get a portfolio."""
+    cmd = {
+        "type": "GetPortfolio",
+        "args": {
+            "portfolio_id": portfolio_id,
+        },
+    }
+
+    with acquire_connection(host="", port=8000) as conn:
+        send_command(conn, cmd)
+        resp = read_command(conn)
 
 
 @stega.command()
