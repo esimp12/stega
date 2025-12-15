@@ -4,12 +4,18 @@ import click
 
 from stega_lib import http
 from stega_cli.config import create_config
-from stega_cli.daemon import acquire_connection, send_command
+from stega_cli.daemon import acquire_connection, send_command, read_command, serve 
 
 
 @click.group()
 def stega() -> None:
     """CLI for stega portfolio management application."""
+
+
+@stega.command()
+def serve_daemon() -> None:
+    sock_path = "/tmp/stega.sock"
+    serve(sock_path)
 
 
 @click.argument("portfolio_id")
@@ -23,7 +29,8 @@ def get_portfolio(portfolio_id: str) -> None:
         },
     }
 
-    with acquire_connection(host="", port=8000) as conn:
+    sock_path = "/tmp/stega.sock"
+    with acquire_connection(sock_path) as conn:
         send_command(conn, cmd)
         resp = read_command(conn)
 
@@ -50,6 +57,7 @@ def list_portfolios() -> None:
             weight = asset["weight"]
             click.echo(f"  - {symbol} ({weight:.2f})")
         click.echo()
+
 
 @click.argument("name")
 @click.option(

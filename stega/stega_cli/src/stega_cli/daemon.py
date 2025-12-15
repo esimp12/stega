@@ -1,30 +1,23 @@
 import contextlib
+import json
 import socket
 import struct
 import typing as T
 
 
 @contextlib.contextmanager
-def acquire_connection(
-    host: str,
-    port: int,
-) -> T.Generator[socket.SocketType, None, None]:
+def acquire_connection(sock_path: str) -> T.Generator[socket.SocketType, None, None]:
     with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as s:
-        s.connect((host, port))
+        s.connect(sock_path)
         yield s
 
 
 @contextlib.contextmanager
-def serve_connection(
-    host: str,
-    port: int,
-) -> T.Generator[socket.SocketType, None, None]:
+def serve_socket(sock_path: str) -> T.Generator[socket.SocketType, None, None]:
     with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as s:
-        s.bind((host, port))
-        s.listen(1)
-        conn, _ = s.accept()
-        with conn:
-            yield conn
+        s.bind(sock_path)
+        s.listen()
+        yield s
 
 
 def read_bytes(sock: socket.SocketType, num_bytes: int) -> bytes:
@@ -39,10 +32,11 @@ def read_bytes(sock: socket.SocketType, num_bytes: int) -> bytes:
 
 def read_command(sock: socket.SocketType) -> dict[str, T.Any]:
     # Get prefix length header
-    header = read_bytes(sock, 4)
+    header_raw = read_bytes(sock, 4)
 
     # Find number of payload bytes to read
-    length, _ = struct.unpack("!I", header)
+    header = struct.unpack("!I", header_raw)
+    length = header[0]
 
     # Read payload
     payload = read_bytes(sock, length)
@@ -56,10 +50,10 @@ def send_command(sock: socket.SocketType, cmd: dict[str, T.Any]) -> None:
     sock.sendall(header + payload)
 
 
-def serve() -> None:
-    with serve_connection(
-        host="",
-        port=8000,
-    ) as conn:
-        cmd = read_command(conn)
-        print(cmd)
+def serve(sock_path: str) -> None:
+    with serve_socket(sock_path) as s:
+        while True:
+            conn, _ = s.accept()
+            with conn:
+                cmd = read_command(conn)
+                print(cmd)
