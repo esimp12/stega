@@ -6,10 +6,18 @@ import abc
 import json
 import typing as T
 
+from stega_lib.domain import Command
+
+
 class Event(abc.ABC):
     """Base class for all events."""
 
+    correlation_id: T.Optional[str] 
     topic: str = "events"
+
+    def __post_init__(self) -> None:
+        if self.correlation_id is None:
+            self.correlation_id = Command.gen_id()
 
     @classmethod
     def from_message(cls, topic: str, body: str) -> Event:
@@ -64,6 +72,8 @@ class PortfolioCreated(Event):
         body = {
             "id": self.id,
         }
+        if self.correlation_id is not None:
+            body["correlation_id"] = self.correlation_id
         return json.dumps(body)
 
 
@@ -88,6 +98,8 @@ class PortfolioDeleted(Event):
         body = {
             "id": self.id,
         }
+        if self.correlation_id is not None:
+            body["correlation_id"] = self.correlation_id
         return json.dumps(body)
 
 
@@ -112,6 +124,8 @@ class PortfolioUpdated(Event):
         body = {
             "id": self.id,
         }
+        if self.correlation_id is not None:
+            body["correlation_id"] = self.correlation_id
         return json.dumps(body)
 
 

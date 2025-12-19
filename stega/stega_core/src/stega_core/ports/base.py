@@ -15,7 +15,10 @@ class PortfolioServicePort(abc.ABC):
         self.logger = create_logger(self.config)
 
     @abc.abstractmethod
-    def create(self, portfolio: PortfolioData) -> str:
+    def create(self,
+        correlation_id: str,
+        portfolio: PortfolioData,
+    ) -> str:
         """Create a new portfolio.
 
         Args:
@@ -48,6 +51,7 @@ class PortfolioServicePort(abc.ABC):
     @abc.abstractmethod
     def update(
         self,
+        correlation_id: str,
         id: str,  # noqa: A002
         portfolio: PortfolioData,
     ) -> None:
@@ -64,6 +68,7 @@ class PortfolioServicePort(abc.ABC):
     @abc.abstractmethod
     def delete(
         self,
+        correlation_id: str,
         id: str,  # noqa: A002
     ) -> None:
         """Delete a portfolio by its unique ID.

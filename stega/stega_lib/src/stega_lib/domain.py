@@ -1,6 +1,7 @@
 """Common abstract interfaces for domain entities and aggregates."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+import typing as T
 
 import uuid_utils as uuid
 
@@ -44,7 +45,24 @@ class DomainEntity:
 
 @dataclass
 class Command:
-    """Data message to perform specific service handler."""
+    """Data message to perform specific service handler.
+
+    Attributes:
+        correlation_id: A str globally uniquely representing an event trace occuring
+            throughout the system.
+        action_id: A str locally uniquely representing an individual action occuring
+            for the associated service.
+
+    """
+
+    correlation_id: T.Optional[str]
+    action_id: T.Optional[str]
+
+    def __post_init__(self) -> None:
+        if self.correlation_id is None:
+            self.correlation_id = self.gen_id()
+        if action_id is None:
+            self.action_id = self.gen_id()
 
     @staticmethod
     def gen_id() -> str:

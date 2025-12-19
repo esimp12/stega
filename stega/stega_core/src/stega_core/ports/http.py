@@ -9,7 +9,11 @@ from stega_core.ports.base import PortfolioServicePort
 class HttpRestPortfolioServicePort(PortfolioServicePort):
     """Implementation of PortfolioServicePort using HTTP REST API."""
 
-    def create(self, portfolio: PortfolioData) -> str:
+    def create(
+        self,
+        correlation_id: str,
+        portfolio: PortfolioData,
+    ) -> str:
         """Create a new portfolio.
 
         Args:
@@ -25,6 +29,9 @@ class HttpRestPortfolioServicePort(PortfolioServicePort):
                 json={
                     "name": portfolio.name,
                     "assets": {asset.symbol: asset.weight for asset in portfolio.assets},
+                },
+                headers={
+                    "X-Request-Id": correlation_id,
                 },
             )
             resp.raise_for_status()
@@ -47,10 +54,10 @@ class HttpRestPortfolioServicePort(PortfolioServicePort):
             data = resp.json()
             return PortfolioData(name=data["name"], assets=data["assets"])
 
-    def update(self, id: str, portfolio: PortfolioData) -> None:
+    def update(self, correlation_id: str, id: str, portfolio: PortfolioData) -> None:
         return None
 
-    def delete(self, id: str) -> None:
+    def delete(self, correlation_id: str, id: str) -> None:
         return None
 
     def list(self) -> list[PortfolioData]:

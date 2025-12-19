@@ -2,11 +2,12 @@
 
 import typing as T
 
-from flask import Blueprint, request
+from flask import Blueprint, request, Request
 
 from stega_portfolio.adapters.rest.utils import ViewResponseType, ResponseType, get_bus
 from stega_portfolio.domain.commands import CreatePortfolio
 from stega_portfolio.views.portfolio import list_portfolios
+from stega_lib.domain import Command
 
 api = Blueprint("portfolio_api", __name__)
 
@@ -31,7 +32,8 @@ def create_portfolio() -> ResponseType:
         return {"ok": False, "msg": "Failed to process request."}, 400
 
     bus = get_bus()
-    cmd = _extract_create_portfolio_command(payload)
+    correlation_id = _extract_correlation_id(request)
+    cmd = _extract_create_portfolio_command(correlation_id, payload)
     bus.handle(cmd)
     return {
         "ok": True,
@@ -40,7 +42,14 @@ def create_portfolio() -> ResponseType:
     }, 201
 
 
-def _extract_create_portfolio_command(payload: T.Mapping[str, T.Any]) -> CreatePortfolio:
+def _extract_correlation_id(request: Request) -> str:
+    return request.headers.get("X-Request-Id", type=str, default=Command.gen_id())
+
+
+def _extract_create_portfolio_command(
+    correlation_id: str,
+    payload: dict[str, T.Any],
+) -> CreatePortfolio:
     if "name" not in payload:
         err_msg = "'name' is required for create portfolio request"
         raise ValueError(err_msg)
@@ -56,6 +65,7 @@ def _extract_create_portfolio_command(payload: T.Mapping[str, T.Any]) -> CreateP
         raise TypeError(err_msg)
 
     return CreatePortfolio(
+        correlation_id=correlation_id,
         id=CreatePortfolio.gen_id(),
         name=name,
         assets=assets,

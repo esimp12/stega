@@ -1,11 +1,12 @@
 """API entrypoint for stega core service."""
 
-from flask import Blueprint, request
+from flask import Blueprint, request, Request
 
 from stega_core.adapters.rest.utils import ResponseType, get_dispatcher
 from stega_core.domain.commands import CreatePortfolio
 from stega_core.services.handlers.portfolio import list_portfolios
 from stega_core.ports.http import HttpRestPortfolioServicePort
+from stega_lib.domain import Command
 
 api = Blueprint("core_portfolio_api", __name__)
 
@@ -18,12 +19,13 @@ def create_portfolio() -> ResponseType:
         return {"ok": False, "msg": "Failed to process request."}, 400
 
     dispatcher = get_dispatcher()
-    cmd = _extract_create_portfolio_command(payload)
+    correlation_id = _extract_correlation_id(request)
+    cmd = _extract_create_portfolio_command(correlation_id, payload)
     result = dispatcher.handle(cmd)
     return {
         "ok": True,
         "msg": f"Successfully created portfolio '{cmd.name}' with result '{result}'.",
-        "result": result,
+        "result": result, 
     }, 201
 
 
@@ -39,7 +41,14 @@ def list_all_portfolios() -> ResponseType:
     }, 200
 
 
-def _extract_create_portfolio_command(payload: dict[str, str | dict[str, float]]) -> CreatePortfolio:
+def _extract_correlation_id(request: Request) -> str:
+    return request.headers.get("X-Request-Id", type=str, default=Command.gen_id())
+
+
+def _extract_create_portfolio_command(
+    correlation_id: str,
+    payload: dict[str, str | dict[str, float]],
+) -> CreatePortfolio:
     if "name" not in payload:
         err_msg = "'name' is required for create portfolio request"
         raise ValueError(err_msg)
@@ -55,6 +64,7 @@ def _extract_create_portfolio_command(payload: dict[str, str | dict[str, float]]
         raise TypeError(err_msg)
 
     return CreatePortfolio(
+        correlation_id=correlation_id,
         name=name,
         assets=assets,
     )

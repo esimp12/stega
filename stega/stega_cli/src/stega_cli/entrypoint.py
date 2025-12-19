@@ -71,6 +71,8 @@ def create_portfolio(
     portfolio_file: str,
 ) -> None:
     """Command to create a new portfolio."""
+    # TODO: Generate a correlation id. Send this command to the daemon. Have the dameon spawn a new
+    # thread which runs this code. Print out the correlation/status id.
     click.echo(f"Creating portfolio '{name}' from {portfolio_file}...")
     config = create_config()
     payload = _get_portfolio_payload(name, portfolio_file)
