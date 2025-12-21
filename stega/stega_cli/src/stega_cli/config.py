@@ -3,6 +3,7 @@
 import inspect
 import logging
 import os
+from pathlib import Path
 
 from stega_config import BaseConfig
 
@@ -18,6 +19,13 @@ class CliConfig(BaseConfig):
 
     STEGA_CLI_LOG_LEVEL: str = "INFO"
 
+    STEGA_CLI_BIN_DIR: str = str(Path(".local") / "bin")
+    STEGA_CLI_INSTALL_DIR: str = str(Path("software") / "stega")
+    STEGA_CLI_SHARE_DIR: str = str(Path(".local") / "share" / "stega")
+
+    STEGA_CLI_SYSTEMD_UNIT_NAME: str = "stega.service"
+    STEGA_CLI_SOCK_FILE: str = "stega.sock"
+
     STEGA_CORE_SERVER_NAME: str = "localhost"
     STEGA_CORE_SERVER_PORT: int = 20000
 
@@ -27,6 +35,13 @@ class CliConfig(BaseConfig):
         return (
             f"http://{self.STEGA_CORE_SERVER_NAME}:{self.STEGA_CORE_SERVER_PORT}/api"
         )
+
+    @property
+    def sock_path(self) -> str:
+        """Get the daemon socket path."""
+        local_share_dir = Path.home() / self.STEGA_CLI_SHARE_DIR
+        local_share_dir.mkdir(parents=True, exist_ok=True)
+        return f"{local_share_dir}/{self.STEGA_CLI_SOCK_FILE}"
 
 
 class ProdConfig(CliConfig):

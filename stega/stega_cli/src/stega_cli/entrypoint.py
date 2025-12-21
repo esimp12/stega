@@ -1,10 +1,32 @@
 """CLI entrypoint for stega portfolio management application."""
 
+from pathlib import Path
+
+import subprocess
 import click
 
 from stega_lib import http
 from stega_cli.config import create_config
 from stega_cli.daemon import acquire_connection, send_command, read_command, serve 
+
+_SYSTEMD_UNIT_FILE = """
+[Unit]
+Description=stega CLI background daemon
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=%h/.local/bin/stega start-daemon
+Environment=PYTHONUNBUFFERED=1
+Restart=on-failure
+RestartSec=2
+WorkingDirectory=%h
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=default.target
+"""
 
 
 @click.group()
@@ -12,10 +34,41 @@ def stega() -> None:
     """CLI for stega portfolio management application."""
 
 
+@click.option(
+    "--force",
+    is_flag=True,
+    help="Force overwriting the systemd user service unit file."
+)
 @stega.command()
-def serve_daemon() -> None:
-    sock_path = "/tmp/stega.sock"
-    serve(sock_path)
+def install_daemon(force: bool) -> None:
+    config = create_config()
+
+    # Create systemd unit file
+    systemd_user_path = Path.home() / ".config" / "systemd" / "user"
+    systemd_user_path.mkdir(parents=True, exist_ok=True)
+    systemd_unit_file_path = systemd_user_path / config.STEGA_CLI_SYSTEMD_UNIT_NAME
+    if not systemd_unit_file_path.exists() or force:
+        systemd_unit_file_path.write_text(_SYSTEMD_UNIT_FILE)
+
+    subprocess.run(["systemctl", "--user", "daemon-reload"])
+    subprocess.run(["systemctl", "--user", "enable", config.STEGA_CLI_SYSTEMD_UNIT_NAME])
+    subprocess.run(["systemctl", "--user", "restart", config.STEGA_CLI_SYSTEMD_UNIT_NAME])
+
+
+@stega.command()
+def start_daemon() -> None:
+    config = create_config()
+    serve(config.sock_path)
+
+
+@stega.command()
+def status() -> None:
+    pass
+
+
+@stega.command()
+def stop_daemon() -> None:
+    pass
 
 
 @click.argument("portfolio_id")
@@ -29,10 +82,10 @@ def get_portfolio(portfolio_id: str) -> None:
         },
     }
 
-    sock_path = "/tmp/stega.sock"
-    with acquire_connection(sock_path) as conn:
+    config = create_config()
+    with acquire_connection(config.sock_path) as conn:
         send_command(conn, cmd)
-        resp = read_command(conn)
+        # resp = read_command(conn)
 
 
 @stega.command()
