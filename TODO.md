@@ -6,4 +6,4 @@
     - Create client.py that sends JSON commands (and listens for returning correlation ids).
 - Write up architecture design for scheduled jobs
 - make conveinence command in stega cli to watch a specific topic, e.g. stega watch-topic ... 
-- move daemon related commands in CLI to its own group
+- have "serve" command trap on SIGKILL signals to release socket for future restarts, etc.
