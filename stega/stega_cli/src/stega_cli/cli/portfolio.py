@@ -4,34 +4,31 @@ from stega_cli.config import create_config
 from stega_cli.cli.entrypoint import stega
 from stega_cli.cli.utils import echo_banner
 from stega_cli.daemon import acquire_connection, send_command 
+from stega_cli.domain.command import GetPortfolio, ListPortfolios, CreatePortfolio
 from stega_lib import http
 
 
 @stega.group()
 def portfolio() -> None:
-    """"""
+    """Commands for managing portfolios."""
 
 
 @click.argument("portfolio_id")
 @portfolio.command()
 def get(portfolio_id: str) -> None:
     """Command to get a portfolio."""
-    cmd = {
-        "type": "GetPortfolio",
-        "args": {
-            "portfolio_id": portfolio_id,
-        },
-    }
-
     config = create_config()
+    cmd = GetPortfolio(portfolio_id)
     with acquire_connection(config.sock_path) as conn:
-        send_command(conn, cmd)
+        send_command(conn, cmd.to_json())
 
 
 @portfolio.command()
 def list() -> None:
     """Command to list existing portfolios."""
     config = create_config()
+    cmd = ListPortfolios()
+
     with http.acquire_session(config.core_service_url) as session:
         resp = session.get("portfolios")
         resp.raise_for_status()
@@ -50,7 +47,6 @@ def list() -> None:
             weight = asset["weight"]
             click.echo(f"  - {symbol} ({weight:.2f})")
         click.echo()
-
 
 
 @click.argument("name")

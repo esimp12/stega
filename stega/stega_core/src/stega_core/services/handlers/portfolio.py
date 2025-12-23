@@ -17,7 +17,7 @@ def create_portfolio(cmd: CreatePortfolio, service: PortfolioServicePort) -> str
 
     """
     data = _create_portfolio_data(cmd.name, cmd.assets)
-    return service.create(data)
+    return service.create(cmd.correlation_id, data)
 
 
 def get_portfolio(
