@@ -4,11 +4,29 @@ from flask import Blueprint, request, Request
 
 from stega_core.adapters.rest.utils import ResponseType, get_dispatcher
 from stega_core.domain.commands import CreatePortfolio
-from stega_core.services.handlers.portfolio import list_portfolios
+from stega_core.services.handlers import portfolio as handlers 
 from stega_core.ports.http import HttpRestPortfolioServicePort
 from stega_lib.domain import Command
 
 api = Blueprint("core_portfolio_api", __name__)
+
+
+@api.route("/portfolio/<string:portfolio_id>", methods=["GET"])
+def get_portfolio(portfolio_id: str) -> ResponseType:
+    """Get an existing portfolio."""
+    service = HttpRestPortfolioServicePort()
+    portfolio = handler.get_portfolio(service)
+    if portfolio is None:
+        return {
+            "ok": False,
+            "msg": f"Failed to find portfolio with id '{portfolio_id}'.",
+        }, 404
+
+    return {
+        "ok": True,
+        "msg": f"Successfully found portfolio with id '{portfolio_id}'.",
+        "result": portfolio,
+    }, 200
 
 
 @api.route("/portfolios", methods=["POST"])
@@ -33,7 +51,7 @@ def create_portfolio() -> ResponseType:
 def list_all_portfolios() -> ResponseType:
     """List all portfolios."""
     service = HttpRestPortfolioServicePort()
-    portfolios = list_portfolios(service)
+    portfolios = handlers.list_portfolios(service)
     return {
         "ok": True,
         "msg": "Successfully fetched all portfolios.",

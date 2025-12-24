@@ -6,17 +6,33 @@ from flask import Blueprint, request, Request
 
 from stega_portfolio.adapters.rest.utils import ViewResponseType, ResponseType, get_bus
 from stega_portfolio.domain.commands import CreatePortfolio
-from stega_portfolio.views.portfolio import list_portfolios
+from stega_portfolio.views import portfolio as views
 from stega_lib.domain import Command
 
 api = Blueprint("portfolio_api", __name__)
+
+@api.route("/portfolio/<string:portfolio_id>", methods=["GET"])
+def get_portfolio(portfolio_id: str) -> ViewResponseType:
+    bus = get_bus()
+    view = views.get_portfolio(bus.uow)
+    if view is None:
+        return {
+            "ok": False,
+            "msg": f"Failed to find portfolio with id '{portfolio_id}'."
+        }, 404
+
+    return {
+        "ok": True,
+        "msg": f"Successfully found portfolio with id '{portfolio_id}'."
+        "view": view,
+    }, 200
 
 
 @api.route("/portfolios", methods=["GET"])
 def get_portfolios() -> ViewResponseType:
     """Get a list of existing portfolios."""
     bus = get_bus()
-    view = list_portfolios(bus.uow)
+    view = views.list_portfolios(bus.uow)
     return {
         "ok": True,
         "msg": "Successfully retrieved all portfolios.",

@@ -1,12 +1,19 @@
 from dataclasses import dataclass, asdict
 import typing as T
 
+
 @dataclass
 class Response:
     """Response to send ack back from CLI daemon."""
 
+    status: str
+    result: dict[str, T.Any]
+
     def to_json(self) -> dict[str, T.Any]:
-        return {}
+        return {
+            "status": self.status,
+            "result": self.result,
+        }
 
 
 @dataclass
