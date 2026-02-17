@@ -23,7 +23,7 @@ def get_portfolio(portfolio_id: str) -> ViewResponseType:
 
     return {
         "ok": True,
-        "msg": f"Successfully found portfolio with id '{portfolio_id}'."
+        "msg": f"Successfully found portfolio with id '{portfolio_id}'.",
         "view": view,
     }, 200
 
