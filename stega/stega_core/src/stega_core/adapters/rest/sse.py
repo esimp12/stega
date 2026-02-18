@@ -49,7 +49,7 @@ def stream_topic(
             try:
                 msg = client_queue.get(timeout=0.5)
             except Empty:
-                yield "heartbeat\n"
+                yield ""
                 continue
             logger.info("SSE topic '%s' got message => '%s'", topic, msg) 
             yield msg

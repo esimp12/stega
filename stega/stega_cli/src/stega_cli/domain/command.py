@@ -34,7 +34,8 @@ class GetPortfolio(Command):
 
 @dataclass
 class CreatePortfolio(Command):
-    pass
+    name: str
+    assets: dict[str, float]
 
 
 @dataclass

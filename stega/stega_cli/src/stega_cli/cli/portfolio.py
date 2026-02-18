@@ -66,11 +66,13 @@ def create(
     click.echo(f"Creating portfolio '{name}' from {portfolio_file}...")
     config = create_config()
     payload = _get_portfolio_payload(name, portfolio_file)
-    with http.acquire_session(config.core_service_url) as session:
-        resp = session.post("portfolios", json=payload)
-        resp.raise_for_status()
-        data = resp.json()
-        click.echo(data)
+    cmd = CreatePortfolio(
+        name=payload["name"],
+        assets=payload["assets"],
+    )
+
+    with acquire_connection(config.sock_path) as conn:
+        send_command(conn, cmd.to_json())
 
 
 def _get_portfolio_payload(name: str, portfolio_file: str) -> dict[str, str | dict[str, float]]:

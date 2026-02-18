@@ -40,4 +40,3 @@ def bootstrap_dispatcher(
     }
     return Dispatcher(handlers=handlers)
 
-
