@@ -1,3 +1,4 @@
+import asyncio
 import subprocess
 from pathlib import Path
 
@@ -59,7 +60,7 @@ def install(force: bool) -> None:
 def start() -> None:
     """Serve the daemon to listen for CLI commands."""
     config = create_config()
-    serve(config.sock_path)
+    asyncio.run(serve(config.sock_path))
 
 
 @daemon.command()

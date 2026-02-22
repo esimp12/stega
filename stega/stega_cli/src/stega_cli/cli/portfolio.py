@@ -20,7 +20,7 @@ def get(portfolio_id: str) -> None:
     config = create_config()
     cmd = GetPortfolio(portfolio_id)
     with acquire_connection(config.sock_path) as conn:
-        send_command(conn, cmd.to_json())
+        send_command(conn, cmd.to_dict())
 
 
 @portfolio.command()
@@ -72,7 +72,7 @@ def create(
     )
 
     with acquire_connection(config.sock_path) as conn:
-        send_command(conn, cmd.to_json())
+        send_command(conn, cmd.to_dict())
 
 
 def _get_portfolio_payload(name: str, portfolio_file: str) -> dict[str, str | dict[str, float]]:

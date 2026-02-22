@@ -9,7 +9,7 @@ class Response:
     status: str
     result: dict[str, T.Any]
 
-    def to_json(self) -> dict[str, T.Any]:
+    def to_dict(self) -> dict[str, T.Any]:
         return {
             "status": self.status,
             "result": self.result,
@@ -20,11 +20,18 @@ class Response:
 class Command:
     """Command to send to CLI daemon."""
     
-    def to_json(self) -> dict[str, T.Any]:
+    def to_dict(self) -> dict[str, T.Any]:
         return {
             "type": _get_command_type(self),
             "args": _get_command_args(self),
         }
+
+    @classmethod
+    def from_dict(cmd_dict: dict[str, T.Any]) -> Command:
+        # TODO: load class from string
+        klass = cmd_dict["type"] 
+        kwargs = cmd_dict["args"]
+        return klass(**kwargs)
 
 
 @dataclass
