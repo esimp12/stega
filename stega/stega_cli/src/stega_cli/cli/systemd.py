@@ -13,6 +13,8 @@ _SYSTEMD_UNIT_FILE = """
 [Unit]
 Description=stega CLI background daemon
 After=network.target
+StartLimitBurst=5
+StartLimitIntervalSec=30
 
 [Service]
 Type=simple
