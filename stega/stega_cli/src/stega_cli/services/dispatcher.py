@@ -1,3 +1,11 @@
+from stega_cli.domain.command import Command 
+from stega_cli.services.handlers.mapping import (
+    COMMAND_HANDLERS,
+    CommandHandler,
+    ResponseType,
+)
+
+
 class Dispatcher:
     """Class for dispatching commands to associated service calls."""
 
@@ -5,14 +13,14 @@ class Dispatcher:
         """Inits a Dispatcher."""
         self._handlers = handlers
 
-    def handle(self, cmd: Command) -> PrimitiveType:
+    def handle(self, cmd: Command) -> ResposneType:
         """Dispatches a command to associated service and processes it accordingly.
 
         Args:
             cmd: A Commmand to dispatch to a service.
 
         Returns:
-            A PrimitiveType of the result of the commands service call.
+            A ResponseType of the result of the commands service call.
         """
         cmd_type = type(cmd)
         if cmd_type not in self._handlers:
@@ -21,22 +29,12 @@ class Dispatcher:
         return self._handlers[cmd_type](cmd)
 
 
-def bootstrap_dispatcher(
-    services: list[ServiceType],
-) -> Dispatcher:
+def bootstrap_dispatcher() -> Dispatcher:
     """Provisions the application with the selected runtime service ports.
-
-    Args:
-        services: A list of service ports to provision.
 
     Returns:
         A Dispatcher for mapping commands to their respective service handlers.
 
     """
-    dependencies = {"services": services}
-    handlers = {
-        command_type: inject_dispatcher_dependencies(handler, dependencies)
-        for command_type, handler in COMMAND_HANDLERS.items()
-    }
-    return Dispatcher(handlers=handlers)
+    return Dispatcher(handlers=COMMAND_HANDLERS)
 

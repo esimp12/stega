@@ -35,18 +35,28 @@ class Command:
 
 
 @dataclass
-class GetPortfolio(Command):
+class ReadCommand(Command):
+    pass
+
+
+@dataclass
+class WriteCommand(Command):
+    correlation_id: str
+
+
+@dataclass
+class GetPortfolio(ReadCommand):
     portfolio_id: str
 
 
 @dataclass
-class CreatePortfolio(Command):
+class CreatePortfolio(WriteCommand):
     name: str
     assets: dict[str, float]
 
 
 @dataclass
-class ListPortfolios(Command):
+class ListPortfolios(ReadCommand):
     pass
 
 
