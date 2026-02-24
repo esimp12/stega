@@ -1,6 +1,6 @@
 import typing as T
 
-from stega_cli.domain.command import Response, Command, GetPortfolio
+from stega_cli.domain.command import Response, Command, GetPortfolio, CreatePortfolio
 from stega_cli.services.handlers.portfolio import get_portfolio, create_portfolio
 
 

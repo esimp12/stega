@@ -1,7 +1,7 @@
 from stega_cli.domain.command import Command 
 from stega_cli.services.handlers.mapping import (
     COMMAND_HANDLERS,
-    CommandHandler,
+    CommandHandlers,
     ResponseType,
 )
 
@@ -9,7 +9,7 @@ from stega_cli.services.handlers.mapping import (
 class Dispatcher:
     """Class for dispatching commands to associated service calls."""
 
-    def __init__(self, handlers: ServiceHandlers) -> None:
+    def __init__(self, handlers: CommandHandlers) -> None:
         """Inits a Dispatcher."""
         self._handlers = handlers
 
