@@ -27,7 +27,7 @@ class Command:
         }
 
     @classmethod
-    def from_dict(cmd_dict: dict[str, T.Any]) -> Command:
+    def from_dict(cls, cmd_dict: dict[str, T.Any]) -> Command:
         # TODO: load class from string
         klass = cmd_dict["type"] 
         kwargs = cmd_dict["args"]

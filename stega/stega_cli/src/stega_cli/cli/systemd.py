@@ -84,7 +84,7 @@ def status() -> None:
 
 
 @daemon.command()
-def stop() -> None:
+def uninstall() -> None:
     """Stop and disable the daemon systemd user service."""
     config = create_config()
     subprocess.run(["systemctl", "--user", "stop", config.STEGA_CLI_SYSTEMD_UNIT_NAME])
