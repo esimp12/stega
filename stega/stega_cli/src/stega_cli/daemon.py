@@ -44,7 +44,7 @@ def send_command(
 
 def read_command(sock: socket.SocketType) -> T.dict[str, T.Any]:
     # Get prefix length header - 4 bytes
-    header_raw = read_byes(sock, 4)
+    header_raw = read_bytes(sock, 4)
 
     # Find number of payload bytes to read
     header = struct.unpack("!I", header_raw)
