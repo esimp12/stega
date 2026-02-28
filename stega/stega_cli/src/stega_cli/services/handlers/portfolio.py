@@ -1,7 +1,8 @@
 from dataclasses import asdict
 
 from stega_cli.config import create_config
-from stega_cli.domain.command import Response, GetPortfolio
+from stega_cli.domain.command import GetPortfolio
+from stega_cli.domain.request import Response
 from stega_cli.ports import db
 from stega_cli.ports import portfolio as portfolio_db
 from stega_lib import http

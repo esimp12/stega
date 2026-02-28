@@ -50,26 +50,26 @@ class WriteCommandRequest(CommandRequest):
 
 
 @dataclass
-class GetPortfolio(ReadCommandRequest):
+class GetPortfolioRequest(ReadCommandRequest):
     portfolio_id: str
 
 
 @dataclass
-class CreatePortfolio(WriteCommandRequest):
+class CreatePortfolioRequest(WriteCommandRequest):
     name: str
     assets: dict[str, float]
 
 
 @dataclass
-class ListPortfolios(ReadCommandRequest):
+class ListPortfoliosRequest(ReadCommandRequest):
     pass
 
 
-def _get_command_type(cmd: Command) -> str:
+def _get_command_type(cmd: CommandRequest) -> str:
     return cmd.__class__.__name__
 
 
-def _get_command_args(cmd: Command) -> dict[str, T.Any]:
+def _get_command_args(cmd: CommandReqeust) -> dict[str, T.Any]:
     return asdict(cmd) 
 
 

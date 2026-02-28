@@ -10,8 +10,7 @@ from stega_cli.services.handlers.portfolio import get_portfolio, create_portfoli
 
 
 CommandType = type[Command]
-ResponseType = type[Response]
-CommandHandlerType = T.Callable[[Command], ResponseType]
+CommandHandlerType = T.Callable[[Command], T.Optional[Response]]
 CommandHandlers = dict[CommandType, CommandHandlerType]
 
 COMMAND_HANDLERS: CommandHandlers = {

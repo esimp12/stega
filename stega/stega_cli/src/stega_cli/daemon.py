@@ -6,13 +6,9 @@ import socket
 import struct
 import typing as T
 
-from stega_cli.domain.command import (
-    Command,
-    ReadCommand,
-    WriteCommand,
-    Response,
-)
-from stega_cli.services.dispatcher import bootstrap_dispatcher, Dispatcher
+from stega_cli.domain.request import CommandRequest
+from stega_cli.services.command import CommandDispatcher, bootstrap_cmd_dispatcher
+from stega_cli.services.request import RequestDispatcher
 
 
 @contextlib.contextmanager
@@ -87,61 +83,51 @@ async def read_command_async(reader: asyncio.StreamReader) -> T.dict[str, Any]:
 async def handle_client(
     reader: asyncio.StreamReader,
     writer: asyncio.StreamWriter,
-    cmd_queue: asyncio.Queue,
-    dispatcher: Dispatcher,
+    request_dispatcher: RequestDispatcher
 ) -> None:
     while True:
         payload = await read_command_async(reader)
-        cmd = Command.from_dict(payload) 
-
-        # ReadCommand, synchronously generate resposne
-        if isinstance(cmd, ReadCommand):
-            response = dispatcher.handle(cmd)
-
-        # WriteCommand, asynchronously hand off work to command queue, immediately return correlation id
-        elif isinstance(cmd, WriteCommand):
-            response = Response(
-                status="ok",
-                result={"correlation_id": cmd.correlation_id},
-            )
-            await cmd_queue.put(cmd)
-        
-        # Send response back to socket caller
-        await send_command_async(writer, response.to_dict())
-
+        cmd_req = CommandRequest.from_dict(payload) 
+        resp = await request_dispatcher.handle(cmd_req)
+        await send_command_async(writer, resp.to_dict())
     writer.close()
     await writer.wait_closed()
 
 
 async def handle_command(
     cmd_queue: asyncio.Queue,
-    dispatcher: Dispatcher,
+    cmd_dispatcher: CommandDispatcher,
 ) -> None:
     while True:
         cmd = await cmd_queue.get()
-        dispatcher.handle(cmd)
+        cmd_dispatcher.handle(cmd)
 
 
 async def serve(sock_path: str) -> None:
     # Queue to handle async tasks read from socket
     cmd_queue = asyncio.Queue()
 
-    # Dispatcher to send commands to appropriate handlers
-    dispatcher = bootstrap_dispatcher()
+    # Command dispatcher to send commands to appropriate handlers
+    cmd_dispatcher = bootstrap_cmd_dispatcher()
+
+    # Request dispatcher to delegate requests to appropriate commands
+    req_dispatcher = RequestDispatcher(
+        cmd_dispatcher=cmd_dispatcher,
+        cmd_queue=cmd_queue,
+    )
 
     # Create socket handler
     handle_client_partial = functools.partial(
         handle_client,
-        cmd_queue=cmd_queue,
-        dispatcher=dispatcher,
+        req_dispatcher=req_dispatcher,
     )
     server = await asyncio.start_unix_server(
         handle_client_partial,
         path=sock_path,
     )
 
-    # Create cmd consumer task
-    asyncio.create_task(handle_command(cmd_queue, dispatcher))
+    # Create cmd consumer task, handles writes asynchronously
+    asyncio.create_task(handle_command(cmd_queue, cmd_dispatcher))
 
     async with server:
         await server.serve_forever()
