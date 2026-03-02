@@ -1,3 +1,4 @@
+import json
 from dataclasses import asdict
 
 from stega_cli.config import create_config
@@ -5,7 +6,9 @@ from stega_cli.domain.command import GetPortfolio
 from stega_cli.domain.request import Response
 from stega_cli.ports import db
 from stega_cli.ports import portfolio as portfolio_db
+from stega_cli.ports import actions as actions_db
 from stega_lib import http
+from stega_lib.events import PortfolioCreated
 
 
 # TODO: We don't have a true event based system here. We are still dependent on synchronous network calls (e.g. each network call dispatches work in a synchronous manner and doesn't return immediately with a response/correlation id to allow for future querying).
@@ -49,23 +52,56 @@ def get_portfolio(cmd: GetPortfolio) -> Response:
     )
 
 
-def create_portfolio(cmd: CreatePortfolio) -> Response:
+def create_portfolio(cmd: CreatePortfolio) -> None:
     config = create_config()
 
-    data = {}
+    # submit the portfolio creation request
     with http.acquire_session(config.core_service_url) as session:
         payload = {
             "name": cmd.name,
             "assets": cmd.assets,
         }
         resp = session.post("portfolios", json=payload)
-        data = resp.json()
+        resp.raise_for_status()
 
-    status = data["ok"]
-    result = data["result"] if status else {}
+    # subscribe to create portfolio topic and wait
+    listen_for_create_portfolio_event(cmd.correlation_id)
 
-    return Response(
-        status="ok" if status else "error",
-        result=str(result),
-    )
+
+def listen_for_create_portfolio_event(correlation_id: str) -> None:
+    config = create_config()
+    
+    # subscribe to event and wait for result
+    data = {}
+    topic_url = f"/events/{PortfolioCreated.topic}"
+    with http.acquire_session(config.core_service_url) as session:
+        with session.stream("GET", topic_url) as resp:
+            for line in resp.iter_lines():
+                if not line:
+                    continue
+                
+                # check if correlation id is present 
+                data = json.loads(line)
+                if correlation_id == data["correlation_id"]:
+                    # entity found so break
+                    break
+
+    portfolio_id = data["portfolio_id"]
+    name = data["name"]
+    assets = data["assets"]
+    with db.acquire_connection(config.db_uri) as conn:
+        # record entity in portfolios
+        portfolio_db.upsert_portfolio(
+            conn,
+            portfolio_id,
+            name,
+            assets,
+        )
+        # record entity in actions
+        actions_db.insert_correlation(
+            conn,
+            correlation_id,
+            portfolio_id,
+        )
+        conn.commit()
 

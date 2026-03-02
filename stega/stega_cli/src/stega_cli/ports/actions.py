@@ -1,11 +1,10 @@
 import sqlite3
-import typing as T
 
 
 def get_entity_id(
     conn: sqlite3.Connection,
     correlation_id: str,
-) -> T.Optional[str]:
+) -> str | None:
     """Get the entity id correlated with a client action."""
     with conn.cursor() as cur:
         res = cur.execute("""
@@ -16,7 +15,7 @@ def get_entity_id(
         WHERE
           correlation_id = :correlation_id 
         """,
-        {"correlation_id": correlation_id},
+        { "correlation_id": correlation_id },
         )
         entity_id = res.fetchone()
 
@@ -27,10 +26,17 @@ def get_entity_id(
     return entity_id
 
 
-def create_correlation(
+def insert_correlation(
     conn: sqlite3.Connection,
     correlation_id: str,
     entity_id: str,
 ) -> None:
-    pass
-    # TODO: insert correlation_id, entity_id into table
+    with conn.cursor() as cur:
+        cur.execute("""
+        INSERT INTO actions VALUES(:correlation_id, :entity_id)
+        """,
+        {
+            "correlation_id": correlation_id,
+            "entity_id": entity_id,
+        },
+        )
