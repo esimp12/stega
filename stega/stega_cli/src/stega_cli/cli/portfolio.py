@@ -26,8 +26,13 @@ def get(portfolio_id: str) -> None:
     with acquire_connection(config.sock_path) as conn:
         send_command(conn, cmd.to_dict())
         response = read_command(conn)
+    
+    status = response["status"]
     result = response["result"]
-    click.echo(result)
+    if status == "error":
+        click.echo(click.style(result, fg="red"))
+    else:
+        click.echo(result)
 
 
 @portfolio.command()

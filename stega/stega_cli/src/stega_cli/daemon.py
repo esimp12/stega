@@ -9,6 +9,7 @@ import typing as T
 from stega_cli.domain.request import CommandRequest
 from stega_cli.services.command import CommandDispatcher, bootstrap_cmd_dispatcher
 from stega_cli.services.request import RequestDispatcher
+from stega_cli.ports import db
 
 
 @contextlib.contextmanager
@@ -85,11 +86,10 @@ async def handle_client(
     writer: asyncio.StreamWriter,
     request_dispatcher: RequestDispatcher
 ) -> None:
-    while True:
-        payload = await read_command_async(reader)
-        cmd_req = CommandRequest.from_dict(payload) 
-        resp = await request_dispatcher.handle(cmd_req)
-        await send_command_async(writer, resp.to_dict())
+    payload = await read_command_async(reader)
+    cmd_req = CommandRequest.from_dict(payload) 
+    resp = await request_dispatcher.handle(cmd_req)
+    await send_command_async(writer, resp.to_dict())
     writer.close()
     await writer.wait_closed()
 
@@ -108,7 +108,7 @@ async def serve(
     db_path: str,
 ) -> None:
     # Initialzie database
-    init_db(db_path)
+    db.init_db(db_path)
 
     # Queue to handle async tasks read from socket
     cmd_queue = asyncio.Queue()

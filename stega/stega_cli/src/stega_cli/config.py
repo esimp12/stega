@@ -50,9 +50,9 @@ class CliConfig(BaseConfig):
         return f"{self.local_share_dir}/{self.STEGA_CLI_SOCK_FILE}"
 
     @property
-    def db_uri(self) -> str:
+    def db_path(self) -> str:
         """Get the local sqlite db cache."""
-        return f"{self.local_share_dir}/self.STEGA_CLI_DB_FILE"
+        return f"{self.local_share_dir}/{self.STEGA_CLI_DB_FILE}"
 
 
 class ProdConfig(CliConfig):

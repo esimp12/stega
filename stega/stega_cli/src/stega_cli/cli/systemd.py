@@ -62,7 +62,8 @@ def install(force: bool) -> None:
 def start() -> None:
     """Serve the daemon to listen for CLI commands."""
     config = create_config()
-    asyncio.run(serve(config.sock_path))
+    coro = serve(config.sock_path, config.db_path)
+    asyncio.run(coro)
 
 
 @daemon.command()

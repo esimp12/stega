@@ -28,7 +28,7 @@ def get_portfolio(cmd: GetPortfolio) -> Response:
     config = create_config()
     
     # check if portfolio is locally cached first
-    with db.acquire_connection(config.db_uri) as conn:
+    with db.acquire_connection(config.db_path) as conn:
         portfolio = portfolio_db.get_portfolio(conn, cmd.portfolio_id) 
         if portfolio is not None:
             return Response(
@@ -43,12 +43,13 @@ def get_portfolio(cmd: GetPortfolio) -> Response:
         data = resp.json()
     
     status = data["ok"]
-    result = data["result"] if status else {}
+    result = data["result"] if status else data["msg"] 
+
     # TODO: cache result locally if found
 
     return Response(
         status="ok" if status else "error",
-        result=asdict(result),
+        result=result,
     )
 
 
@@ -89,7 +90,7 @@ def listen_for_create_portfolio_event(correlation_id: str) -> None:
     portfolio_id = data["portfolio_id"]
     name = data["name"]
     assets = data["assets"]
-    with db.acquire_connection(config.db_uri) as conn:
+    with db.acquire_connection(config.db_path) as conn:
         # record entity in portfolios
         portfolio_db.upsert_portfolio(
             conn,

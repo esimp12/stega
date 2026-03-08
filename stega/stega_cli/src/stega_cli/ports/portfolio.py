@@ -5,22 +5,21 @@ from stega_cli.domain.portfolio import Portfolio, PortfolioAsset
 
 
 def get_portfolios(conn: sqlite3.Connection) -> list[Portfolio]:
-    rows = []
-    with conn.cursor() as cur:
-        res = cur.execute("""
-        SELECT
-          p.id AS portfolio_id,
-          p.name AS name,
-          pa.symbol AS symbol,
-          pa.weight AS weight
-        FROM
-          portfolios p
-        LEFT JOIN
-          portfolio_assets pa
-        ON
-          p.id = pa.portfolio_id
-        """)
-        rows = res.fetchall()
+    cursor = conn.cursor()
+    res = cursor.execute("""
+    SELECT
+      p.portfolio_id AS portfolio_id,
+      p.name AS name,
+      pa.symbol AS symbol,
+      pa.weight AS weight
+    FROM
+      portfolios p
+    LEFT JOIN
+      portfolio_assets pa
+    ON
+      p.portfolio_id = pa.portfolio_id
+    """)
+    rows = res.fetchall()
     
     portfolios = {}
     for row in rows:
@@ -40,26 +39,25 @@ def get_portfolios(conn: sqlite3.Connection) -> list[Portfolio]:
 
 
 def get_portfolio(conn: sqlite3.Connection, portfolio_id: str) -> T.Optional[Portfolio]:
-    rows = []
-    with conn.cursor() as conn:
-        res = cur.execute("""
-        SELECT
-          p.id AS portfolio_id,
-          p.name AS name,
-          pa.symbol AS symbol,
-          pa.weight AS weight
-        FROM
-          portfolios p
-        LEFT JOIN
-          portfolio_assets pa
-        ON
-          p.id = pa.portfolio_id
-        WHERE
-          p.id = :portfolio_id 
-        """, 
-        {"portfolio_id": portfolio_id},
-        )
-        rows = res.fetchall()
+    cursor = conn.cursor()
+    res = cursor.execute("""
+    SELECT
+      p.portfolio_id AS portfolio_id,
+      p.name AS name,
+      pa.symbol AS symbol,
+      pa.weight AS weight
+    FROM
+      portfolios p
+    LEFT JOIN
+      portfolio_assets pa
+    ON
+      p.portfolio_id = pa.portfolio_id
+    WHERE
+      p.portfolio_id = :portfolio_id 
+    """, 
+    {"portfolio_id": portfolio_id},
+    )
+    rows = res.fetchall()
     
     if not rows:
         return None
@@ -80,6 +78,6 @@ def get_portfolio(conn: sqlite3.Connection, portfolio_id: str) -> T.Optional[Por
     return next(portfolios.values())
     
 
-def upsert_portfolio(conn) -> None:
+def upsert_portfolio(conn: sqlite3.Connection) -> None:
     pass
 
