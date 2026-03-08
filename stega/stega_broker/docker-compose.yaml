@@ -8,6 +8,12 @@ services:
       RABBITMQ_DEFAULT_PASS: ${STEGA_BROKER_PASS} 
     volumes:
       - broker_data:/var/lib/rabbitmq
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 10s
 
 volumes:
   broker_data:

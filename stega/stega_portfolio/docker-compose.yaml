@@ -6,10 +6,10 @@ services:
       context: .
       dockerfile: Dockerfile
     depends_on:
+      broker:
+        condition: service_healthy
       portfolio_db:
         condition: service_healthy
-    links:
-      - portfolio_db
     environment:
       STEGA_PORTFOLIO_ENV: ${STEGA_PORTFOLIO_ENV}
       STEGA_PORTFOLIO_LOG_LEVEL: ${STEGA_PORTFOLIO_LOG_LEVEL}
