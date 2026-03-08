@@ -35,8 +35,8 @@ def bootstrap_cmd_dispatcher() -> CommandDispatcher:
     """Provisions the application with the selected runtime service ports.
 
     Returns:
-        A Dispatcher for mapping commands to their respective service handlers.
+        A CommandDispatcher for mapping commands to their respective service handlers.
 
     """
-    return Dispatcher(handlers=COMMAND_HANDLERS)
+    return CommandDispatcher(handlers=COMMAND_HANDLERS)
 

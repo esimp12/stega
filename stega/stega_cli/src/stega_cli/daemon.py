@@ -103,7 +103,13 @@ async def handle_command(
         cmd_dispatcher.handle(cmd)
 
 
-async def serve(sock_path: str) -> None:
+async def serve(
+    sock_path: str,
+    db_path: str,
+) -> None:
+    # Initialzie database
+    init_db(db_path)
+
     # Queue to handle async tasks read from socket
     cmd_queue = asyncio.Queue()
 
@@ -119,7 +125,7 @@ async def serve(sock_path: str) -> None:
     # Create socket handler
     handle_client_partial = functools.partial(
         handle_client,
-        req_dispatcher=req_dispatcher,
+        request_dispatcher=req_dispatcher,
     )
     server = await asyncio.start_unix_server(
         handle_client_partial,

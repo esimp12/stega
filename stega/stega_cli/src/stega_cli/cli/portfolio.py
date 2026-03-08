@@ -4,7 +4,11 @@ from stega_cli.config import create_config
 from stega_cli.cli.entrypoint import stega
 from stega_cli.cli.utils import echo_banner
 from stega_cli.daemon import acquire_connection, send_command, read_command
-from stega_cli.domain.command import GetPortfolio, ListPortfolios, CreatePortfolio
+from stega_cli.domain.request import (
+    GetPortfolioRequest,
+    ListPortfoliosRequest,
+    CreatePortfolioRequest,
+)
 from stega_lib import http
 
 
@@ -18,11 +22,10 @@ def portfolio() -> None:
 def get(portfolio_id: str) -> None:
     """Command to get a portfolio."""
     config = create_config()
-    cmd = GetPortfolio(portfolio_id)
+    cmd = GetPortfolioRequest(portfolio_id)
     with acquire_connection(config.sock_path) as conn:
         send_command(conn, cmd.to_dict())
         response = read_command(conn)
-    
     result = response["result"]
     click.echo(result)
 
@@ -31,7 +34,7 @@ def get(portfolio_id: str) -> None:
 def list() -> None:
     """Command to list existing portfolios."""
     config = create_config()
-    cmd = ListPortfolios()
+    cmd = ListPortfoliosRequest()
 
     with http.acquire_session(config.core_service_url) as session:
         resp = session.get("portfolios")
@@ -69,7 +72,7 @@ def create(
     config = create_config()
     payload = _get_portfolio_payload(name, portfolio_file)
 
-    cmd = CreatePortfolio(
+    cmd = CreatePortfolioRequest(
         name=payload["name"],
         assets=payload["assets"],
     )

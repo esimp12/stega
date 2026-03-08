@@ -25,6 +25,7 @@ class CliConfig(BaseConfig):
 
     STEGA_CLI_SYSTEMD_UNIT_NAME: str = "stega.service"
     STEGA_CLI_SOCK_FILE: str = "stega.sock"
+    STEGA_CLI_DB_FILE: str = "stega.db"
 
     STEGA_CORE_SERVER_NAME: str = "localhost"
     STEGA_CORE_SERVER_PORT: int = 20000
@@ -37,17 +38,29 @@ class CliConfig(BaseConfig):
         )
 
     @property
-    def sock_path(self) -> str:
-        """Get the daemon socket path."""
+    def local_share_dir(self) -> str:
+        """Get the local share directory path."""
         local_share_dir = Path.home() / self.STEGA_CLI_SHARE_DIR
         local_share_dir.mkdir(parents=True, exist_ok=True)
-        return f"{local_share_dir}/{self.STEGA_CLI_SOCK_FILE}"
+        return str(local_share_dir)
+
+    @property
+    def sock_path(self) -> str:
+        """Get the daemon socket path."""
+        return f"{self.local_share_dir}/{self.STEGA_CLI_SOCK_FILE}"
+
+    @property
+    def db_uri(self) -> str:
+        """Get the local sqlite db cache."""
+        return f"{self.local_share_dir}/self.STEGA_CLI_DB_FILE"
 
 
 class ProdConfig(CliConfig):
     """Production configuration for the stega CLI."""
 
     STEGA_CLI_ENV: str = "prod"
+
+    STEGA_CLI_DB_FILE: str = "stega.db"
 
 
 class DevConfig(CliConfig):
@@ -57,6 +70,8 @@ class DevConfig(CliConfig):
     STEGA_CLI_DEBUG: bool = True
 
     STEGA_CLI_LOG_LEVEL: str = "DEBUG"
+
+    STEGA_CLI_DB_FILE: str = "stega.dev.db"
 
 
 def create_config(env: str | None = None) -> CliConfig:
