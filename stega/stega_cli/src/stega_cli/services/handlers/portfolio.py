@@ -39,7 +39,7 @@ def get_portfolio(cmd: GetPortfolio) -> Response:
     data = {}
     # hit api to get latest result
     with http.acquire_session(config.core_service_url) as session:
-        resp = session.get(f"porftolio/{cmd.portfolio_id}")
+        resp = session.get(f"portfolio/{cmd.portfolio_id}")
         data = resp.json()
     
     status = data["ok"]
@@ -74,7 +74,7 @@ def listen_for_create_portfolio_event(correlation_id: str) -> None:
     
     # subscribe to event and wait for result
     data = {}
-    topic_url = f"/events/{PortfolioCreated.topic}"
+    topic_url = f"events/{PortfolioCreated.topic}"
     with http.acquire_session(config.core_service_url) as session:
         with session.stream("GET", topic_url) as resp:
             for line in resp.iter_lines():

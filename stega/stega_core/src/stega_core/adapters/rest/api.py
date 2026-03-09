@@ -15,7 +15,7 @@ api = Blueprint("core_portfolio_api", __name__)
 def get_portfolio(portfolio_id: str) -> ResponseType:
     """Get an existing portfolio."""
     service = HttpRestPortfolioServicePort()
-    portfolio = handler.get_portfolio(service)
+    portfolio = handlers.get_portfolio(portfolio_id, service)
     if portfolio is None:
         return {
             "ok": False,

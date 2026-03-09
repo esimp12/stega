@@ -2,6 +2,7 @@
 
 from stega_lib import http
 
+from stega_core.domain.errors import CoreAppError
 from stega_core.domain.portfolio import PortfolioData
 from stega_core.ports.base import PortfolioServicePort
 
@@ -49,10 +50,12 @@ class HttpRestPortfolioServicePort(PortfolioServicePort):
 
         """
         with http.acquire_session(self.config.portfolio_service_url) as session:
-            resp = session.get(f"portfolios/{id}")
-            resp.raise_for_status()
+            resp = session.get(f"portfolio/{id}")
             data = resp.json()
-            return PortfolioData(name=data["name"], assets=data["assets"])
+            if not data["ok"]:
+                raise CoreAppError(data["msg"])
+            view = data["view"]
+            return PortfolioData(name=view["name"], assets=view["assets"])
 
     def update(self, correlation_id: str, id: str, portfolio: PortfolioData) -> None:
         return None

@@ -14,7 +14,7 @@ api = Blueprint("portfolio_api", __name__)
 @api.route("/portfolio/<string:portfolio_id>", methods=["GET"])
 def get_portfolio(portfolio_id: str) -> ViewResponseType:
     bus = get_bus()
-    view = views.get_portfolio(bus.uow)
+    view = views.get_portfolio(bus.uow, portfolio_id)
     if view is None:
         return {
             "ok": False,
