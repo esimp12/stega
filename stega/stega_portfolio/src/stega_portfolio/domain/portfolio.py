@@ -70,9 +70,10 @@ class Portfolio(Aggregate):
         self.assets = assets
         self.events = []
 
-    def allocate(self) -> None:
+    def allocate(self, correlation_id: str) -> None:
         """Allocate the portfolio so it can be used."""
-        self.events.append(PortfolioCreated(self.id))
+        event = PortfolioCreated(correlation_id, self.id)
+        self.events.append(event)
 
     def deallocate(self) -> None:
         """Deallocate the portfolio so it no longer exists along with its asset composition."""
@@ -104,5 +105,4 @@ class Portfolio(Aggregate):
         """
         assets = PortfolioAsset.from_dict(cmd.id, cmd.assets)
         portfolio = cls(id=cmd.id, name=cmd.name, assets=assets)
-        portfolio.allocate()
         return portfolio

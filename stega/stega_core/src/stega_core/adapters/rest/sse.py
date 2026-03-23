@@ -1,3 +1,4 @@
+import json
 import time
 from queue import Queue, Empty
 import typing as T
@@ -48,11 +49,13 @@ def stream_topic(
         while True:
             try:
                 msg = client_queue.get(timeout=0.5)
+                data = json.loads(msg)
             except Empty:
-                yield ""
+                yield '{"type": "heartbeat"}\n'
                 continue
             logger.info("SSE topic '%s' got message => '%s'", topic, msg) 
-            yield msg
+            data["type"] = "message"
+            yield f'{json.dumps(data)}\n'
     finally:
         logger.info("SSE topic '%s' cleanup", topic)
         streams.remove_topic_queue(topic, client_queue)

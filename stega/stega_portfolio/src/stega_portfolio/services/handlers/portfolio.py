@@ -22,6 +22,7 @@ def create_portfolio(cmd: CreatePortfolio, uow: AbstractUnitOfWork) -> None:
         if uow.portfolios.get(cmd.id) is not None:
             err_msg = f"Portfolio with ID {cmd.id} already exists."
             raise ConflictError(err_msg)
+        portfolio.allocate(cmd.correlation_id)
         uow.portfolios.add(portfolio)
         uow.commit()
 

@@ -2,6 +2,7 @@
 
 import asyncio
 import contextlib
+import functools
 import types
 import typing as T
 
@@ -68,21 +69,52 @@ def fetch(
 def acquire_session(
     base_url: str,
     params: dict[str, T.Any] | None = None,
+    timeout: bool = True,
+    timeout_params: dict[str, T.Any] | None = None,
 ) -> T.Generator[httpx.Client, None, None]:
     """Acquire a synchronous HTTP client session for use as a context manager.
 
     Args:
         base_url (str): The base URL for the HTTP client.
         params (dict[str, T.Any] | None): Optional parameters to include in the requests.
+        timeout (bool): Flag to enable or disable default client timeout for requests.
+            Note that the default timeout is 5 seconds.
+        timeout_params (dict[str, T.Any] | None): Optional timeout parameters to use when
+            a timeout is enabled on the client. Use these to overwrite the default timeout.
 
     Yields:
         httpx.Client: A context manager that yields an HTTP client session.
     """
-    with httpx.Client(
-        base_url=base_url,
-        params=params,
-        http2=True,
-    ) as client:
+    # prepare timeout
+    if not timeout:
+        # disable timeout
+        client_context_mgr = functools.partial(
+            httpx.Client,
+            base_url=base_url,
+            params=params,
+            http2=True,
+            timeout=None,
+        )
+    elif timeout_params is not None:
+        # timeout with custom settings
+        timeout = httpx.Timeout(**timeout_params)
+        client_context_mgr = functools.partial(
+            httpx.Client,
+            base_url=base_url,
+            params=params,
+            http2=True,
+            timeout=timeout,
+        )
+    else:
+        # default timeout
+        client_context_mgr = functools.partial(
+            httpx.Client,
+            base_url=base_url,
+            params=params,
+            http2=True,
+        )
+
+    with client_context_mgr() as client:
         yield client
 
 
