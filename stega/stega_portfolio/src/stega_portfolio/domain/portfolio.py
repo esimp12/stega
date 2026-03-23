@@ -72,7 +72,15 @@ class Portfolio(Aggregate):
 
     def allocate(self, correlation_id: str) -> None:
         """Allocate the portfolio so it can be used."""
-        event = PortfolioCreated(correlation_id, self.id)
+        event = PortfolioCreated(
+            correlation_id=correlation_id,
+            portfolio_id=self.id,
+            name=self.name,
+            assets=[
+                {"symbol": asset.symbol, "weight": asset.weight}
+                for asset in self.assets
+            ],
+        )
         self.events.append(event)
 
     def deallocate(self) -> None:

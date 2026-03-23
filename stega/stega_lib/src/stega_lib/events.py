@@ -59,19 +59,24 @@ class PortfolioCreated(Event):
     def __init__(
         self,
         correlation_id: str,
-        id: str,  # noqa: A002
+        portfolio_id: str,
+        name: str,
+        assets: list[dict[str, str | float]],
     ) -> None:
         """Initialize the PortfolioCreated event."""
         super().__init__(correlation_id)
-        self.id = id
+        self.portfolio_id = portfolio_id
+        self.name = name
+        self.assets = assets
 
     def to_message(self) -> str:
         """See Event."""
         body = {
-            "id": self.id,
+            "correlation_id": self.correlation_id,
+            "portfolio_id": self.portfolio_id,
+            "name": self.name,
+            "assets": self.assets,
         }
-        if self.correlation_id is not None:
-            body["correlation_id"] = self.correlation_id
         return json.dumps(body)
 
 

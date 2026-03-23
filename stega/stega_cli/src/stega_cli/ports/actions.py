@@ -31,12 +31,12 @@ def insert_correlation(
     correlation_id: str,
     entity_id: str,
 ) -> None:
-    with conn.cursor() as cur:
-        cur.execute("""
-        INSERT INTO actions VALUES(:correlation_id, :entity_id)
-        """,
-        {
-            "correlation_id": correlation_id,
-            "entity_id": entity_id,
-        },
-        )
+    cursor = conn.cursor()
+    cursor.execute("""
+    INSERT INTO actions (correlation_id, entity_id) VALUES(:correlation_id, :entity_id)
+    """,
+    {
+        "correlation_id": correlation_id,
+        "entity_id": entity_id,
+    },
+    )

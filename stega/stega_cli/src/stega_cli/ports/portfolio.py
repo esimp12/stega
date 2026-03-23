@@ -78,6 +78,29 @@ def get_portfolio(conn: sqlite3.Connection, portfolio_id: str) -> T.Optional[Por
     return next(portfolios.values())
     
 
-def upsert_portfolio(conn: sqlite3.Connection) -> None:
-    pass
+def upsert_portfolio(
+    conn: sqlite3.Connection,
+    portfolio_id: str,
+    name: str,
+    assets: list[dict[str, str | float]],
+) -> None:
+    cursor = conn.cursor()
+    cursor.execute("""
+    INSERT INTO portfolios (portfolio_id, name) VALUES(:portfolio_id, :name) 
+    """,
+    {"portfolio_id": portfolio_id, "name": name},
+    )
+    asset_rows = [
+        {
+            "portfolio_id": portfolio_id,
+            "symbol": asset["symbol"],
+            "weight": asset["weight"],
+        }
+        for asset in assets
+    ]
+    cursor.executemany("""
+    INSERT INTO portfolio_assets (portfolio_id, symbol, weight) VALUES(:portfolio_id, :symbol, :weight)
+    """,
+    asset_rows,
+    )
 
