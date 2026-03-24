@@ -3,7 +3,11 @@ import json
 from dataclasses import asdict
 
 from stega_cli.config import create_config
-from stega_cli.domain.command import GetPortfolio 
+from stega_cli.domain.command import (
+    CreatePortfolio,
+    GetPortfolio,
+    ListPortfolios,
+)
 from stega_cli.domain.request import Response
 from stega_cli.ports import db
 from stega_cli.ports import portfolio as portfolio_db
@@ -11,6 +15,19 @@ from stega_cli.ports import actions as actions_db
 from stega_cli.services.handlers.sse import submit_and_wait_for_event
 from stega_lib import http
 from stega_lib.events import PortfolioCreated
+
+
+def list_portfolios(cmd: ListPortfolios) -> Response:
+    config = create_config()
+    with http.acquire_session(config.core_service_url) as session:
+        resp = session.get("portfolios")
+        data = resp.json()
+    status = data["ok"]
+    result = data["result"] if status else data["msg"] 
+    return Response(
+        status="ok" if status else "error",
+        result=result,
+    )
 
 
 def get_portfolio(cmd: GetPortfolio) -> Response:

@@ -13,6 +13,7 @@ class View:
 @dataclass
 class AssetView(View):
     """Represents an Assets view."""
+
     symbol: str
     weight: float
 
@@ -28,6 +29,8 @@ class AssetView(View):
 @dataclass
 class PortfolioView(View):
     """Represents a Portfolios view."""
+
+    portfolio_id: str
     name: str
     assets: list[AssetView]
 
@@ -36,6 +39,7 @@ class PortfolioView(View):
     def from_portfolio(cls, portfolio: Portfolio) -> T.Self:
         """Create a PortfolioView from a Portfolio."""
         return cls(
+            portfolio_id=portfolio.id,
             name=portfolio.name,
             assets=[
                 AssetView.from_asset(asset)

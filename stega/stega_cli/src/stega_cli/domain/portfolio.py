@@ -9,7 +9,7 @@ class PortfolioAsset:
 
 @dataclass
 class Portfolio:
-    id: str
+    portfolio_id: str
     name: str
     assets: list[PortfolioAsset]
 

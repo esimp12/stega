@@ -8,6 +8,8 @@ from stega_cli.domain.request import (
     GetPortfolioRequest,
     ListPortfoliosRequest,
     CreatePortfolioRequest,
+    CommandRequest,
+    Response,
 )
 from stega_lib import http
 
@@ -21,44 +23,25 @@ def portfolio() -> None:
 @portfolio.command()
 def get(portfolio_id: str) -> None:
     """Command to get a portfolio."""
-    config = create_config()
     cmd = GetPortfolioRequest(portfolio_id)
-    with acquire_connection(config.sock_path) as conn:
-        send_command(conn, cmd.to_dict())
-        response = read_command(conn)
-    
-    status = response["status"]
-    result = response["result"]
+    resp = _send_daemon_command(cmd)
+    status = resp["status"]
+    result = resp["result"]
     if status == "error":
         click.echo(click.style(result, fg="red"))
     else:
-        click.echo(result)
+        _disp_portfolio(result)
 
 
 @portfolio.command()
 def list() -> None:
     """Command to list existing portfolios."""
-    config = create_config()
     cmd = ListPortfoliosRequest()
-
-    with http.acquire_session(config.core_service_url) as session:
-        resp = session.get("portfolios")
-        resp.raise_for_status()
-        data = resp.json()["result"]
-    
+    resp = _send_daemon_command(cmd)
+    data = resp["result"]
     echo_banner("PORTFOLIOS")
-    click.echo()
-    for idx, portfolio in enumerate(data):
-        name = portfolio["name"]
-        assets = portfolio["assets"]
-        echo_banner(f"Portfolio #{idx+1}", char="-")
-        click.echo(f"Name: {name}")
-        click.echo("Assets:")
-        for asset in assets:
-            symbol = asset["symbol"]
-            weight = asset["weight"]
-            click.echo(f"  - {symbol} ({weight:.2f})")
-        click.echo()
+    for portfolio in data:
+        _disp_portfolio(portfolio)
 
 
 @click.argument("name")
@@ -74,20 +57,36 @@ def create(
 ) -> None:
     """Command to create a new portfolio."""
     click.echo(f"Creating portfolio '{name}' from {portfolio_file}...")
-    config = create_config()
     payload = _get_portfolio_payload(name, portfolio_file)
-
     cmd = CreatePortfolioRequest(
         name=payload["name"],
         assets=payload["assets"],
     )
-    with acquire_connection(config.sock_path) as conn:
-        send_command(conn, cmd.to_dict())
-        resp = read_command(conn)
-
+    resp = _send_daemon_command(cmd)
     result = resp["result"]
     correlation_id = result["correlation_id"]
     click.echo(f"Successfully submitted request to create portfolio. Query latest result with id - {correlation_id}")
+
+
+def _disp_portfolio(portfolio: dict[str, str | list[dict[str, str | float]]]) -> None:
+    portfolio_id = portfolio["portfolio_id"]
+    name = portfolio["name"]
+    assets = portfolio["assets"]
+    click.echo()
+    click.echo(f"ID: {portfolio_id}")
+    click.echo(f"Name: {name}")
+    click.echo("Assets:")
+    for asset in assets:
+        symbol = asset["symbol"]
+        weight = asset["weight"]
+        click.echo(f"  - {symbol} ({weight:.2f})")
+
+
+def _send_daemon_command(cmd: CommandRequest) -> Response:
+    config = create_config()
+    with acquire_connection(config.sock_path) as conn:
+        send_command(conn, cmd.to_dict())
+        return read_command(conn)
 
 
 def _get_portfolio_payload(name: str, portfolio_file: str) -> dict[str, str | dict[str, float]]:

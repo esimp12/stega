@@ -28,7 +28,7 @@ def get_portfolios(conn: sqlite3.Connection) -> list[Portfolio]:
 
         if portfolio_id not in portfolios:
             portfolios[portfolio_id] = Portfolio(
-                id=portfolio_id,
+                portfolio_id=portfolio_id,
                 name=name,
                 assets=[asset],
             )
@@ -69,13 +69,13 @@ def get_portfolio(conn: sqlite3.Connection, portfolio_id: str) -> T.Optional[Por
 
         if portfolio_id not in portfolios:
             portfolios[portfolio_id] = Portfolio(
-                id=portfolio_id,
+                portfolio_id=portfolio_id,
                 name=name,
                 assets=[asset],
             )
         else:
             portfolios[portfolio_id].assets.append(asset)
-    return next(portfolios.values())
+    return next(portfolio for portfolio in portfolios.values())
     
 
 def upsert_portfolio(

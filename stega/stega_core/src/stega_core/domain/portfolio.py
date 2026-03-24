@@ -27,5 +27,6 @@ class PortfolioData:
 
     """
 
+    portfolio_id: str
     name: str
     assets: list[PortfolioAsset]

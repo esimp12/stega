@@ -75,6 +75,6 @@ class HttpRestPortfolioServicePort(PortfolioServicePort):
             resp.raise_for_status()
             data = resp.json()
             return [
-                PortfolioData(name=view["name"], assets=view["assets"])
+                PortfolioData(portfolio_id=view["portfolio_id"], name=view["name"], assets=view["assets"])
                 for view in data["view"]
             ]

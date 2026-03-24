@@ -7,6 +7,7 @@ from stega_cli.domain.command import (
     Command,
     CreatePortfolio,
     GetPortfolio,
+    ListPortfolios,
     ReadCommand,
     WriteCommand,
 )
@@ -14,6 +15,7 @@ from stega_cli.domain.request import (
     CommandRequest,
     CreatePortfolioRequest,
     GetPortfolioRequest,
+    ListPortfoliosRequest,
     ReadCommandRequest,
     WriteCommandRequest,
     Response,
@@ -27,6 +29,7 @@ RequestCommandMapping = dict[CommandRequestType, CommandType]
 _REQUEST_COMMAND_MAPPING: RequestCommandMapping = {
     CreatePortfolioRequest: CreatePortfolio,
     GetPortfolioRequest: GetPortfolio,
+    ListPortfoliosRequest: ListPortfolios,
 }
 
 
