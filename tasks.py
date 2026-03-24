@@ -13,9 +13,7 @@ _ROOT_CONFIG = "uv.lock"
 # TODO: Add a way to clean individual packages
 # TODO: Add a way to clean all packages
 # TODO: Add a way to lint individual packages
-# TODO: Add a way to lint all packages
 # TODO: Add a way to format individual packages
-# TODO: Add a way to format all packages
 
 
 @task
@@ -85,12 +83,20 @@ def serve(c, package, env_file=".env.dev"):
     c.run(f"uv run --env-file {env_file} --package {package} serve-{pkg_suffix}")
 
 
-@task()
+@task
 def lint(c, fix=False):
     """Lint all member packages.""" 
     print("Linting member packages...")
     fix_flag = " --fix" if fix else ""  
     c.run(f"uv run ruff check{fix_flag}")
+
+
+@task
+def format(c, check=True):
+    """Format all member packages."""
+    print("Formatting all member packages...")
+    check_flag = " --check" if check else ""
+    c.run(f"uv run ruff format{check_flag}")
 
 
 @task(pre=[build_services])

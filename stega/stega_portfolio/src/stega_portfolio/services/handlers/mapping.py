@@ -32,4 +32,3 @@ EVENT_HANDLERS: dict[EventType, list[T.Callable]] = {
     PortfolioDeleted: [_publish_external_event],
     PortfolioUpdated: [_publish_external_event],
 }
-

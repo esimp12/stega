@@ -75,4 +75,3 @@ def init_db(db_path: str) -> None:
             cursor.execute(index)
 
         conn.commit()
-

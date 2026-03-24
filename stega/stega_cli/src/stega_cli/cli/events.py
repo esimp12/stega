@@ -26,4 +26,3 @@ def watch(topic: str) -> None:
                     continue
                 data = json.loads(line)
                 click.echo(data)
-

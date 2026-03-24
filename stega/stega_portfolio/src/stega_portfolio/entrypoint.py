@@ -81,4 +81,3 @@ def run() -> None:
             port=config.STEGA_PORTFOLIO_SERVER_PORT,
             debug=config.STEGA_PORTFOLIO_DEBUG,
         )
-

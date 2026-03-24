@@ -111,4 +111,3 @@ def cache_local_portfolio(data: dict[str, T.Any]) -> None:
             portfolio_id,
         )
         conn.commit()
-

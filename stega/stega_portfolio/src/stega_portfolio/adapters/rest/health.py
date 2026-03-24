@@ -14,5 +14,3 @@ def health() -> ResponseType:
         "ok": True,
         "msg": "Portfolio service is healthy!",
     }, 200
-
-

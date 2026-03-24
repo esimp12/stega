@@ -37,6 +37,7 @@ select = ["ALL"]
 ignore = [
     "D203",
     "D213",
+    "COM812",
 ]
 
 [tool.ruff.lint.pep8-naming]

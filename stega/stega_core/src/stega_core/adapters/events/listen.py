@@ -36,7 +36,7 @@ def start_listening(
     """Start a blocking connection for the application event consumer.
 
     Args:
-        config (CoreConfig): Configuration for the core service.  
+        config (CoreConfig): Configuration for the core service.
         listener_callback (Callable): A Callable callback for handling
             incoming events.
 
@@ -77,4 +77,3 @@ def start_listening(
             auto_ack=True,
         )
         channel.start_consuming()
-

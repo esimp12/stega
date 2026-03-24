@@ -76,10 +76,7 @@ class Portfolio(Aggregate):
             correlation_id=correlation_id,
             portfolio_id=self.id,
             name=self.name,
-            assets=[
-                {"symbol": asset.symbol, "weight": asset.weight}
-                for asset in self.assets
-            ],
+            assets=[{"symbol": asset.symbol, "weight": asset.weight} for asset in self.assets],
         )
         self.events.append(event)
 

@@ -33,7 +33,6 @@ _REQUEST_COMMAND_MAPPING: RequestCommandMapping = {
 
 
 class RequestDispatcher:
-
     def __init__(
         self,
         cmd_dispatcher: CommandDispatcher,
@@ -71,4 +70,3 @@ def gen_write_cmd(cmd_request: WriteCommandRequest) -> WriteCommand:
 
 def gen_correlation_id() -> str:
     return str(uuid.uuid7())
-

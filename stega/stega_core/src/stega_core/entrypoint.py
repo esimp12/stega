@@ -110,4 +110,3 @@ def run_events_consumer(streams: ClientStreams) -> None:
 def run() -> None:
     # Start flask app
     run_app()
-

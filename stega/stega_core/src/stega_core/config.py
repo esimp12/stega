@@ -35,9 +35,7 @@ class CoreConfig(BaseConfig):
     @property
     def portfolio_service_url(self) -> str:
         """Get the portfolio service API url."""
-        return (
-            f"http://{self.STEGA_PORTFOLIO_SERVER_NAME}:{self.STEGA_PORTFOLIO_SERVER_PORT}/api"
-        )
+        return f"http://{self.STEGA_PORTFOLIO_SERVER_NAME}:{self.STEGA_PORTFOLIO_SERVER_PORT}/api"
 
 
 class ProdConfig(CoreConfig):

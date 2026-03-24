@@ -6,7 +6,6 @@ from stega_core.config import create_config, create_logger
 
 
 class ClientStreams:
-
     def __init__(self):
         self._streams = {}
         self._lock = threading.Lock()
@@ -37,4 +36,3 @@ class ClientStreams:
                 q.put_nowait(payload)
             except Full:
                 continue
-

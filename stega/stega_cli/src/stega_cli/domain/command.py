@@ -30,4 +30,3 @@ class ListPortfolios(ReadCommand):
 class CreatePortfolio(WriteCommand):
     name: str
     assets: dict[str, float]
-

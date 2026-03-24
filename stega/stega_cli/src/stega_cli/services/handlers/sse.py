@@ -60,4 +60,3 @@ def sse_listener(
                 if matches(data):
                     result_queue.put(data)
                     return
-

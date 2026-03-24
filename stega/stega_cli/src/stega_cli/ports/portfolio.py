@@ -39,7 +39,8 @@ def get_portfolios(conn: sqlite3.Connection) -> list[Portfolio]:
 
 def get_portfolio(conn: sqlite3.Connection, portfolio_id: str) -> Portfolio | None:
     cursor = conn.cursor()
-    res = cursor.execute("""
+    res = cursor.execute(
+        """
     SELECT
       p.portfolio_id AS portfolio_id,
       p.name AS name,
@@ -54,7 +55,7 @@ def get_portfolio(conn: sqlite3.Connection, portfolio_id: str) -> Portfolio | No
     WHERE
       p.portfolio_id = :portfolio_id 
     """,
-    {"portfolio_id": portfolio_id},
+        {"portfolio_id": portfolio_id},
     )
     rows = res.fetchall()
 
@@ -84,10 +85,11 @@ def upsert_portfolio(
     assets: list[dict[str, str | float]],
 ) -> None:
     cursor = conn.cursor()
-    cursor.execute("""
+    cursor.execute(
+        """
     INSERT INTO portfolios (portfolio_id, name) VALUES(:portfolio_id, :name) 
     """,
-    {"portfolio_id": portfolio_id, "name": name},
+        {"portfolio_id": portfolio_id, "name": name},
     )
     asset_rows = [
         {
@@ -97,9 +99,9 @@ def upsert_portfolio(
         }
         for asset in assets
     ]
-    cursor.executemany("""
+    cursor.executemany(
+        """
     INSERT INTO portfolio_assets (portfolio_id, symbol, weight) VALUES(:portfolio_id, :symbol, :weight)
     """,
-    asset_rows,
+        asset_rows,
     )
-

@@ -17,4 +17,3 @@ COMMAND_HANDLERS: CommandHandlers = {
     CreatePortfolio: create_portfolio,
     ListPortfolios: list_portfolios,
 }
-

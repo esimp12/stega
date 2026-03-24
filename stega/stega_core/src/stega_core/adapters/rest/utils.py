@@ -23,7 +23,7 @@ def get_event_bus() -> MessageBus:
     """Get the current application MessageBus.
 
     Returns:
-        A MessageBus instance. 
+        A MessageBus instance.
 
     """
     return current_app.extensions["bus"]
@@ -33,8 +33,7 @@ def get_client_streams() -> ClientStreams:
     """Get the current application client topic fan-out queues.
 
     Returns:
-        A ClientStreams instance. 
+        A ClientStreams instance.
 
     """
     return current_app.extensions["streams"]
-

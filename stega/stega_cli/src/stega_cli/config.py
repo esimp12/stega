@@ -33,9 +33,7 @@ class CliConfig(BaseConfig):
     @property
     def core_service_url(self) -> str:
         """Get the core service API url."""
-        return (
-            f"http://{self.STEGA_CORE_SERVER_NAME}:{self.STEGA_CORE_SERVER_PORT}/api"
-        )
+        return f"http://{self.STEGA_CORE_SERVER_NAME}:{self.STEGA_CORE_SERVER_PORT}/api"
 
     @property
     def local_share_dir(self) -> str:

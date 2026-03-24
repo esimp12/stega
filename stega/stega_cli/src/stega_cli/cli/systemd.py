@@ -90,4 +90,3 @@ def uninstall() -> None:
     config = create_config()
     subprocess.run(["systemctl", "--user", "stop", config.STEGA_CLI_SYSTEMD_UNIT_NAME], check=False)
     subprocess.run(["systemctl", "--user", "disable", config.STEGA_CLI_SYSTEMD_UNIT_NAME], check=False)
-

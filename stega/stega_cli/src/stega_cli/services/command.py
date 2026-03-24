@@ -1,4 +1,3 @@
-
 from stega_cli.domain.command import Command
 from stega_cli.domain.request import Response
 from stega_cli.services.handlers.mapping import (
@@ -38,4 +37,3 @@ def bootstrap_cmd_dispatcher() -> CommandDispatcher:
 
     """
     return CommandDispatcher(handlers=COMMAND_HANDLERS)
-

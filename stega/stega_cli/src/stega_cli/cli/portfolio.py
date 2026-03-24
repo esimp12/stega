@@ -89,7 +89,7 @@ def _send_daemon_command(cmd: CommandRequest) -> Response:
 
 
 def _get_portfolio_payload(name: str, portfolio_file: str) -> dict[str, str | dict[str, float]]:
-    payload = {"name": name, "assets": {} }
+    payload = {"name": name, "assets": {}}
     with open(portfolio_file, encoding="utf-8") as fd:
         for line in fd:
             symbol, weight = line.split(",")
@@ -97,4 +97,3 @@ def _get_portfolio_payload(name: str, portfolio_file: str) -> dict[str, str | di
             weight = float(weight.strip())
             payload["assets"][symbol] = weight
     return payload
-

@@ -76,4 +76,3 @@ def _get_command_args(cmd: CommandReqeust) -> dict[str, T.Any]:
 def _get_command_class(klass_str: str) -> type:
     module = sys.modules[__name__]
     return getattr(module, klass_str)
-

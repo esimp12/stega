@@ -17,7 +17,7 @@ class Event(abc.ABC):
     @classmethod
     def from_message(cls, topic: str, body: str) -> Event:
         """Create an Event from its topic and incoming raw message.
-        
+
         Args:
             topic (str): The event topic to source an event for.
             body (str): The raw event message to extract into event args.
@@ -147,4 +147,3 @@ EVENTS_MAPPING: dict[str, EventType] = {
 }
 
 ALL_EVENT_TOPICS = list(EVENTS_MAPPING.keys())
-

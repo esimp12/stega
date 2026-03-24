@@ -12,4 +12,3 @@ class Portfolio:
     portfolio_id: str
     name: str
     assets: list[PortfolioAsset]
-

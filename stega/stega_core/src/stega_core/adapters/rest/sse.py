@@ -57,4 +57,3 @@ def stream_topic(
     finally:
         logger.info("SSE topic '%s' cleanup", topic)
         streams.remove_topic_queue(topic, client_queue)
-

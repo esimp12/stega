@@ -7,7 +7,8 @@ def get_entity_id(
 ) -> str | None:
     """Get the entity id correlated with a client action."""
     with conn.cursor() as cur:
-        res = cur.execute("""
+        res = cur.execute(
+            """
         SELECT
           entity_id,
         FROM
@@ -15,7 +16,7 @@ def get_entity_id(
         WHERE
           correlation_id = :correlation_id 
         """,
-        { "correlation_id": correlation_id },
+            {"correlation_id": correlation_id},
         )
         entity_id = res.fetchone()
 
@@ -32,11 +33,12 @@ def insert_correlation(
     entity_id: str,
 ) -> None:
     cursor = conn.cursor()
-    cursor.execute("""
+    cursor.execute(
+        """
     INSERT INTO actions (correlation_id, entity_id) VALUES(:correlation_id, :entity_id)
     """,
-    {
-        "correlation_id": correlation_id,
-        "entity_id": entity_id,
-    },
+        {
+            "correlation_id": correlation_id,
+            "entity_id": entity_id,
+        },
     )

@@ -15,7 +15,8 @@ class PortfolioServicePort(abc.ABC):
         self.logger = create_logger(self.config)
 
     @abc.abstractmethod
-    def create(self,
+    def create(
+        self,
         correlation_id: str,
         portfolio: PortfolioData,
     ) -> str:

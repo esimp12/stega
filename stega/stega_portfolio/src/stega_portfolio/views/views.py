@@ -34,15 +34,11 @@ class PortfolioView(View):
     name: str
     assets: list[AssetView]
 
-
     @classmethod
     def from_portfolio(cls, portfolio: Portfolio) -> T.Self:
         """Create a PortfolioView from a Portfolio."""
         return cls(
             portfolio_id=portfolio.id,
             name=portfolio.name,
-            assets=[
-                AssetView.from_asset(asset)
-                for asset in portfolio.assets
-            ],
+            assets=[AssetView.from_asset(asset) for asset in portfolio.assets],
         )

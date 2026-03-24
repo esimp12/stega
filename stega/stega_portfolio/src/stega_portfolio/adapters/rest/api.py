@@ -11,6 +11,7 @@ from stega_portfolio.views import portfolio as views
 
 api = Blueprint("portfolio_api", __name__)
 
+
 @api.route("/portfolio/<string:portfolio_id>", methods=["GET"])
 def get_portfolio(portfolio_id: str) -> ViewResponseType:
     bus = get_bus()
