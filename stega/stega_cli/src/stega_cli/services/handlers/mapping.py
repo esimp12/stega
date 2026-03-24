@@ -1,21 +1,15 @@
 import typing as T
 
-from stega_cli.domain.command import (
-    Command,
-    GetPortfolio,
-    CreatePortfolio,
-    ListPortfolios
-)
+from stega_cli.domain.command import Command, CreatePortfolio, GetPortfolio, ListPortfolios
 from stega_cli.domain.request import Response
 from stega_cli.services.handlers.portfolio import (
-    get_portfolio,
     create_portfolio,
+    get_portfolio,
     list_portfolios,
 )
 
-
 CommandType = type[Command]
-CommandHandlerType = T.Callable[[Command], T.Optional[Response]]
+CommandHandlerType = T.Callable[[Command], Response | None]
 CommandHandlers = dict[CommandType, CommandHandlerType]
 
 COMMAND_HANDLERS: CommandHandlers = {

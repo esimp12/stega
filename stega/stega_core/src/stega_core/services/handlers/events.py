@@ -1,6 +1,6 @@
-import multiprocessing
 
 from stega_lib.events import Event
+
 from stega_core.services.handlers.streams import ClientStreams
 
 

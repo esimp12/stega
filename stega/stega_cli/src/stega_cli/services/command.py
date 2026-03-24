@@ -1,4 +1,3 @@
-import typing as T
 
 from stega_cli.domain.command import Command
 from stega_cli.domain.request import Response
@@ -15,7 +14,7 @@ class CommandDispatcher:
         """Inits a Dispatcher."""
         self._handlers = handlers
 
-    def handle(self, cmd: Command) -> T.Optional[Response]:
+    def handle(self, cmd: Command) -> Response | None:
         """Dispatches a command to associated service and processes it accordingly.
 
         Args:

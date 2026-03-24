@@ -19,8 +19,8 @@ def get_dispatcher() -> Dispatcher:
     return current_app.extensions["dispatcher"]
 
 
-def get_event_bus() -> MessageBus: 
-    """Get the current application MessageBus. 
+def get_event_bus() -> MessageBus:
+    """Get the current application MessageBus.
 
     Returns:
         A MessageBus instance. 
@@ -29,8 +29,8 @@ def get_event_bus() -> MessageBus:
     return current_app.extensions["bus"]
 
 
-def get_client_streams() -> ClientStreams: 
-    """Get the current application client topic fan-out queues. 
+def get_client_streams() -> ClientStreams:
+    """Get the current application client topic fan-out queues.
 
     Returns:
         A ClientStreams instance. 

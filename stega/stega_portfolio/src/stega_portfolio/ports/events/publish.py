@@ -2,9 +2,9 @@ import contextlib
 import typing as T
 
 import pika
+from stega_lib.events import Event
 
 from stega_portfolio.config import PortfolioConfig, create_config
-from stega_lib.events import Event
 
 
 @contextlib.contextmanager

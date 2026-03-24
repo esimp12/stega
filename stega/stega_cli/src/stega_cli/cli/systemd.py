@@ -4,8 +4,8 @@ from pathlib import Path
 
 import click
 
-from stega_cli.config import create_config
 from stega_cli.cli.entrypoint import stega
+from stega_cli.config import create_config
 from stega_cli.daemon import serve
 
 # TODO: Change this to a template so that the stega install path and command name can be modified
@@ -39,7 +39,7 @@ def daemon() -> None:
 @click.option(
     "--force",
     is_flag=True,
-    help="Force overwriting the systemd user service unit file."
+    help="Force overwriting the systemd user service unit file.",
 )
 @daemon.command()
 def install(force: bool) -> None:
@@ -53,9 +53,9 @@ def install(force: bool) -> None:
     if not systemd_unit_file_path.exists() or force:
         systemd_unit_file_path.write_text(_SYSTEMD_UNIT_FILE)
 
-    subprocess.run(["systemctl", "--user", "daemon-reload"])
-    subprocess.run(["systemctl", "--user", "enable", config.STEGA_CLI_SYSTEMD_UNIT_NAME])
-    subprocess.run(["systemctl", "--user", "restart", config.STEGA_CLI_SYSTEMD_UNIT_NAME])
+    subprocess.run(["systemctl", "--user", "daemon-reload"], check=False)
+    subprocess.run(["systemctl", "--user", "enable", config.STEGA_CLI_SYSTEMD_UNIT_NAME], check=False)
+    subprocess.run(["systemctl", "--user", "restart", config.STEGA_CLI_SYSTEMD_UNIT_NAME], check=False)
 
 
 @daemon.command()
@@ -88,6 +88,6 @@ def status() -> None:
 def uninstall() -> None:
     """Stop and disable the daemon systemd user service."""
     config = create_config()
-    subprocess.run(["systemctl", "--user", "stop", config.STEGA_CLI_SYSTEMD_UNIT_NAME])
-    subprocess.run(["systemctl", "--user", "disable", config.STEGA_CLI_SYSTEMD_UNIT_NAME])
+    subprocess.run(["systemctl", "--user", "stop", config.STEGA_CLI_SYSTEMD_UNIT_NAME], check=False)
+    subprocess.run(["systemctl", "--user", "disable", config.STEGA_CLI_SYSTEMD_UNIT_NAME], check=False)
 

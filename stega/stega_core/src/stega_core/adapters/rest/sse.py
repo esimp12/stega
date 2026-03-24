@@ -1,15 +1,13 @@
 import json
-import time
-from queue import Queue, Empty
 import typing as T
+from queue import Empty, Queue
 
-from flask import Blueprint, stream_with_context
-
-from stega_core.config import create_config, create_logger
-from stega_core.adapters.rest.utils import ResponseType, get_client_streams
-from stega_core.services.handlers.streams import ClientStreams 
+from flask import Blueprint
 from stega_lib.events import ALL_EVENT_TOPICS
 
+from stega_core.adapters.rest.utils import ResponseType, get_client_streams
+from stega_core.config import create_config, create_logger
+from stega_core.services.handlers.streams import ClientStreams
 
 api = Blueprint("core_events_api", __name__)
 
@@ -20,7 +18,7 @@ def stream_events(topic: str) -> T.Generator[ResponseType, None, None]:
     if topic not in ALL_EVENT_TOPICS:
         return {
             "ok": False,
-            "msg": f"No topic found for '{topic}'!"
+            "msg": f"No topic found for '{topic}'!",
         }, 400
 
     new_queue = Queue()
@@ -36,7 +34,7 @@ def stream_events(topic: str) -> T.Generator[ResponseType, None, None]:
         streams=streams,
     )
     return streamed, 200, headers
-    
+
 
 def stream_topic(
     topic: str,
@@ -53,9 +51,9 @@ def stream_topic(
             except Empty:
                 yield '{"type": "heartbeat"}\n'
                 continue
-            logger.info("SSE topic '%s' got message => '%s'", topic, msg) 
+            logger.info("SSE topic '%s' got message => '%s'", topic, msg)
             data["type"] = "message"
-            yield f'{json.dumps(data)}\n'
+            yield f"{json.dumps(data)}\n"
     finally:
         logger.info("SSE topic '%s' cleanup", topic)
         streams.remove_topic_queue(topic, client_queue)

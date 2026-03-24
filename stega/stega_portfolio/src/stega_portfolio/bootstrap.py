@@ -4,8 +4,8 @@ import functools
 import inspect
 import typing as T
 
+from stega_portfolio.ports.events.publish import publish_event
 from stega_portfolio.ports.orm import start_mappers
-from stega_portfolio.ports.events.publish import publish_event 
 from stega_portfolio.services.handlers.mapping import (
     COMMAND_HANDLERS,
     EVENT_HANDLERS,

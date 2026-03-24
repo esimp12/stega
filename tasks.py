@@ -85,6 +85,14 @@ def serve(c, package, env_file=".env.dev"):
     c.run(f"uv run --env-file {env_file} --package {package} serve-{pkg_suffix}")
 
 
+@task()
+def lint(c, fix=False):
+    """Lint all member packages.""" 
+    print("Linting member packages...")
+    fix_flag = " --fix" if fix else ""  
+    c.run(f"uv run ruff check{fix_flag}")
+
+
 @task(pre=[build_services])
 def test(c, package):
     """Run tests for a single service package."""

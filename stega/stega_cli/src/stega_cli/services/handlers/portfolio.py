@@ -1,5 +1,4 @@
 import functools
-import json
 from dataclasses import asdict
 
 from stega_cli.config import create_config
@@ -9,9 +8,9 @@ from stega_cli.domain.command import (
     ListPortfolios,
 )
 from stega_cli.domain.request import Response
+from stega_cli.ports import actions as actions_db
 from stega_cli.ports import db
 from stega_cli.ports import portfolio as portfolio_db
-from stega_cli.ports import actions as actions_db
 from stega_cli.services.handlers.sse import submit_and_wait_for_event
 from stega_lib import http
 from stega_lib.events import PortfolioCreated
@@ -23,7 +22,7 @@ def list_portfolios(cmd: ListPortfolios) -> Response:
         resp = session.get("portfolios")
         data = resp.json()
     status = data["ok"]
-    result = data["result"] if status else data["msg"] 
+    result = data["result"] if status else data["msg"]
     return Response(
         status="ok" if status else "error",
         result=result,
@@ -32,10 +31,10 @@ def list_portfolios(cmd: ListPortfolios) -> Response:
 
 def get_portfolio(cmd: GetPortfolio) -> Response:
     config = create_config()
-    
+
     # check if portfolio is locally cached first
     with db.acquire_connection(config.db_path) as conn:
-        portfolio = portfolio_db.get_portfolio(conn, cmd.portfolio_id) 
+        portfolio = portfolio_db.get_portfolio(conn, cmd.portfolio_id)
         if portfolio is not None:
             return Response(
                 status="ok",
@@ -47,9 +46,9 @@ def get_portfolio(cmd: GetPortfolio) -> Response:
     with http.acquire_session(config.core_service_url) as session:
         resp = session.get(f"portfolio/{cmd.portfolio_id}")
         data = resp.json()
-    
+
     status = data["ok"]
-    result = data["result"] if status else data["msg"] 
+    result = data["result"] if status else data["msg"]
 
     # TODO: cache result locally if found
 

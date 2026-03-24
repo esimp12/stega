@@ -7,9 +7,9 @@ import struct
 import typing as T
 
 from stega_cli.domain.request import CommandRequest
+from stega_cli.ports import db
 from stega_cli.services.command import CommandDispatcher, bootstrap_cmd_dispatcher
 from stega_cli.services.request import RequestDispatcher
-from stega_cli.ports import db
 
 
 @contextlib.contextmanager
@@ -32,7 +32,7 @@ def read_bytes(sock: socket.SocketType, num_bytes: int) -> bytes:
 def send_command(
     sock: socket.SocketType,
     cmd: dict[str, T.Any],
-) -> None: 
+) -> None:
     payload = json.dumps(cmd).encode("utf-8")
     header = struct.pack("!I", len(payload))
     data = header + payload
@@ -69,7 +69,7 @@ async def send_command_async(
 
 async def read_command_async(reader: asyncio.StreamReader) -> T.dict[str, Any]:
     # Get prefix length header - 4 bytes
-    header_raw = await reader.readexactly(4) 
+    header_raw = await reader.readexactly(4)
 
     # Find number of payload bytes to read
     header = struct.unpack("!I", header_raw)
@@ -84,10 +84,10 @@ async def read_command_async(reader: asyncio.StreamReader) -> T.dict[str, Any]:
 async def handle_client(
     reader: asyncio.StreamReader,
     writer: asyncio.StreamWriter,
-    request_dispatcher: RequestDispatcher
+    request_dispatcher: RequestDispatcher,
 ) -> None:
     payload = await read_command_async(reader)
-    cmd_req = CommandRequest.from_dict(payload) 
+    cmd_req = CommandRequest.from_dict(payload)
     resp = await request_dispatcher.handle(cmd_req)
     await send_command_async(writer, resp.to_dict())
     writer.close()

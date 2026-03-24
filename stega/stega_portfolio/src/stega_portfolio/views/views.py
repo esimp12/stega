@@ -3,7 +3,7 @@
 import typing as T
 from dataclasses import dataclass
 
-from stega_portfolio.domain.portfolio import PortfolioAsset, Portfolio 
+from stega_portfolio.domain.portfolio import Portfolio, PortfolioAsset
 
 
 class View:

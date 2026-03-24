@@ -1,5 +1,4 @@
 import sqlite3
-import typing as T
 
 from stega_cli.domain.portfolio import Portfolio, PortfolioAsset
 
@@ -20,7 +19,7 @@ def get_portfolios(conn: sqlite3.Connection) -> list[Portfolio]:
       p.portfolio_id = pa.portfolio_id
     """)
     rows = res.fetchall()
-    
+
     portfolios = {}
     for row in rows:
         portfolio_id, name, symbol, weight = row
@@ -34,11 +33,11 @@ def get_portfolios(conn: sqlite3.Connection) -> list[Portfolio]:
             )
         else:
             portfolios[portfolio_id].assets.append(asset)
-    
+
     return list(portfolios.values())
 
 
-def get_portfolio(conn: sqlite3.Connection, portfolio_id: str) -> T.Optional[Portfolio]:
+def get_portfolio(conn: sqlite3.Connection, portfolio_id: str) -> Portfolio | None:
     cursor = conn.cursor()
     res = cursor.execute("""
     SELECT
@@ -54,11 +53,11 @@ def get_portfolio(conn: sqlite3.Connection, portfolio_id: str) -> T.Optional[Por
       p.portfolio_id = pa.portfolio_id
     WHERE
       p.portfolio_id = :portfolio_id 
-    """, 
+    """,
     {"portfolio_id": portfolio_id},
     )
     rows = res.fetchall()
-    
+
     if not rows:
         return None
 
@@ -76,7 +75,7 @@ def get_portfolio(conn: sqlite3.Connection, portfolio_id: str) -> T.Optional[Por
         else:
             portfolios[portfolio_id].assets.append(asset)
     return next(portfolio for portfolio in portfolios.values())
-    
+
 
 def upsert_portfolio(
     conn: sqlite3.Connection,

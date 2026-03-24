@@ -5,7 +5,6 @@ from pathlib import Path
 
 import click
 
-
 _IGNORE_MODULES = (
     Path(__file__).name,
     "__init__.py",

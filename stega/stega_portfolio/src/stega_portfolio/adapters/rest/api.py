@@ -2,12 +2,12 @@
 
 import typing as T
 
-from flask import Blueprint, request, Request
+from flask import Blueprint, Request, request
+from stega_lib.domain import Command
 
-from stega_portfolio.adapters.rest.utils import ViewResponseType, ResponseType, get_bus
+from stega_portfolio.adapters.rest.utils import ResponseType, ViewResponseType, get_bus
 from stega_portfolio.domain.commands import CreatePortfolio
 from stega_portfolio.views import portfolio as views
-from stega_lib.domain import Command
 
 api = Blueprint("portfolio_api", __name__)
 
@@ -18,7 +18,7 @@ def get_portfolio(portfolio_id: str) -> ViewResponseType:
     if view is None:
         return {
             "ok": False,
-            "msg": f"Failed to find portfolio with id '{portfolio_id}'."
+            "msg": f"Failed to find portfolio with id '{portfolio_id}'.",
         }, 404
 
     return {

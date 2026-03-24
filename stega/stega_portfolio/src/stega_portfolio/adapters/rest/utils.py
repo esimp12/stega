@@ -2,8 +2,8 @@
 
 from flask import current_app
 
-from stega_portfolio.views.views import View
 from stega_portfolio.services.messagebus import MessageBus
+from stega_portfolio.views.views import View
 
 Response = dict[str, str | int | bool]
 ViewResponse = dict[str, str | bool | View | list[View]]

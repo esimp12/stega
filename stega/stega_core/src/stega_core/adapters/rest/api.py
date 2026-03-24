@@ -1,12 +1,12 @@
 """API entrypoint for stega core service."""
 
-from flask import Blueprint, request, Request
+from flask import Blueprint, Request, request
+from stega_lib.domain import Command
 
 from stega_core.adapters.rest.utils import ResponseType, get_dispatcher
 from stega_core.domain.commands import CreatePortfolio
-from stega_core.services.handlers import portfolio as handlers 
 from stega_core.ports.http import HttpRestPortfolioServicePort
-from stega_lib.domain import Command
+from stega_core.services.handlers import portfolio as handlers
 
 api = Blueprint("core_portfolio_api", __name__)
 
@@ -43,7 +43,7 @@ def create_portfolio() -> ResponseType:
     return {
         "ok": True,
         "msg": f"Successfully created portfolio '{cmd.name}' with result '{result}'.",
-        "result": result, 
+        "result": result,
     }, 201
 
 

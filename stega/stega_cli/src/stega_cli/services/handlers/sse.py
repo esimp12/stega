@@ -1,7 +1,7 @@
 import json
 import queue
 import threading
-import typing  as T
+import typing as T
 
 from stega_lib import http
 
@@ -47,7 +47,7 @@ def sse_listener(
         with session.stream("GET", topic_url) as resp:
             # signal we have established stream connection
             ready_event.set()
-            
+
             for line in resp.iter_lines():
                 if not line:
                     continue
@@ -56,8 +56,8 @@ def sse_listener(
                 # skip heartbeats
                 if msg_type == "heartbeat":
                     continue
-                # check if we found the corresponding event 
+                # check if we found the corresponding event
                 if matches(data):
                     result_queue.put(data)
                     return
- 
+

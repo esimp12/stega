@@ -2,7 +2,6 @@ import asyncio
 
 import uuid_utils as uuid
 
-from stega_cli.services.command import CommandDispatcher
 from stega_cli.domain.command import (
     Command,
     CreatePortfolio,
@@ -17,10 +16,10 @@ from stega_cli.domain.request import (
     GetPortfolioRequest,
     ListPortfoliosRequest,
     ReadCommandRequest,
-    WriteCommandRequest,
     Response,
+    WriteCommandRequest,
 )
-
+from stega_cli.services.command import CommandDispatcher
 
 CommandRequestType = type[CommandRequest]
 CommandType = type[Command]
@@ -47,12 +46,12 @@ class RequestDispatcher:
         if isinstance(cmd_request, ReadCommandRequest):
             cmd = gen_read_cmd(cmd_request)
             return self._cmd_dispatcher.handle(cmd)
-        elif isinstance(cmd_request, WriteCommandRequest):
+        if isinstance(cmd_request, WriteCommandRequest):
             cmd = gen_write_cmd(cmd_request)
             await self._cmd_queue.put(cmd)
             return Response(
                 status="ok",
-                result={"correlation_id": cmd.correlation_id}
+                result={"correlation_id": cmd.correlation_id},
             )
 
 

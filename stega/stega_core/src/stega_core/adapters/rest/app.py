@@ -1,6 +1,7 @@
 """Flask app factory for the core service."""
 
 import typing as T
+
 from flask import Flask
 
 from stega_core.adapters.rest.api import api as core_portfolio_api

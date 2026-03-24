@@ -77,7 +77,7 @@ def list_portfolios(service: PortfolioServicePort) -> list[PortfolioData]:
 
     """
     return service.list()
- 
+
 
 def _create_portfolio_data(
     name: str,

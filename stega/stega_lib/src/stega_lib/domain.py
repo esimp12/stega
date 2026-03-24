@@ -1,7 +1,6 @@
 """Common abstract interfaces for domain entities and aggregates."""
 
-from dataclasses import dataclass, field
-import typing as T
+from dataclasses import dataclass
 
 import uuid_utils as uuid
 
@@ -53,7 +52,7 @@ class Command:
 
     """
 
-    correlation_id: T.Optional[str]
+    correlation_id: str | None
 
     def __post_init__(self) -> None:
         if self.correlation_id is None:

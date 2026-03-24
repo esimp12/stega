@@ -1,17 +1,16 @@
 import click
 
-from stega_cli.config import create_config
 from stega_cli.cli.entrypoint import stega
 from stega_cli.cli.utils import echo_banner
-from stega_cli.daemon import acquire_connection, send_command, read_command
+from stega_cli.config import create_config
+from stega_cli.daemon import acquire_connection, read_command, send_command
 from stega_cli.domain.request import (
+    CommandRequest,
+    CreatePortfolioRequest,
     GetPortfolioRequest,
     ListPortfoliosRequest,
-    CreatePortfolioRequest,
-    CommandRequest,
     Response,
 )
-from stega_lib import http
 
 
 @stega.group()
@@ -91,8 +90,8 @@ def _send_daemon_command(cmd: CommandRequest) -> Response:
 
 def _get_portfolio_payload(name: str, portfolio_file: str) -> dict[str, str | dict[str, float]]:
     payload = {"name": name, "assets": {} }
-    with open(portfolio_file, "r", encoding="utf-8") as fd:
-        for line in fd.readlines():
+    with open(portfolio_file, encoding="utf-8") as fd:
+        for line in fd:
             symbol, weight = line.split(",")
             symbol = symbol.strip()
             weight = float(weight.strip())

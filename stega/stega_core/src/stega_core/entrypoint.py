@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import functools
 import logging
 import threading
 import typing as T
@@ -10,11 +9,11 @@ import typing as T
 from gunicorn import glogging
 from gunicorn.app.base import BaseApplication
 
-from stega_core.adapters.rest.app import create_app
 from stega_core.adapters.events.listen import start_listening
-from stega_core.services.handlers.streams import ClientStreams
+from stega_core.adapters.rest.app import create_app
 from stega_core.bootstrap import bootstrap_event_bus
 from stega_core.config import CoreConfig, create_config, create_logger
+from stega_core.services.handlers.streams import ClientStreams
 
 if T.TYPE_CHECKING:
     from flask import Flask
@@ -73,7 +72,7 @@ def run_app() -> None:
     """Run the core app service."""
     config = create_config()
     app = create_core_app(config)
-    
+
     # Post fork callback to run in each gunicorn worker
     def post_fork(server, worker):
         streams = ClientStreams()
@@ -87,7 +86,7 @@ def run_app() -> None:
             "bind": f"{config.STEGA_CORE_SERVER_ADDRESS}:{config.STEGA_CORE_SERVER_PORT}",
             "workers": config.STEGA_CORE_GUNICORN_WORKERS,
             "logger_class": StubbedGunicornLogger,
-            "post_fork": post_fork, 
+            "post_fork": post_fork,
         }
         StandaloneApp(app, options).run()
     else:
@@ -104,7 +103,7 @@ def run_events_consumer(streams: ClientStreams) -> None:
     bus = bootstrap_event_bus(streams)
     start_listening(
         config=config,
-        bus=bus, 
+        bus=bus,
     )
 
 

@@ -1,7 +1,6 @@
 import os
 import threading
-from queue import Queue, Full
-import typing as T
+from queue import Full, Queue
 
 from stega_core.config import create_config, create_logger
 
@@ -22,7 +21,7 @@ class ClientStreams:
     def add_topic_queue(self, topic: str, queue: Queue):
         with self._lock:
             self._streams.setdefault(topic, []).append(queue)
-    
+
     def remove_topic_queue(self, topic: str, queue: Queue):
         with self._lock:
             self._streams[topic].remove(queue)

@@ -1,10 +1,9 @@
-import contextlib
 import functools
 import typing as T
 
 import pika
+from stega_lib.events import Event
 
-from stega_lib.events import Event, EventType
 from stega_core.config import CoreConfig
 from stega_core.services.messagebus import MessageBus
 

@@ -1,8 +1,8 @@
 """Application views for handling read only requests to portfolios."""
 
 
-from stega_portfolio.views.views import PortfolioView
 from stega_portfolio.services.uow.base import AbstractUnitOfWork
+from stega_portfolio.views.views import PortfolioView
 
 
 def get_portfolio(uow: AbstractUnitOfWork, portfolio_id: str) -> PortfolioView | None:

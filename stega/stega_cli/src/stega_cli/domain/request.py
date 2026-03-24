@@ -1,6 +1,6 @@
 import sys
-from dataclasses import dataclass, asdict
 import typing as T
+from dataclasses import asdict, dataclass
 
 
 @dataclass
@@ -24,7 +24,7 @@ class CommandRequest:
     @property
     def args(self) -> dict[str, T.Any]:
         return _get_command_args(self)
-    
+
     def to_dict(self) -> dict[str, T.Any]:
         return {
             "type": _get_command_type(self),
@@ -33,7 +33,7 @@ class CommandRequest:
 
     @classmethod
     def from_dict(cls, cmd_dict: dict[str, T.Any]) -> CommandRequest:
-        class_str = cmd_dict["type"] 
+        class_str = cmd_dict["type"]
         klass = _get_command_class(class_str)
         kwargs = cmd_dict["args"]
         return klass(**kwargs)
@@ -70,7 +70,7 @@ def _get_command_type(cmd: CommandRequest) -> str:
 
 
 def _get_command_args(cmd: CommandReqeust) -> dict[str, T.Any]:
-    return asdict(cmd) 
+    return asdict(cmd)
 
 
 def _get_command_class(klass_str: str) -> type:

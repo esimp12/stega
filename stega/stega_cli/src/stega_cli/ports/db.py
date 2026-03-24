@@ -2,7 +2,6 @@ import contextlib
 import sqlite3
 import typing as T
 
-
 _TABLES = (
     # actions table
     """
