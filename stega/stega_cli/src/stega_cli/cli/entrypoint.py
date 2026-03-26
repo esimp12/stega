@@ -19,6 +19,7 @@ def stega() -> None:
 
 
 def register_commands() -> None:
+    """Register all click commands for each submodule in the current directory."""
     file_import = __spec__.name
     root_import = ".".join(file_import.split(".")[:-1])
     root = Path(__file__).parent.resolve()

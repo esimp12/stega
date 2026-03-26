@@ -30,7 +30,7 @@ class Dispatcher:
         """Dispatches a command to associated service and processes it accordingly.
 
         Args:
-            cmd: A Commmand to dispatch to a service.
+            cmd: A Commmand instance to dispatch to a service.
 
         Returns:
             A PrimitiveType of the result of the commands service call.
@@ -48,10 +48,11 @@ def bootstrap_dispatcher(
     """Provisions the application with the selected runtime service ports.
 
     Args:
-        services: A list of service ports to provision.
+        services: A list of ServiceType instances to provision.
 
     Returns:
-        A Dispatcher for mapping commands to their respective service handlers.
+        A Dispatcher instance for mapping commands to their respective
+        service handlers.
 
     """
     dependencies = {"services": services}
@@ -66,9 +67,11 @@ def bootstrap_event_bus(streams: ClientStreams) -> MessageBus:
     """Provisions the application with the selected event consumers.
 
     Args:
+        streams: A ClientStreams instance to broadcast events to.
 
     Returns:
-        A MessageBus for mapping events to their respective service handlers.
+        A MessageBus instance for mapping events to their respective service
+        handlers.
 
     """
     dependencies = {"streams": streams}
@@ -93,6 +96,7 @@ def inject_dispatcher_dependencies(
 
     Returns:
         A Callable of a service handler with a Command as the sole argument.
+
     """
 
     def _get_service_parent_class(service: ServiceType) -> type[ServiceType]:

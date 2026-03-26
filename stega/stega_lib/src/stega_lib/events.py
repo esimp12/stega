@@ -47,11 +47,7 @@ class Event(abc.ABC):
 
 
 class PortfolioCreated(Event):
-    """Event indicating that a portfolio has been created.
-
-    Attributes:
-        id: The unique identifier of the created portfolio.
-    """
+    """Event indicating that a portfolio has been created."""
 
     topic: str = "portfolio_created"
 
@@ -80,11 +76,7 @@ class PortfolioCreated(Event):
 
 
 class PortfolioDeleted(Event):
-    """Event indicating that a portfolio has been deleted.
-
-    Attributes:
-        id: The unique identifier of the deleted portfolio.
-    """
+    """Event indicating that a portfolio has been deleted."""
 
     topic: str = "portfolio_deleted"
 
@@ -108,11 +100,7 @@ class PortfolioDeleted(Event):
 
 
 class PortfolioUpdated(Event):
-    """Event indicating that a portfolio has been updated.
-
-    Attributes:
-        id: The unique identifier of the updated portfolio.
-    """
+    """Event indicating that a portfolio has been updated."""
 
     topic: str = "portfolio_updated"
 

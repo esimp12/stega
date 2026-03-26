@@ -19,10 +19,12 @@ def watch(topic: str) -> None:
     config = create_config()
 
     topic_url = f"events/{topic}"
-    with http.acquire_session(config.core_service_url, timeout=False) as session:
-        with session.stream("GET", topic_url) as resp:
-            for line in resp.iter_lines():
-                if not line:
-                    continue
-                data = json.loads(line)
-                click.echo(data)
+    with (
+        http.acquire_session(config.core_service_url, timeout=False) as session,
+        session.stream("GET", topic_url) as resp,
+    ):
+        for line in resp.iter_lines():
+            if not line:
+                continue
+            data = json.loads(line)
+            click.echo(data)

@@ -1,5 +1,5 @@
 import json
-import typing as T
+from collections.abc import Iterator
 from queue import Empty, Queue
 
 from flask import Blueprint
@@ -7,13 +7,12 @@ from stega_lib.events import ALL_EVENT_TOPICS
 
 from stega_core.adapters.rest.utils import ResponseType, get_client_streams
 from stega_core.config import create_config, create_logger
-from stega_core.services.handlers.streams import ClientStreams
 
 api = Blueprint("core_events_api", __name__)
 
 
 @api.route("/events/<string:topic>")
-def stream_events(topic: str) -> T.Generator[ResponseType, None, None]:
+def stream_events(topic: str) -> ResponseType | tuple[Iterator[str], int, dict[str, str]]:
     """Stream server side events processed from events consumer."""
     if topic not in ALL_EVENT_TOPICS:
         return {
@@ -21,26 +20,25 @@ def stream_events(topic: str) -> T.Generator[ResponseType, None, None]:
             "msg": f"No topic found for '{topic}'!",
         }, 400
 
-    new_queue = Queue()
-    streams = get_client_streams()
-    streams.add_topic_queue(topic, new_queue)
-
-    headers = {
-        "Content-Type": "text/event-stream",
-    }
-    streamed = stream_topic(
-        topic=topic,
-        client_queue=new_queue,
-        streams=streams,
-    )
+    headers = {"Content-Type": "text/event-stream"}
+    streamed = stream_topic(topic)
     return streamed, 200, headers
 
 
-def stream_topic(
-    topic: str,
-    client_queue: Queue,
-    streams: ClientStreams,
-) -> T.Generator[str, None, None]:
+def stream_topic(topic: str) -> Iterator[str]:
+    """Stream SSE messages to all clients subscribed to the given topic.
+
+    Args:
+        topic: A str of the topic the SSE messages are associated with.
+
+    Yields:
+        A str of the SSE message sent to the client for the given topic.
+
+    """
+    client_queue = Queue()
+    streams = get_client_streams()
+    streams.add_topic_queue(topic, client_queue)
+
     config = create_config()
     logger = create_logger(config)
     try:

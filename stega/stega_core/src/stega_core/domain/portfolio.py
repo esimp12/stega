@@ -1,5 +1,3 @@
-"""Domain model for a portfolio of stocks."""
-
 from dataclasses import dataclass
 
 
@@ -8,8 +6,9 @@ class PortfolioAsset:
     """Class to represent an asset in a portfolio.
 
     Attributes:
-        symbol (str): The stock symbol of the asset.
-        weight (float): The weight of the asset in the portfolio.
+        symbol: A str of the stock symbol of the asset.
+        weight: A float of the weight contribution of the asset towards
+            the portfolio.
 
     """
 
@@ -22,8 +21,9 @@ class PortfolioData:
     """Portfolio class to represent a portfolio of stocks.
 
     Attributes:
-        name (str): The name of the portfolio.
-        assets (list[PortfolioAsset]): A list of assets in the portfolio.
+        portfolio_id: A str of the unique ID of the portfolio.
+        name: A str of the portfolio name.
+        assets: A list of portfolio assets as PortfolioAsset instances.
 
     """
 

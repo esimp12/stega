@@ -14,6 +14,15 @@ api = Blueprint("portfolio_api", __name__)
 
 @api.route("/portfolio/<string:portfolio_id>", methods=["GET"])
 def get_portfolio(portfolio_id: str) -> ViewResponseType:
+    """Get a portfolio by its ID.
+
+    Args:
+        portfolio_id: A str of the unique ID representing the portfolio.
+
+    Return:
+        A ViewResponseType of the portfolio contents.
+
+    """
     bus = get_bus()
     view = views.get_portfolio(bus.uow, portfolio_id)
     if view is None:
@@ -31,7 +40,12 @@ def get_portfolio(portfolio_id: str) -> ViewResponseType:
 
 @api.route("/portfolios", methods=["GET"])
 def get_portfolios() -> ViewResponseType:
-    """Get a list of existing portfolios."""
+    """Get a list of existing portfolios.
+
+    Return:
+        A ViewResponseType of the list of portfolios.
+
+    """
     bus = get_bus()
     view = views.list_portfolios(bus.uow)
     return {
@@ -43,7 +57,12 @@ def get_portfolios() -> ViewResponseType:
 
 @api.route("/portfolios", methods=["POST"])
 def create_portfolio() -> ResponseType:
-    """Create a new portfolio."""
+    """Create a new portfolio.
+
+    Return:
+        A ResponseType of the portfolio creation result.
+
+    """
     payload = request.get_json()
     if payload is None:
         return {"ok": False, "msg": "Failed to process request."}, 400

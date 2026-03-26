@@ -35,9 +35,14 @@ extend-exclude = [
 [tool.ruff.lint]
 select = ["ALL"]
 ignore = [
+    "D100",
+    "D104",
+    "D105",
+    "D107",
     "D203",
     "D213",
     "COM812",
+    "S104",
 ]
 
 [tool.ruff.lint.pep8-naming]

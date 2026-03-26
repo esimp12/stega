@@ -2,6 +2,8 @@ import functools
 import typing as T
 
 import pika
+from pika.channel import Channel
+from pika.spec import Basic, BasicProperties
 from stega_lib.events import Event
 
 from stega_core.config import CoreConfig
@@ -9,16 +11,17 @@ from stega_core.services.messagebus import MessageBus
 
 
 def listener_callback(
-    channel,
-    method,
-    properties,
-    body,
-    bus: MessageBus,
+    _channel: Channel, method: Basic.Deliver, _properties: BasicProperties, body: str, bus: MessageBus
 ) -> None:
     """Callback for handling incoming events.
 
     Args:
-        bus (MessageBus): The message bus to handle incoming events for.
+        _channel: A pika.channel.Channel instance of the channel the message is
+            being sent on.
+        method: A pike.spec.Basic.Deliver instance of the message delivery details.
+        _properties: A pika.spec.BasicProperties instance of the message metadata.
+        body: A str of the incoming message body.
+        bus: A MessageBus instance bus to handle incoming events for.
 
     """
     event = Event.from_message(
@@ -36,9 +39,9 @@ def start_listening(
     """Start a blocking connection for the application event consumer.
 
     Args:
-        config (CoreConfig): Configuration for the core service.
-        listener_callback (Callable): A Callable callback for handling
-            incoming events.
+        config: A CoreConfig instance.
+        bus: A MessageBus instance bus to handle incoming events for.
+        listener_callback: A Callable for handling incoming events.
 
     """
     event_types = bus.get_event_types()

@@ -1,5 +1,3 @@
-"""Entrypoint for the stega core service."""
-
 from __future__ import annotations
 
 import logging
@@ -17,6 +15,8 @@ from stega_core.services.handlers.streams import ClientStreams
 
 if T.TYPE_CHECKING:
     from flask import Flask
+    from gunicorn.arbiter import Arbiter
+    from gunicorn.workers.base import Worker
 
 
 class StandaloneApp(BaseApplication):
@@ -74,7 +74,7 @@ def run_app() -> None:
     app = create_core_app(config)
 
     # Post fork callback to run in each gunicorn worker
-    def post_fork(server, worker):
+    def post_fork(_: Arbiter, worker: Worker) -> None:
         streams = ClientStreams()
         worker_app = worker.app.app
         worker_app.extensions["streams"] = streams
@@ -108,5 +108,5 @@ def run_events_consumer(streams: ClientStreams) -> None:
 
 
 def run() -> None:
-    # Start flask app
+    """Entrypoint to run the core service."""
     run_app()

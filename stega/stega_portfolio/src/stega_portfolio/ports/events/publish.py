@@ -16,6 +16,7 @@ def acquire_events_channel(
     """Setup a channel connection to an external events broker for publishing.
 
     Args:
+        config: A PortfolioConfig containing the broker connection settings.
         exchange_name: A str of the name of the external exchange to connect to.
         exchange_type: A str of the type of exchange to declare for use.
 

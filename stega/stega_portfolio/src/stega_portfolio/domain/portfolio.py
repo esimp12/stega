@@ -109,5 +109,4 @@ class Portfolio(Aggregate):
 
         """
         assets = PortfolioAsset.from_dict(cmd.id, cmd.assets)
-        portfolio = cls(id=cmd.id, name=cmd.name, assets=assets)
-        return portfolio
+        return cls(id=cmd.id, name=cmd.name, assets=assets)

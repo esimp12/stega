@@ -1,6 +1,6 @@
 import contextlib
 import sqlite3
-import typing as T
+from collections.abc import Iterator
 
 _TABLES = (
     # actions table
@@ -57,21 +57,34 @@ _INDEXES = (
 
 
 @contextlib.contextmanager
-def acquire_connection(db_path: str) -> T.Generator[sqlite3.Connection, None, None]:
+def acquire_connection(db_path: str) -> Iterator[sqlite3.Connection]:
+    """Open a connection to the local cache.
+
+    Args:
+        db_path: A str of the path to the local cache.
+
+    Yields:
+        A sqlite3.Connection instance.
+
+    """
     conn = sqlite3.connect(db_path)
     yield conn
     conn.close()
 
 
 def init_db(db_path: str) -> None:
+    """Initialize the local cache creating all tables and indexes.
+
+    Args:
+        db_path: A str of the path to the local cache.
+
+    """
     with acquire_connection(db_path) as conn:
         cursor = conn.cursor()
         # create tables
         for table in _TABLES:
             cursor.execute(table)
-
         # create indexes
         for index in _INDEXES:
             cursor.execute(index)
-
         conn.commit()

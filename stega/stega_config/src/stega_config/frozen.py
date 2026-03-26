@@ -489,7 +489,6 @@ def get_private_class_attributes(cls):
     ]
 
 
-# TODO: Move this to stega_lib
 def _is_truthy(value: bool | int | str) -> bool:
     """Checks if a value is truthy or not.
 

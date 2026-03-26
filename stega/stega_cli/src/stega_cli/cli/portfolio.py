@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import click
 
 from stega_cli.cli.entrypoint import stega
@@ -32,8 +34,8 @@ def get(portfolio_id: str) -> None:
         _disp_portfolio(result)
 
 
-@portfolio.command()
-def list() -> None:
+@portfolio.command(name="list")
+def list_portfolios() -> None:
     """Command to list existing portfolios."""
     cmd = ListPortfoliosRequest()
     resp = _send_daemon_command(cmd)
@@ -50,10 +52,7 @@ def list() -> None:
     help="A csv of assets and weights to create a portfolio from.",
 )
 @portfolio.command()
-def create(
-    name: str,
-    portfolio_file: str,
-) -> None:
+def create(name: str, portfolio_file: str) -> None:
     """Command to create a new portfolio."""
     click.echo(f"Creating portfolio '{name}' from {portfolio_file}...")
     payload = _get_portfolio_payload(name, portfolio_file)
@@ -90,7 +89,7 @@ def _send_daemon_command(cmd: CommandRequest) -> Response:
 
 def _get_portfolio_payload(name: str, portfolio_file: str) -> dict[str, str | dict[str, float]]:
     payload = {"name": name, "assets": {}}
-    with open(portfolio_file, encoding="utf-8") as fd:
+    with Path(portfolio_file).open(encoding="utf-8") as fd:
         for line in fd:
             symbol, weight = line.split(",")
             symbol = symbol.strip()

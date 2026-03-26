@@ -1,3 +1,5 @@
+# ruff: noqa:S603
+
 import asyncio
 import subprocess
 from pathlib import Path
@@ -8,8 +10,8 @@ from stega_cli.cli.entrypoint import stega
 from stega_cli.config import create_config
 from stega_cli.daemon import serve
 
-# TODO: Change this to a template so that the stega install path and command name can be modified
-_SYSTEMD_UNIT_FILE = """
+_SYSTEMCTL_BIN_PATH: str = "/usr/bin/systemctl"
+_SYSTEMD_UNIT_FILE: str = """
 [Unit]
 Description=stega CLI background daemon
 After=network.target
@@ -42,7 +44,7 @@ def daemon() -> None:
     help="Force overwriting the systemd user service unit file.",
 )
 @daemon.command()
-def install(force: bool) -> None:
+def install(*, force: bool) -> None:
     """Install the daemon as a systemd user service."""
     config = create_config()
 
@@ -53,9 +55,10 @@ def install(force: bool) -> None:
     if not systemd_unit_file_path.exists() or force:
         systemd_unit_file_path.write_text(_SYSTEMD_UNIT_FILE)
 
-    subprocess.run(["systemctl", "--user", "daemon-reload"], check=False)
-    subprocess.run(["systemctl", "--user", "enable", config.STEGA_CLI_SYSTEMD_UNIT_NAME], check=False)
-    subprocess.run(["systemctl", "--user", "restart", config.STEGA_CLI_SYSTEMD_UNIT_NAME], check=False)
+    unit = _get_systemd_unit()
+    subprocess.run([_SYSTEMCTL_BIN_PATH, "--user", "daemon-reload"], check=True)
+    subprocess.run([_SYSTEMCTL_BIN_PATH, "--user", "enable", unit], check=True)
+    subprocess.run([_SYSTEMCTL_BIN_PATH, "--user", "restart", unit], check=True)
 
 
 @daemon.command()
@@ -69,17 +72,17 @@ def start() -> None:
 @daemon.command()
 def status() -> None:
     """Get info about the daemon systemd status."""
-    config = create_config()
+    unit = _get_systemd_unit()
     proc = subprocess.run(
         [
-            "systemctl",
+            _SYSTEMCTL_BIN_PATH,
             "--user",
             "status",
-            config.STEGA_CLI_SYSTEMD_UNIT_NAME,
+            unit,
         ],
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
-        check=False,
+        check=True,
     )
     click.echo(proc.stdout)
 
@@ -87,6 +90,11 @@ def status() -> None:
 @daemon.command()
 def uninstall() -> None:
     """Stop and disable the daemon systemd user service."""
+    unit = _get_systemd_unit()
+    subprocess.run([_SYSTEMCTL_BIN_PATH, "--user", "stop", unit], check=True)
+    subprocess.run([_SYSTEMCTL_BIN_PATH, "--user", "disable", unit], check=True)
+
+
+def _get_systemd_unit() -> str:
     config = create_config()
-    subprocess.run(["systemctl", "--user", "stop", config.STEGA_CLI_SYSTEMD_UNIT_NAME], check=False)
-    subprocess.run(["systemctl", "--user", "disable", config.STEGA_CLI_SYSTEMD_UNIT_NAME], check=False)
+    return config.STEGA_CLI_SYSTEMD_UNIT_NAME

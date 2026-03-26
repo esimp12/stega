@@ -69,6 +69,7 @@ def fetch(
 def acquire_session(
     base_url: str,
     params: dict[str, T.Any] | None = None,
+    *,
     timeout: bool = True,
     timeout_params: dict[str, T.Any] | None = None,
 ) -> T.Generator[httpx.Client, None, None]:

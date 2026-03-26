@@ -24,6 +24,7 @@ def bootstrap(
 
     Args:
         uow: An AbstractUnitOfWork instance to manage service transaction sessions.
+        publish: A Callable to publish events to the external broker.
         start_orm: A boolean to enable or disable creating ORM mappers.
 
     Returns:

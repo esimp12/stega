@@ -1,5 +1,9 @@
 import functools
 from dataclasses import asdict
+from typing import Any
+
+from stega_lib import http
+from stega_lib.events import PortfolioCreated
 
 from stega_cli.config import create_config
 from stega_cli.domain.command import (
@@ -12,11 +16,18 @@ from stega_cli.ports import actions as actions_db
 from stega_cli.ports import db
 from stega_cli.ports import portfolio as portfolio_db
 from stega_cli.services.handlers.sse import submit_and_wait_for_event
-from stega_lib import http
-from stega_lib.events import PortfolioCreated
 
 
-def list_portfolios(cmd: ListPortfolios) -> Response:
+def list_portfolios(_: ListPortfolios) -> Response:
+    """Handle listing all portfolios.
+
+    Args:
+        cmd: A ListPortfolios command instance.
+
+    Returns:
+        A Response instance with the portfolio list results.
+
+    """
     config = create_config()
     with http.acquire_session(config.core_service_url) as session:
         resp = session.get("portfolios")
@@ -30,8 +41,16 @@ def list_portfolios(cmd: ListPortfolios) -> Response:
 
 
 def get_portfolio(cmd: GetPortfolio) -> Response:
-    config = create_config()
+    """Handle getting a portfolio.
 
+    Args:
+        cmd: A GetPortfolio command instance.
+
+    Returns:
+        A Response instance with the portfolio contents.
+
+    """
+    config = create_config()
     # check if portfolio is locally cached first
     with db.acquire_connection(config.db_path) as conn:
         portfolio = portfolio_db.get_portfolio(conn, cmd.portfolio_id)
@@ -49,9 +68,6 @@ def get_portfolio(cmd: GetPortfolio) -> Response:
 
     status = data["ok"]
     result = data["result"] if status else data["msg"]
-
-    # TODO: cache result locally if found
-
     return Response(
         status="ok" if status else "error",
         result=result,
@@ -59,6 +75,12 @@ def get_portfolio(cmd: GetPortfolio) -> Response:
 
 
 def create_portfolio_request(cmd: CreatePortfolio) -> None:
+    """Submit request to create portfolio in core service.
+
+    Args:
+        cmd: A CreatePortfolio command instance.
+
+    """
     config = create_config()
     with http.acquire_session(config.core_service_url) as session:
         payload = {
@@ -73,11 +95,22 @@ def create_portfolio_request(cmd: CreatePortfolio) -> None:
 
 
 def create_portfolio(cmd: CreatePortfolio) -> None:
+    """Handle creating a portfolio.
+
+    NOTE: This will submit the request to create a portfolio and also wait
+    for the corresponding PortfolioCreated event to be streamed with the
+    resulting portfolios contents using the correlation id to match the initial
+    request.
+
+    Args:
+        cmd: A CreatePortfolio command instance.
+
+    """
     config = create_config()
     # submit request and wait for event to emit via SSE
     request_callback = functools.partial(create_portfolio_request, cmd=cmd)
 
-    def matches(data: dict[str, T.Any]) -> bool:
+    def matches(data: dict[str, Any]) -> bool:
         return cmd.correlation_id == data["correlation_id"]
 
     data = submit_and_wait_for_event(
@@ -90,7 +123,13 @@ def create_portfolio(cmd: CreatePortfolio) -> None:
     cache_local_portfolio(data)
 
 
-def cache_local_portfolio(data: dict[str, T.Any]) -> None:
+def cache_local_portfolio(data: dict[str, Any]) -> None:
+    """Store a portfolio's contents in a local cache.
+
+    Args:
+        data: A dict of the portfolio contents.
+
+    """
     config = create_config()
     correlation_id = data["correlation_id"]
     portfolio_id = data["portfolio_id"]

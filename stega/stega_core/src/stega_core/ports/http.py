@@ -10,71 +10,49 @@ from stega_core.ports.base import PortfolioServicePort
 class HttpRestPortfolioServicePort(PortfolioServicePort):
     """Implementation of PortfolioServicePort using HTTP REST API."""
 
-    def create(
-        self,
-        correlation_id: str,
-        portfolio: PortfolioData,
-    ) -> str:
-        """Create a new portfolio.
-
-        Args:
-            portfolio (PortfolioData): The portfolio data to create.
-
-        Returns:
-            str: The ID of the created portfolio.
-
-        """
+    def get(self, portfolio_id: str) -> PortfolioData:
+        """See PortfolioServicePort."""
+        url = f"portfolio/{portfolio_id}"
         with http.acquire_session(self.config.portfolio_service_url) as session:
-            resp = session.post(
-                "portfolios",
-                json={
-                    "name": portfolio.name,
-                    "assets": {asset.symbol: asset.weight for asset in portfolio.assets},
-                },
-                headers={
-                    "X-Request-Id": correlation_id,
-                },
-            )
-            resp.raise_for_status()
-            data = resp.json()
-            return data["id"]
-
-    def get(self, id: str) -> PortfolioData:
-        """Get a portfolio by its unique ID.
-
-        Args:
-            id (str): The unique ID of the portfolio.
-
-        Returns:
-            PortfolioData: The portfolio with the specified ID.
-
-        """
-        with http.acquire_session(self.config.portfolio_service_url) as session:
-            resp = session.get(f"portfolio/{id}")
+            resp = session.get(url)
             data = resp.json()
             if not data["ok"]:
                 raise CoreAppError(data["msg"])
             view = data["view"]
             return PortfolioData(name=view["name"], assets=view["assets"])
 
-    def update(self, correlation_id: str, id: str, portfolio: PortfolioData) -> None:
-        return None
-
-    def delete(self, correlation_id: str, id: str) -> None:
-        return None
-
     def list(self) -> list[PortfolioData]:
-        """Get all existing portfolios.
-
-        Returns:
-            list[PortfolioData]: A list of existing portfolios.
-
-        """
+        """See PortfolioServicePort."""
+        url = "portfolios"
         with http.acquire_session(self.config.portfolio_service_url) as session:
-            resp = session.get("/portfolios")
-            resp.raise_for_status()
+            resp = session.get(url)
             data = resp.json()
+            if not data["ok"]:
+                raise CoreAppError(data["msg"])
             return [
                 PortfolioData(portfolio_id=view["portfolio_id"], name=view["name"], assets=view["assets"])
                 for view in data["view"]
             ]
+
+    def create(self, correlation_id: str, portfolio_data: PortfolioData) -> str:
+        """See PortfolioServicePort."""
+        url = "portfolios"
+        headers = {"X-Request-Id": correlation_id}
+        body = {
+            "name": portfolio_data.name,
+            "assets": {asset.symbol: asset.weight for asset in portfolio_data.assets},
+        }
+        with http.acquire_session(self.config.portfolio_service_url) as session:
+            resp = session.post(url, headers=headers, json=body)
+            data = resp.json()
+            if not data["ok"]:
+                raise CoreAppError(data["msg"])
+            return data["id"]
+
+    def update(self, correlation_id: str, portfolio_id: str, portfolio_data: PortfolioData) -> None:
+        """See PortfolioServicePort."""
+        raise NotImplementedError
+
+    def delete(self, correlation_id: str, portfolio_id: str) -> None:
+        """See PortfolioServicePort."""
+        raise NotImplementedError
