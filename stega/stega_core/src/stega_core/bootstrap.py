@@ -1,139 +1,105 @@
-"""Module for initializing the application runtime under the given environment."""
+from contextlib import asynccontextmanager
 
-import functools
-import inspect
-import typing as T
-
-from stega_lib.domain import Command, CommandType
-
-from stega_core.ports.base import ServiceType
-from stega_core.services.handlers.mapping import (
+from stega_core.config import CoreConfig
+from stega_core.ports.base import PortfolioServicePort
+from stega_core.ports.http import HttpRestPortfolioServicePort
+from stega_core.services.handlers import (
     COMMAND_HANDLERS,
+    QUERY_HANDLERS,
     EVENT_HANDLERS,
-    CommandHandlerType,
-    PrimitiveType,
+    STREAMED_EVENTS,
 )
-from stega_core.services.handlers.streams import ClientStreams
-from stega_core.services.messagebus import Message, MessageBus
 
-ServiceHandlers = dict[CommandType, T.Callable[[Command], PrimitiveType]]
-
-
-class Dispatcher:
-    """Class for dispatching commands to associated service calls."""
-
-    def __init__(self, handlers: ServiceHandlers) -> None:
-        """Inits a Dispatcher."""
-        self._handlers = handlers
-
-    def handle(self, cmd: Command) -> PrimitiveType:
-        """Dispatches a command to associated service and processes it accordingly.
-
-        Args:
-            cmd: A Commmand instance to dispatch to a service.
-
-        Returns:
-            A PrimitiveType of the result of the commands service call.
-        """
-        cmd_type = type(cmd)
-        if cmd_type not in self._handlers:
-            err_msg = f"Command type {cmd_type} unknown!"
-            raise ValueError(err_msg)
-        return self._handlers[cmd_type](cmd)
+from stega_lib import (
+    Command,
+    CommandRegistry,
+    Event,
+    EventRegistry,
+    Dependency,
+    DependencyContainer,
+    MessageBus,
+    Scope,
+)
+from stega_lib.streams.base import StreamBroker, make_stream_broadcaster
+from stega_lib.streams.memory import InMemoryStreamBroker
 
 
-def bootstrap_dispatcher(
-    services: list[ServiceType],
-) -> Dispatcher:
-    """Provisions the application with the selected runtime service ports.
+def build_container(config: CoreConfig) -> DependencyContainer:
+    # SSE stream broker for client event streaming updates
+    broker = InMemoryStreamBroker()
 
-    Args:
-        services: A list of ServiceType instances to provision.
+    # create service ports
+    portfolio_service = HttpRestPortfolioServicePort()
 
-    Returns:
-        A Dispatcher instance for mapping commands to their respective
-        service handlers.
-
-    """
-    dependencies = {"services": services}
-    handlers = {
-        command_type: inject_dispatcher_dependencies(handler, dependencies)
-        for command_type, handler in COMMAND_HANDLERS.items()
-    }
-    return Dispatcher(handlers=handlers)
-
-
-def bootstrap_event_bus(streams: ClientStreams) -> MessageBus:
-    """Provisions the application with the selected event consumers.
-
-    Args:
-        streams: A ClientStreams instance to broadcast events to.
-
-    Returns:
-        A MessageBus instance for mapping events to their respective service
-        handlers.
-
-    """
-    dependencies = {"streams": streams}
-    event_handlers = {
-        event_type: [inject_bus_dependencies(handler, dependencies) for handler in handlers]
-        for event_type, handlers in EVENT_HANDLERS.items()
-    }
-    return MessageBus(event_handlers=event_handlers)
+    return DependencyContainer([
+        Dependency(
+            type=StreamBroker,
+            scope=Scope.SINGLETON,
+            provider=lambda: broker,
+        )
+        Dependency(
+            type=PortfolioServicePort,
+            scope=Scope.SINGLETON,
+            provider=lambda: portfolio_service, 
+        ),
+    ])
 
 
-def inject_dispatcher_dependencies(
-    handler: CommandHandlerType,
-    dependencies: dict[str, list[ServiceType]],
-) -> T.Callable[[Command], PrimitiveType]:
-    """Inject runtime dependencies for service handlers.
-
-    Args:
-        handler: A Callable of a service handler without any runtime dependencies
-            injected yet.
-        dependencies: A Mapping of shared runtime kwargs to inject into service
-            handlers.
-
-    Returns:
-        A Callable of a service handler with a Command as the sole argument.
-
-    """
-
-    def _get_service_parent_class(service: ServiceType) -> type[ServiceType]:
-        return service.__class__.__bases__[0]
-
-    deps = {}
-    params = inspect.signature(handler).parameters
-    service_types = {_get_service_parent_class(service): service for service in dependencies.get("services", [])}
-    for name, param in params.items():
-        # Inject normal dependencies
-        if param.annotation not in service_types:
-            if name in dependencies and name != "services":
-                deps[name] = dependencies[name]
-        # Inject service dependencies based on the type provided
-        # NOTE: This allows us to provide generic service parameter names for handlers so that we don't have to
-        # know the common argument names for each service function and they don't have to be unique.
-        else:
-            deps[name] = service_types[param.annotation]
-    return functools.partial(handler, **deps)
+def build_command_registry(container: DependencyContainer) -> CommandRegistry:
+    registry = CommandRegistry()
+    for handler in COMMAND_HANDLERS:
+        binding = bind_handler(handler, container, Command)
+        registry.register(binding.action_type, binding)
+    registry.freeze()
+    return registry
 
 
-def inject_bus_dependencies(
-    handler: T.Callable[[Message, ClientStreams], None],
-    dependencies: dict[str, ClientStreams],
-) -> T.Callable[[Message], None]:
-    """Inject runtime dependencies for service handlers.
+def build_query_registry(container: DependencyContainer) -> QueryRegistry:
+    registry = QueryRegistry()
+    for handler in QUERY_HANDLERS:
+        binding = bind_handler(handler, container, Query)
+        registry.register(binding.action_type, binding)
+    registry.freeze()
+    return registry
 
-    Args:
-        handler: A Callable of a service handler without any runtime dependencies
-            injected yet.
-        dependencies: A Mapping of shared runtime kwargs to inject into service
-            handlers.
 
-    Returns:
-        A Callable of a service handler with a Message as the sole argument.
+def build_event_registry(container: DependencyContainer) -> EventRegsitry:
+    registry = EventRegistry()
 
-    """
-    params = inspect.signature(handler).parameters
-    deps = {name: dependency for name, dependency in dependencies.items() if name in params}
-    return functools.partial(handler, **deps)
+    # streamable events
+    for event_type in STREAMED_EVENTS:
+        handler = make_broadcast_handler(event_type)
+        binding = bind_handler(handler, container, Event)
+        registry.register(binding.action_type, binding)
+
+    # downstream work handlers responding to event effects 
+    for handler in EVENT_HANDLERS:
+        binding = bind_handler(handler, container, Event)
+        registry.register(binding.action_type, binding)
+
+    registry.freeze()
+    return registry
+
+
+def build_bus(config: CoreConfig, container: DependencyContainer) -> MessageBus:
+    return MessageBus(
+        command_registry=build_command_registry(container),
+        query_registry=build_query_registry(container),
+        event_registry=build_event_registry(container),
+        container=container,
+    )
+
+
+@asynccontextmanager
+async def service_lifespan(config: CoreConfig):
+    container = build_container(config)
+    bus = build_bus(config, container)
+    broker = container.resolve_singleton(StreamBroker)
+
+    await broker.start()
+    await bus.start()
+    try:
+        yield bus
+    finally:
+        await bus.stop()
+        await broker.stop()

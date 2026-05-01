@@ -6,7 +6,6 @@ from stega_lib.events import Event
 
 from stega_portfolio.config import PortfolioConfig, create_config
 
-
 @contextlib.contextmanager
 def acquire_events_channel(
     config: PortfolioConfig,
