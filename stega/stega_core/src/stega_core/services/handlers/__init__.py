@@ -10,6 +10,7 @@ COMMAND_HANDLERS = [
 
 QUERY_HANDLERS = []
 
+PUBLISHED_EVENTS = []
 STREAMED_EVENTS = [
     PortfolioCreated,
     PortfolioDeleted,

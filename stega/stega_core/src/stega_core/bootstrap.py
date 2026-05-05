@@ -8,6 +8,7 @@ from stega_core.services.handlers import (
     QUERY_HANDLERS,
     EVENT_HANDLERS,
     STREAMED_EVENTS,
+    PUBLISHED_EVENTS,
 )
 
 from stega_lib import (
@@ -20,10 +21,10 @@ from stega_lib import (
     MessageBus,
     Scope,
 )
-from stega_lib.streams.base import StreamBroker, make_stream_broadcaster
+from stega_lib.streams.base import StreamBroker, make_broadcast_handler
 from stega_lib.streams.memory import InMemoryStreamBroker
-from stega_lib.transport.base import MessageTransport
-from stega_lib.transport.rabbitmq import RabbitMqTransport
+from stega_lib.transport.base import MessageTransport, make_publishing_handler
+from stega_lib.transport.rabbitmq import RabbitMqTransport, RabbitMqConnectionParameters
 
 
 def build_container(config: CoreConfig) -> DependencyContainer:
@@ -32,9 +33,13 @@ def build_container(config: CoreConfig) -> DependencyContainer:
 
     # Message transport for external events consumption
     transport = RabbitMqTransport(
-        url=config.STEGA_BROKER_URL,
+        connection_parameters=RabbitMqConnectionParameters(
+            host=config.STEGA_BROKER_HOST,
+            port=config.STEGA_BROKER_PORT,
+            username=config.STEGA_BROKER_PASSWORD,
+            password=config.STEGA_BROKER_USERNAME,
+        ),
         exchange_name=config.STEGA_BROKER_EXCHANGE_NAME,
-        queue_name=config.STEGA_BROKER_QUEUE_NAME,
     )
 
     # create service ports
@@ -45,6 +50,11 @@ def build_container(config: CoreConfig) -> DependencyContainer:
             type=StreamBroker,
             scope=Scope.SINGLETON,
             provider=lambda: broker,
+        )
+        Dependency(
+            type=MessageTransport,
+            scope=Scope.SINGLETON,
+            provider=lambda: transport,
         )
         Dependency(
             type=PortfolioServicePort,
@@ -74,6 +84,12 @@ def build_query_registry(container: DependencyContainer) -> QueryRegistry:
 
 def build_event_registry(container: DependencyContainer) -> EventRegsitry:
     registry = EventRegistry()
+    
+    # publishable events
+    for event_type in PUBLISHED_EVENTS:
+        handler = make_publishing_handler(event_type)
+        binding = bind_handler(handler, container, Event)
+        registry.register(binding.action_type, binding)
 
     # streamable events
     for event_type in STREAMED_EVENTS:
@@ -104,7 +120,9 @@ async def service_lifespan(config: CoreConfig):
     container = build_container(config)
     bus = build_bus(config, container)
     broker = container.resolve_singleton(StreamBroker)
+    transport = container.resolve_singleton(MessageTransport)
 
+    await transport.start()
     await broker.start()
     await bus.start()
     try:
@@ -112,3 +130,4 @@ async def service_lifespan(config: CoreConfig):
     finally:
         await bus.stop()
         await broker.stop()
+        await transport.stop()

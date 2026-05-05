@@ -1,29 +1,41 @@
 import json
 from collections.abc import AsyncIterator
+from dataclasses import dataclass
 
 import aio_pika
 
 from stega_lib.transport.base import MessageTransport, TransportMessage
 
 
+@dataclass(frozen=True, kw_only=True)
+class RabbitMqConnectionParameters:
+    host: str
+    port: int
+    username: str
+    password: str
+
+
 class RabbitMqTransport(MessageTransport):
 
     def __init__(
         self,
-        url: str,
+        connection_params: RabbitMqConnectionParameters,
         exchange_name: str,
-        queue_name: str,
     ) -> None:
-        self._url = url
+        self._connection_params = connection_params
         self._exchange_name = exchange_name
-        self._queue_name = queue_name
 
-        self._connection: aio_pika.abc.AbstractRobustConnection | None = None
+        self._connection: aio_pika.abc.AbstractConnection | None = None
         self._channel: aio_pika.abc.AbstractChannel | None = None
         self._exchange: aio_pika.abc.AbstractExchange | None = None
 
     async def start(self) -> None:
-        self._connection = await aio_pika.connect_robust(self._url)
+        self._connection = await aio_pika.connect(
+            host=self._connection_params.host,
+            port=self._connection_params.port,
+            login=self._connection_params.username,
+            password=self._connection_params.password,
+        )
         self._channel = await self._connection.channel()
         self._exchange = await self._channel.declare_exchange(
             self._exchange_name,
@@ -53,11 +65,16 @@ class RabbitMqTransport(MessageTransport):
         if self._channel is None or self._exchange is None:
             raise RuntimeError("Transport not started")
 
-        queue = await self._channel.declare_queue(self._queue_name, durable=True)
+        queue = await self._channel.declare_queue(
+            name="",
+            exclusive=True,
+            auto_delete=True,
+            durable=False,
+        )
         for topic in topics:
             await queue.bind(self._exchange, routing_key=topic)
 
-        async with queue.iterator() as consumer:
+        async with queue.iterator(no_ack=True) as consumer:
             async for rabbit_msg in consumer:
                 async with rabbit_msg.process(requeue=True):
                     body = json.loads(rabbit_msg.body.decode())

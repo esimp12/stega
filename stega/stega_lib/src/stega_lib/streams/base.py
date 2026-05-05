@@ -34,10 +34,10 @@ class StreamBroker(ABC):
         pass
 
 
-StreamBroadcasterHandler = Callable[Event, StreamBroker], Awaitable[None]]
+StreamBroadcasterHandler = Callable[[Event, StreamBroker], Awaitable[None]]
 
 
-def make_stream_broadcaster(event_type: type[Event], channel: str | None = None) -> StreamBroadcasterHandler:
+def make_broadcast_handler(event_type: type[Event], channel: str | None = None) -> StreamBroadcasterHandler:
     async def broadcast(event: event_type, broker: StreamBroker) -> None:
         await broker.publish(
             StreamMessage(

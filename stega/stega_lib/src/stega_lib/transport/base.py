@@ -23,3 +23,18 @@ class MessageTransport(ABC):
 
     @abstractmethod
     async def stop(self) -> None: ...
+
+
+PublisherHandler = Callable[[Event, MessageTransport], Awaitable[None]]
+
+
+def make_publishing_handler(event_type: type[Event]) -> PublisherHandler:
+    async def publish(event: event_type, transport: MessageTransport) -> None:
+        await transport.publish(
+            TransportMessage(
+                topic=event.topic,
+                body=event.serialize(),
+            )
+        )
+    publish.__name__ = f"publish_{event_type.__name__}"
+    return publish

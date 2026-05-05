@@ -26,9 +26,9 @@ class CoreConfig(BaseConfig):
     STEGA_PORTFOLIO_SERVER_NAME: str = "portfolio"
     STEGA_PORTFOLIO_SERVER_PORT: int = 5000
 
-    STEGA_BROKER_EXCHANGE: str = "events"
-    STEGA_BROKER_USER: str
-    STEGA_BROKER_PASS: str
+    STEGA_BROKER_EXCHANGE_NAME: str = "events"
+    STEGA_BROKER_USERNAME: str
+    STEGA_BROKER_PASSWORD: str
     STEGA_BROKER_HOST: str = "broker"
     STEGA_BROKER_PORT: int = 5672
 
@@ -44,8 +44,8 @@ class ProdConfig(CoreConfig):
     STEGA_CORE_ENV: str = "prod"
     STEGA_CORE_GUNICORN: bool = True
 
-    STEGA_BROKER_USER: str = source("env")
-    STEGA_BROKER_PASS: str = source("env")
+    STEGA_BROKER_USERNAME: str = source("env")
+    STEGA_BROKER_PASSWORD: str = source("env")
 
 
 class DevConfig(CoreConfig):
@@ -58,8 +58,8 @@ class DevConfig(CoreConfig):
 
     STEGA_CORE_SERVER_ADDRESS: str = "0.0.0.0"
 
-    STEGA_BROKER_USER: str = source("env")
-    STEGA_BROKER_PASS: str = source("env")
+    STEGA_BROKER_USERNAME: str = source("env")
+    STEGA_BROKER_PASSWORD: str = source("env")
 
 
 def create_config(env: str | None = None) -> CoreConfig:
