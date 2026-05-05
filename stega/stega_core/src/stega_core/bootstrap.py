@@ -22,11 +22,20 @@ from stega_lib import (
 )
 from stega_lib.streams.base import StreamBroker, make_stream_broadcaster
 from stega_lib.streams.memory import InMemoryStreamBroker
+from stega_lib.transport.base import MessageTransport
+from stega_lib.transport.rabbitmq import RabbitMqTransport
 
 
 def build_container(config: CoreConfig) -> DependencyContainer:
     # SSE stream broker for client event streaming updates
     broker = InMemoryStreamBroker()
+
+    # Message transport for external events consumption
+    transport = RabbitMqTransport(
+        url=config.STEGA_BROKER_URL,
+        exchange_name=config.STEGA_BROKER_EXCHANGE_NAME,
+        queue_name=config.STEGA_BROKER_QUEUE_NAME,
+    )
 
     # create service ports
     portfolio_service = HttpRestPortfolioServicePort()

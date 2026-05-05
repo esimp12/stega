@@ -27,7 +27,7 @@ class RabbitMqTransport(MessageTransport):
         self._channel = await self._connection.channel()
         self._exchange = await self._channel.declare_exchange(
             self._exchange_name,
-            aio_pika.ExchangeType.TOPIC,
+            aio_pika.ExchangeType.DIRECT,
             durable=True,
         )
 

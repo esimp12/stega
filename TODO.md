@@ -1,6 +1,5 @@
 # TODOS
 
-- (`stega_lib`) Create the RabbitMqTransport concrete implementation of MessageTransport
 - (`stega_core`) Add RabbitMqTransport to service_lifespan and DependencyContainer in bootstrap.py
 - (`stega_lib`) Create AbstractUnitOfWork
 - (`stega_lib`) Create a generic sqlalchemy UnitOfWork
