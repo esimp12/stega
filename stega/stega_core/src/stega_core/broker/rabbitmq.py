@@ -1,10 +1,10 @@
 import json
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Iterable
 from dataclasses import dataclass
 
 import aio_pika
 
-from stega_core.transport.base import MessageTransport, TransportMessage
+from stega_core.broker.base import MessageBroker, Envelope
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -15,7 +15,8 @@ class RabbitMqConnectionParameters:
     password: str
 
 
-class RabbitMqTransport(MessageTransport):
+class RabbitMqBroker[InT, OutT](MessageBroker[InT, OutT]):
+
     def __init__(
         self,
         connection_params: RabbitMqConnectionParameters,
@@ -51,19 +52,19 @@ class RabbitMqTransport(MessageTransport):
             self._connection = None
         self._exchange = None
 
-    async def publish(self, message: TransportMessage) -> None:
+    async def publish(self, envelope: Envelope[OutT]) -> None:
         if self._exchange is None:
-            err_msg = "Transport not started"
+            err_msg = "Broker not started"
             raise RuntimeError(err_msg)
-        body = json.dumps(message.body).encode()
+        body = json.dumps(envelope.payload).encode()
         await self._exchange.publish(
             aio_pika.Message(body=body, content_type="application/json"),
-            routing_key=message.topic,
+            routing_key=envelope.topic,
         )
 
-    async def subscribe(self, topics: list[str]) -> AsyncIterator[TransportMessage]:
+    async def subscribe(self, topics: str | Iterable[str]) -> AsyncIterator[Envelope[InT]]:
         if self._channel is None or self._exchange is None:
-            err_msg = "Transport not started"
+            err_msg = "Broker not started"
             raise RuntimeError(err_msg)
 
         queue = await self._channel.declare_queue(
@@ -78,8 +79,8 @@ class RabbitMqTransport(MessageTransport):
         async with queue.iterator(no_ack=True) as consumer:
             async for rabbit_msg in consumer:
                 async with rabbit_msg.process(requeue=True):
-                    body = json.loads(rabbit_msg.body.decode())
-                    yield TransportMessage(
+                    payload = json.loads(rabbit_msg.body.decode())
+                    yield Envelope(
                         topic=rabbit_msg.routing_key or "",
-                        body=body,
+                        payload=payload,
                     )

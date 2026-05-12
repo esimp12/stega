@@ -2,20 +2,30 @@ import asyncio
 from dataclasses import dataclass
 from typing import cast
 
-from stega_core.command import Command
-from stega_core.di import Action, DependencyContainer, DispatchScope, HandlerBinding
-from stega_core.domain.uow.base import AbstractUnitOfWork
-from stega_core.event import Event, EventDispatch
-from stega_core.messaging import CommandRegistry, EventRegistry, QueryRegistry
-from stega_core.query import Query
-from stega_core.response import (
+from stega_core.di import (
+    DependencyContainer,
+    DispatchScope,
+    MessageHandlerBinding,
+)
+from stega_core.message import (
+    Message,
+    MessageResponse,
+    Command,
+    Event,
+    Query,
+    EventDispatch,
     CommandResponse,
     QueryResponse,
     QueryStatus,
-    Response,
     SubmissionStatus,
+    View,
 )
-from stega_core.view import View
+from stega_core.registry import (
+    CommandRegistry,
+    EventRegistry,
+    QueryRegistry,
+)
+from stega_core.uow import AbstractUnitOfWork
 
 
 @dataclass(frozen=True)
@@ -48,7 +58,7 @@ class MessageBus:
 
     @property
     def subscribed_topics(self) -> set[str]:
-        return {event_type.topic for event_type in self._events.action_types}
+        return {event_type.topic for event_type in self._events.message_types}
 
     async def start(self) -> None:
         if self._running:
@@ -101,7 +111,7 @@ class MessageBus:
 
         return response
 
-    async def handle_query[TView: View](self, query: Query[TView]) -> QueryResponse[TView]:
+    async def handle_query[ViewT: View](self, query: Query[ViewT]) -> QueryResponse[ViewT]:
         query_type = type(query)
         binding = self._queries.get(query_type)
         if binding is None:
@@ -135,15 +145,15 @@ class MessageBus:
                 else:
                     sync_queue.append(next_event)
 
-    async def _invoke[TResponse: Response | None](
+    async def _invoke[MessageResponseT: MessageResponse](
         self,
-        binding: HandlerBinding,
-        action: Action,
-        response_type: type[TResponse],
-    ) -> tuple[TResponse, DispatchScope]:
+        binding: MessageHandlerBinding,
+        message: Message,
+        response_type: type[MessageResponseT],
+    ) -> tuple[MessageResponseT, DispatchScope]:
         scope = self._container.dispatch_scope()
         deps = {name: scope.resolve(t) for name, t in binding.dep_types.items()}
-        result = await binding.handler(action, **deps)
+        result = await binding.handler(message, **deps)
 
         if not isinstance(result, response_type):
             err_msg = (
@@ -152,7 +162,7 @@ class MessageBus:
             )
             raise TypeError(err_msg)
 
-        return cast("TResponse", result), scope
+        return cast("MessageResponseT", result), scope
 
     async def _dispatch_event_locally(self, event: Event) -> list[Event]:
         bindings = self._events.get(type(event))

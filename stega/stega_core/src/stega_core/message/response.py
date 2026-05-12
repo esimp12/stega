@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from enum import Enum
 
-from stega_core.view import View
+from stega_core.message.view import View
 
 
 class QueryStatus(Enum):
@@ -30,6 +30,6 @@ class CommandResponse(Response):
 
 
 @dataclass(frozen=True, kw_only=True)
-class QueryResponse[TView: View](Response):
+class QueryResponse[ViewT: View](Response):
     status: QueryStatus
-    result: TView | None = None
+    result: ViewT | None = None

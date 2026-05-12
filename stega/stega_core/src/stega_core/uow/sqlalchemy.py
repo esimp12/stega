@@ -4,19 +4,19 @@ from typing import TYPE_CHECKING
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-from stega_core.domain.uow.base import AbstractUnitOfWork
+from stega_core.uow.base import AbstractUnitOfWork
 
 if TYPE_CHECKING:
-    from stega_core.registry.repo import RepoClassRegistry
+    from stega_core.registry import RepositoryRegistry
 
 
 class SqlAlchemyUnitOfWork(AbstractUnitOfWork[AsyncSession]):
     def __init__(
         self,
         session_factory: async_sessionmaker[AsyncSession],
-        repo_class_registry: RepoClassRegistry[AsyncSession],
+        repo_factory_registry: RepositoryRegistry[AsyncSession],
     ) -> None:
-        super().__init__(repo_class_registry)
+        super().__init__(repo_factory_registry)
         self._session_factory = session_factory
         self._session: AsyncSession | None = None
 

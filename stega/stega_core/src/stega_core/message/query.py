@@ -1,8 +1,8 @@
 from dataclasses import dataclass
 
-from stega_core.view import View
+from stega_core.message.view import View
 
 
 @dataclass(frozen=True, kw_only=True)
-class Query[TView: View]:
+class Query[ViewT: View]:
     pass

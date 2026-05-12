@@ -3,8 +3,9 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, ClassVar, cast
 
 from sqlalchemy import select
-from stega_lib.domain.aggregate import Aggregate
-from stega_lib.domain.repos.base import AbstractRepository
+
+from stega_core.domain import Aggregate
+from stega_core.repository.base import AbstractRepository
 
 if TYPE_CHECKING:
     from collections.abc import Iterable

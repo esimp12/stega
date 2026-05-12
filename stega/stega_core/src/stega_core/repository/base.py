@@ -3,13 +3,13 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Protocol
 
-from stega_core.domain.aggregate import Aggregate
+from stega_core.domain import Aggregate
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
 
 
-class RepoClass[SessionT](Protocol):
+class RepositoryFactory[SessionT](Protocol):
     def __call__(self, session: SessionT, /) -> AbstractRepository: ...
 
 
