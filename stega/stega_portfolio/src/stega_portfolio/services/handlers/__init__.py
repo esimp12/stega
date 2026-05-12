@@ -1,4 +1,25 @@
-"""Service handler mapping and implementation for stega portfolio.
+from stega_portfolio.services.handlers.portfolio import (
+    create_portfolio,
+    delete_portfolio,
+    update_portfolio,
+)
+from stega_lib.messaging.events import (
+    PortfolioCreated,
+    PortfolioDeleted,
+    PortfolioUpdated,
+)
 
-This module provides a mapping of service handlers to their respective implementations.
-"""
+
+COMMAND_HANDLERS = [
+    create_portfolio,
+    delete_portfolio,
+    update_portfolio,
+]
+
+QUERY_HANDLERS = []
+
+PUBLISHED_EVENTS = [
+    PortfolioCreated,
+    PortfolioDeleted,
+    PortfolioUpdated,
+]

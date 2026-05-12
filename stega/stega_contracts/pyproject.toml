@@ -1,14 +1,16 @@
 [project]
 authors = [{ name = "Eric Simpson", email = "eric.gr.simpson@gmail.com" }]
-name = "stega_core"
+name = "stega_contracts"
 requires-python = ">=3.12"
 version = "0.1.0"
-description = "Common core for all stega services"
+description = "Messaging contracts for all stega services"
 dependencies = [
-    "httpx[http2]>=0.28.1",
-    "uuid-utils>=0.11.0",
+    "stega_core",
 ]
 
 [build-system]
 requires = ["uv_build>=0.7.20,<0.8.0"]
 build-backend = "uv_build"
+
+[tool.uv.sources]
+stega_core = { workspace = true }

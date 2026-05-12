@@ -1,20 +1,24 @@
 [project]
 authors = [{ name = "Eric Simpson", email = "eric.gr.simpson@gmail.com" }]
-name = "stega_cli"
+name = "stega_edge"
 requires-python = ">=3.12"
 version = "0.1.0"
-description = "CLI tool for stega application"
+description = "Boundary services for stega application"
 dependencies = [
-    "click>=8.2.1",
-    "stega_core",
+    "flask>=3.1.2",
+    "gunicorn>=23.0.0",
+    "hypercorn>=0.18.0",
+    "pika>=1.3.2",
+    "quart>=0.20.0",
     "stega_config",
+    "stega_core",
 ]
 
 [tool.stega]
-service = false
+service = true
 
 [project.scripts]
-stega = "stega_cli.cli.entrypoint:run"
+serve-core = "stega_edge.entrypoint:run"
 
 [build-system]
 requires = ["uv_build>=0.7.20,<0.8.0"]
