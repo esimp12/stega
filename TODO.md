@@ -4,12 +4,12 @@ Target: a CLI client (`stega_cli`) can issue create/read/update/delete against
 `stega_edge`, which forwards to `stega_portfolio`, which persists and emits events.
 
 ## Day 1 — Rename pass & lib syntax fixes (foundation)
-- [ ] Rename `stega_lib` → `stega_core` (workspace member, pyproject names, all imports)
-- [ ] Rename current `stega_core` → `stega_edge` (workspace member, pyproject, imports)
-- [ ] Extract `Event` *subclasses* (`PortfolioCreated/Deleted/Updated`) from
+- [x] Rename `stega_lib` → `stega_core` (workspace member, pyproject names, all imports)
+- [x] Rename current `stega_core` → `stega_edge` (workspace member, pyproject, imports)
+- [x] Extract `Event` *subclasses* (`PortfolioCreated/Deleted/Updated`) from
       `stega_core/event.py` into a new `stega_contracts` workspace package; leave
       the abstract `Event` base in `stega_core`
-- [ ] Fix all syntax errors in `stega_core/messaging/bus.py` and `stega_core/di.py`
+- [x] Fix all syntax errors in `stega_core/messaging/bus.py` and `stega_core/di.py`
       (the `int = 0 shutdown_timeout: float = 30.0` lines, the
       `self._x = dict[T, U] = {}` lines)
 - [ ] Add an `invoke smoke` task that runs `python -c "import <pkg>"` for each

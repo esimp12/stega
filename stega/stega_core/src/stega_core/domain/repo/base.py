@@ -3,7 +3,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Protocol
 
-from stega_lib.domain.aggregate import Aggregate
+from stega_core.domain.aggregate import Aggregate
 
 if TYPE_CHECKING:
     from collections.abc import Iterable

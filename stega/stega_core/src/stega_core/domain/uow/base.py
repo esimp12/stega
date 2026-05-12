@@ -3,14 +3,14 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, cast
 
-from stega_lib.domain.repo.base import AbstractRepository
+from stega_core.domain.repo.base import AbstractRepository
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
     from types import TracebackType
 
-    from stega_lib.core.event import Event
-    from stega_lib.registry.repo import RepoClassRegistry
+    from stega_core.event import Event
+    from stega_core.registry.repo import RepoClassRegistry
 
 
 class AbstractUnitOfWork[SessionT](ABC):

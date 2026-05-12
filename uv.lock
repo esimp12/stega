@@ -7,6 +7,7 @@ members = [
     "stega",
     "stega-cli",
     "stega-config",
+    "stega-contracts",
     "stega-core",
     "stega-edge",
     "stega-portfolio",
@@ -792,6 +793,17 @@ requires-dist = [
 name = "stega-config"
 version = "0.1.0"
 source = { editable = "stega/stega_config" }
+
+[[package]]
+name = "stega-contracts"
+version = "0.1.0"
+source = { editable = "stega/stega_contracts" }
+dependencies = [
+    { name = "stega-core" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "stega-core", editable = "stega/stega_core" }]
 
 [[package]]
 name = "stega-core"
