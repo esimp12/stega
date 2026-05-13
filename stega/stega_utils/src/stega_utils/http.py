@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import functools
-from typing import TYPE_CHECKING, Any, Self
+from typing import TYPE_CHECKING, Any
 
 import httpx
 
@@ -27,7 +27,7 @@ class AsyncRateLimiter:
             await asyncio.sleep(self.period / self.limit)
             self.signal.set()
 
-    async def __aenter__(self) -> Self:
+    async def __aenter__(self) -> AsyncRateLimiter:
         async with self.lock:
             await self.signal.wait()
             self.signal.clear()

@@ -3,7 +3,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, cast
 
-from stega_core.reposiory import AbstractRepository
+from stega_core.repository import AbstractRepository
 
 if TYPE_CHECKING:
     from collections.abc import Iterator

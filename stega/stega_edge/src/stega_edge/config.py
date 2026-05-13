@@ -1,5 +1,3 @@
-"""Configuration module for the portfolio service."""
-
 import inspect
 import logging
 import os
@@ -7,21 +5,16 @@ import os
 from stega_config import BaseConfig, source
 
 
-class CoreConfig(BaseConfig):
-    """Base configuration for the core service.
+class EdgeConfig(BaseConfig):
+    STEGA_EDGE_ENV: str
+    STEGA_EDGE_DEBUG: bool = False
+    STEGA_EDGE_HYPERCORN: bool = False
 
-    NOTE: This class is intended to be extended by specific environment configurations.
-    """
+    STEGA_EDGE_LOG_LEVEL: str = "INFO"
 
-    STEGA_CORE_ENV: str
-    STEGA_CORE_DEBUG: bool = False
-    STEGA_CORE_GUNICORN: bool = False
-
-    STEGA_CORE_LOG_LEVEL: str = "INFO"
-
-    STEGA_CORE_GUNICORN_WORKERS: int = 4
-    STEGA_CORE_SERVER_ADDRESS: str = "0.0.0.0"
-    STEGA_CORE_SERVER_PORT: int = 5000
+    STEGA_EDGE_HYPERCORN_WORKERS: int = 4
+    STEGA_EDGE_SERVER_ADDRESS: str = "0.0.0.0"
+    STEGA_EDGE_SERVER_PORT: int = 5000
 
     STEGA_PORTFOLIO_SERVER_NAME: str = "portfolio"
     STEGA_PORTFOLIO_SERVER_PORT: int = 5000
@@ -34,69 +27,44 @@ class CoreConfig(BaseConfig):
 
     @property
     def portfolio_service_url(self) -> str:
-        """Get the portfolio service API url."""
         return f"http://{self.STEGA_PORTFOLIO_SERVER_NAME}:{self.STEGA_PORTFOLIO_SERVER_PORT}/api"
 
 
-class ProdConfig(CoreConfig):
-    """Production configuration for the core service."""
-
-    STEGA_CORE_ENV: str = "prod"
-    STEGA_CORE_GUNICORN: bool = True
+class ProdConfig(EdgeConfig):
+    STEGA_EDGE_ENV: str = "prod"
+    STEGA_EDGE_HYPERCORN: bool = True
 
     STEGA_BROKER_USERNAME: str = source("env")
     STEGA_BROKER_PASSWORD: str = source("env")
 
 
-class DevConfig(CoreConfig):
-    """Development configuration for the core service."""
+class DevConfig(EdgeConfig):
+    STEGA_EDGE_ENV: str = "dev"
+    STEGA_EDGE_DEBUG: bool = True
 
-    STEGA_CORE_ENV: str = "dev"
-    STEGA_CORE_DEBUG: bool = True
+    STEGA_EDGE_LOG_LEVEL: str = "DEBUG"
 
-    STEGA_CORE_LOG_LEVEL: str = "DEBUG"
-
-    STEGA_CORE_SERVER_ADDRESS: str = "0.0.0.0"
+    STEGA_EDGE_SERVER_ADDRESS: str = "0.0.0.0"
 
     STEGA_BROKER_USERNAME: str = source("env")
     STEGA_BROKER_PASSWORD: str = source("env")
 
 
-def create_config(env: str | None = None) -> CoreConfig:
-    """Create a core service configuration instance based on the environment.
-
-    Args:
-        env: The environment for which to create the configuration. If None,
-            defaults to 'dev'.
-
-    Returns:
-        An instance of CoreConfig for the specified environment.
-
-    """
+def create_config(env: str | None = None) -> EdgeConfig:
     if env is None:
-        env = os.getenv("STEGA_CORE_ENV", "dev").lower()
-    return CoreConfig.create_config(env)
+        env = os.getenv("STEGA_EDGE_ENV", "dev").lower()
+    return EdgeConfig.create_config(env)
 
 
 def create_logger(
-    config: CoreConfig,
+    config: EdgeConfig,
     third_party_loggers: list[str] | None = None,
 ) -> logging.Logger:
-    """Create a logger for the core service.
-
-    Args:
-        config: The configuration instance for the core service.
-        third_party_loggers: Optional list of third-party loggers to configure.
-
-    Returns:
-        A logger instance configured for the calling module of the core service.
-
-    """
     if third_party_loggers is None:
         third_party_loggers = []
 
     # Setup stream handler for the loggers
-    log_level = config.STEGA_CORE_LOG_LEVEL.upper()
+    log_level = config.STEGA_EDGE_LOG_LEVEL.upper()
     handler = logging.StreamHandler()
     handler.setLevel(log_level)
     formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
@@ -127,7 +95,6 @@ def create_logger(
 
 
 def get_caller_module() -> str:
-    """Get the name of the module that called this function."""
     frame = inspect.currentframe()
     caller_frame = frame.f_back
     module = inspect.getmodule(caller_frame)

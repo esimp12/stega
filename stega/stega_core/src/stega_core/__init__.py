@@ -13,7 +13,7 @@ from stega_core.di import (
 )
 from stega_core.broker import (
     Envelope,
-    MessageBus,
+    MessageBroker,
     ServiceBroker,
     ClientBroker,
     make_service_publish_handler,
@@ -69,7 +69,7 @@ __all__ = [
     "DispatchScope",
     "bind_handler",
     "Envelope",
-    "MessageBus",
+    "MessageBroker",
     "ServiceBroker",
     "ClientBroker",
     "make_service_publish_handler",

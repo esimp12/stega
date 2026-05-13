@@ -1,6 +1,6 @@
 services:
   core:
-    image: stega-core:latest
+    image: stega-edge:latest
     restart: always
     build:
       context: .
@@ -11,8 +11,8 @@ services:
       portfolio:
         condition: service_healthy 
     environment:
-      STEGA_CORE_ENV: ${STEGA_CORE_ENV}
-      STEGA_CORE_LOG_LEVEL: ${STEGA_CORE_LOG_LEVEL}
+      STEGA_EDGE_ENV: ${STEGA_EDGE_ENV}
+      STEGA_EDGE_LOG_LEVEL: ${STEGA_EDGE_LOG_LEVEL}
       STEGA_BROKER_USER: ${STEGA_BROKER_USER}
       STEGA_BROKER_PASS: ${STEGA_BROKER_PASS}
     ports:

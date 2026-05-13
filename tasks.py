@@ -120,6 +120,18 @@ def deploy(c, env_file=".env.prod"):
     c.run(f"docker compose --env-file {env_file} up -d ")
     print("Deployment completed.")
 
+@task
+def smoke(c, package):
+    """Run smoke test for a package."""
+    deps = _resolve_member_deps(_ROOT_CONFIG)
+    if package not in deps.keys():
+        raise ValueError(f"Package '{package}' is not a known member package.")
+
+    print(f"Running smoke test for package {package}...")
+    import_name = deps[package]["path"].split("/")[-1]
+    c.run(f"uv run python3 -c 'import {import_name}'") 
+    print(f"Smoke test for package {package} passed.")
+
 
 def _get_service_names(manifest_path):
     manifest = _load_manifest(manifest_path)

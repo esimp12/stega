@@ -1,12 +1,11 @@
 [project]
 authors = [{ name = "Eric Simpson", email = "eric.gr.simpson@gmail.com" }]
-name = "stega_core"
+name = "stega_utils"
 requires-python = ">=3.12"
 version = "0.1.0"
-description = "Common core for all stega services"
+description = "Common utilities for all stega services"
 dependencies = [
-    "aio-pika>=9.6.2",
-    "sqlalchemy[asyncio]>=2.0.43",
+    "httpx>=0.28.1",
 ]
 
 [build-system]

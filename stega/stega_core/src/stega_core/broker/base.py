@@ -5,7 +5,7 @@ from collections.abc import AsyncIterator, Awaitable, Callable, Iterable
 from dataclasses import dataclass
 from typing import Any
 
-from stega_core.event import Event
+from stega_core.message import Event
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -49,7 +49,7 @@ type ClientPublishHandler = Callable[
 ]
 
 
-def make_service_publish_handler(event_type: type[Event]) -> ServicePublishHandler
+def make_service_publish_handler(event_type: type[Event]) -> ServicePublishHandler:
     async def publish(event: event_type, broker: ServiceBroker) -> None:
         await broker.publish(
             Envelope(

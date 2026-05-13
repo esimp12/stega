@@ -10,7 +10,7 @@ from stega_core.message import (
     QueryResponse,
     View,
 )
-from stega_core.di import HandlerBinding
+from stega_core.di import MessageHandlerBinding
 from stega_core.registry.base import (
     FanOutRegistry,
     Registry,
@@ -18,7 +18,7 @@ from stega_core.registry.base import (
 
 
 class MessageRegistry[MessageT: Message, MessageResponseT: MessageResponse](
-    Registry[type[MessageT], HandlerBinding[MessageT, MessageResponseT]]
+    Registry[type[MessageT], MessageHandlerBinding[MessageT, MessageResponseT]]
 ):
     @property
     def message_types(self) -> set[type[MessageT]]:
@@ -26,7 +26,7 @@ class MessageRegistry[MessageT: Message, MessageResponseT: MessageResponse](
 
 
 class MessageFanOutRegistry[MessageT: Message, MessageResponseT: MessageResponse](
-    FanOutRegistry[type[MessageT], HandlerBinding[MessageT, MessageResponseT]]
+    FanOutRegistry[type[MessageT], MessageHandlerBinding[MessageT, MessageResponseT]]
 ):
     @property
     def message_types(self) -> set[type[MessageT]]:

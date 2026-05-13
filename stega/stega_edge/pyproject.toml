@@ -5,25 +5,24 @@ requires-python = ">=3.12"
 version = "0.1.0"
 description = "Boundary services for stega application"
 dependencies = [
-    "flask>=3.1.2",
-    "gunicorn>=23.0.0",
     "hypercorn>=0.18.0",
-    "pika>=1.3.2",
     "quart>=0.20.0",
     "stega_config",
     "stega_core",
+    "stega_utils",
 ]
 
 [tool.stega]
 service = true
 
 [project.scripts]
-serve-core = "stega_edge.entrypoint:run"
+serve-edge = "stega_edge.entrypoint:run"
 
 [build-system]
 requires = ["uv_build>=0.7.20,<0.8.0"]
 build-backend = "uv_build"
 
 [tool.uv.sources]
-stega_core = { workspace = true }
 stega_config = { workspace = true }
+stega_core = { workspace = true }
+stega_utils = { workspace = true }

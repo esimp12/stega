@@ -17,6 +17,7 @@ members = [
     "stega/stega_core",
     "stega/stega_edge",
     "stega/stega_portfolio",
+    "stega/stega_utils",
 ]
 
 [dependency-groups]
