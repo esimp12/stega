@@ -95,7 +95,7 @@ def bind_handler[MessageT, MessageResponseT](
     expected_msg_base: type[MessageT],
 ) -> MessageHandlerBinding[MessageT, MessageResponseT]:
     sig = inspect.signature(handler)
-    hints = get_type_hints(sig)
+    hints = get_type_hints(handler)
     params = list(sig.parameters.values())
     if not params:
         err_msg = f"{handler.__qualname__} must accept a message parameter"

@@ -7,6 +7,12 @@ description = "Portfolio microservice for stega application"
 dependencies = [
     "stega_core",
     "stega_config",
+    "stega_contracts",
+    "asyncpg>=0.31.0",
+    "aiosqlite>=0.22.1",
+    "sqlalchemy[asyncio]>=2.0.43",
+    "quart>=0.20.0",
+    "hypercorn>=0.18.0",
 ]
 
 [tool.stega]
@@ -30,6 +36,7 @@ dev = [
 [tool.uv.sources]
 stega_core = { workspace = true }
 stega_config = { workspace = true }
+stega_contracts = { workspace = true }
 
 [tool.alembic]
 script_location = "%(here)s/alembic"

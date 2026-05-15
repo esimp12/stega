@@ -48,7 +48,7 @@ type ClientPublishHandler = Callable[
 
 
 def make_service_publish_handler(event_type: type[Event]) -> ServicePublishHandler:
-    async def publish(event: event_type, broker: ServiceBroker) -> None:
+    async def publish(event: Event, broker: ServiceBroker) -> None:
         await broker.publish(
             Envelope(
                 topic=event.topic,
@@ -57,11 +57,12 @@ def make_service_publish_handler(event_type: type[Event]) -> ServicePublishHandl
         )
 
     publish.__name__ = f"publish_service_{event_type.__name__}"
+    publish.__annotations__["event"] = event_type
     return publish
 
 
 def make_client_publish_handler(event_type: type[Event]) -> ClientPublishHandler:
-    async def publish(event: event_type, broker: ClientBroker) -> None:
+    async def publish(event: Event, broker: ClientBroker) -> None:
         await broker.publish(
             Envelope(
                 topic=event.topic,
@@ -70,4 +71,5 @@ def make_client_publish_handler(event_type: type[Event]) -> ClientPublishHandler
         )
 
     publish.__name__ = f"publish_client_{event_type.__name__}"
+    publish.__annotations__["event"] = event_type
     return publish

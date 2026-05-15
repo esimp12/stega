@@ -53,7 +53,7 @@ class MessageBus:
         self._async_queue: asyncio.Queue[Event] = asyncio.Queue(
             maxsize=self._config.async_queue_maxsize,
         )
-        self._workers = list[asyncio.Task] = []
+        self._workers: list[asyncio.Task] = []
         self._running = False
 
     @property

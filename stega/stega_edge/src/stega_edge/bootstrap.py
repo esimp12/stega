@@ -39,7 +39,7 @@ from stega_edge.services.handlers import (
 def build_container(config: EdgeConfig) -> DependencyContainer:
     # create internal and external message brokers
     service_broker = RabbitMqBroker(
-        connection_parameters=RabbitMqConnectionParameters(
+        connection_params=RabbitMqConnectionParameters(
             host=config.STEGA_BROKER_HOST,
             port=config.STEGA_BROKER_PORT,
             username=config.STEGA_BROKER_PASSWORD,
@@ -55,17 +55,17 @@ def build_container(config: EdgeConfig) -> DependencyContainer:
     return DependencyContainer(
         [
             Dependency(
-                type=ServiceBroker,
+                dep_type=ServiceBroker,
                 scope=Scope.SINGLETON,
                 provider=lambda: service_broker,
             ),
             Dependency(
-                type=ClientBroker,
+                dep_type=ClientBroker,
                 scope=Scope.SINGLETON,
                 provider=lambda: client_broker,
             ),
             Dependency(
-                type=PortfolioServicePort,
+                dep_type=PortfolioServicePort,
                 scope=Scope.SINGLETON,
                 provider=lambda: portfolio_service,
             ),
@@ -77,7 +77,7 @@ def build_command_registry() -> CommandRegistry:
     registry = CommandRegistry()
     for handler in COMMAND_HANDLERS:
         binding = bind_handler(handler, Command)
-        registry.register(binding.action_type, binding)
+        registry.register(binding.msg_type, binding)
     registry.freeze()
     return registry
 
@@ -86,7 +86,7 @@ def build_query_registry() -> QueryRegistry:
     registry = QueryRegistry()
     for handler in QUERY_HANDLERS:
         binding = bind_handler(handler, Query)
-        registry.register(binding.action_type, binding)
+        registry.register(binding.msg_type, binding)
     registry.freeze()
     return registry
 
@@ -98,18 +98,18 @@ def build_event_registry() -> EventRegistry:
     for event_type in SERVICE_EVENTS:
         handler = make_service_publish_handler(event_type)
         binding = bind_handler(handler, Event)
-        registry.register(binding.action_type, binding)
+        registry.register(binding.msg_type, binding)
 
     # client based broker events
     for event_type in CLIENT_EVENTS:
         handler = make_client_publish_handler(event_type)
         binding = bind_handler(handler, Event)
-        registry.register(binding.action_type, binding)
+        registry.register(binding.msg_type, binding)
 
     # downstream work handlers responding to event effects
     for handler in EVENT_HANDLERS:
         binding = bind_handler(handler, Event)
-        registry.register(binding.action_type, binding)
+        registry.register(binding.msg_type, binding)
 
     registry.freeze()
     return registry

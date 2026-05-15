@@ -25,7 +25,7 @@ class PortfolioConfig(BaseConfig):
     STEGA_PORTFOLIO_DBHOST: str = "portfolio_db"
     STEGA_PORTFOLIO_DBPORT: int = 5432
 
-    STEGA_BROKER_EXCHANGE: str = "events"
+    STEGA_BROKER_EXCHANGE_NAME: str = "events"
     STEGA_BROKER_USERNAME: str
     STEGA_BROKER_PASSWORD: str
     STEGA_BROKER_HOST: str = "broker"
@@ -56,12 +56,14 @@ class ProdConfig(PortfolioConfig):
 
     @property
     def db_uri(self) -> str:
+        dialect = "postgresql"
+        driver = "asyncpg"
         user = self.STEGA_PORTFOLIO_DBUSER
         password = quote_plus(self.STEGA_PORTFOLIO_DBPASSWORD)
         host = self.STEGA_PORTFOLIO_DBHOST
         port = self.STEGA_PORTFOLIO_DBPORT
         db_name = self.STEGA_PORTFOLIO_DBNAME
-        return f"postgresql://{user}:{password}@{host}:{port}/{db_name}"
+        return f"{dialect}+{driver}://{user}:{password}@{host}:{port}/{db_name}"
 
 
 class DevConfig(PortfolioConfig):
@@ -80,10 +82,12 @@ class DevConfig(PortfolioConfig):
 
     @property
     def db_uri(self) -> str:
+        dialect = "sqlite"
+        driver = "aiosqlite"
         if not Path.exists(self.path):
             Path.mkdir(self.path)
         path = self.path / f"{self.STEGA_PORTFOLIO_DBNAME}.db"
-        return f"sqlite:///{path}"
+        return f"{dialect}+{driver}:///{path}"
 
 
 def create_config(env: str | None = None) -> PortfolioConfig:

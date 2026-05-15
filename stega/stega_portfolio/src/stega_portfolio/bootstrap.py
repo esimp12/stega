@@ -14,6 +14,7 @@ from stega_core import (
     MessageBus,
     Query,
     QueryRegistry,
+    InMemoryBroker,
     RabbitMqBroker,
     RabbitMqConnectionParameters,
     RepositoryRegistry,
@@ -38,15 +39,16 @@ from stega_portfolio.services.handlers import (
 
 def build_container(config: PortfolioConfig) -> DependencyContainer:
     # create external message broker
-    service_broker = RabbitMqBroker(
-        connection_parameters=RabbitMqConnectionParameters(
-            host=config.STEGA_BROKER_HOST,
-            port=config.STEGA_BROKER_PORT,
-            username=config.STEGA_BROKER_PASSWORD,
-            password=config.STEGA_BROKER_USERNAME,
-        ),
-        exchange_name=config.STEGA_BROKER_EXCHANGE_NAME,
-    )
+    # service_broker = RabbitMqBroker(
+    #     connection_params=RabbitMqConnectionParameters(
+    #         host=config.STEGA_BROKER_HOST,
+    #         port=config.STEGA_BROKER_PORT,
+    #         username=config.STEGA_BROKER_PASSWORD,
+    #         password=config.STEGA_BROKER_USERNAME,
+    #     ),
+    #     exchange_name=config.STEGA_BROKER_EXCHANGE_NAME,
+    # )
+    service_broker = InMemoryBroker()
 
     # create session factory and repo registry for uow
     session_factory = build_session_factory(config)
@@ -55,12 +57,12 @@ def build_container(config: PortfolioConfig) -> DependencyContainer:
     return DependencyContainer(
         [
             Dependency(
-                type=ServiceBroker,
+                dep_type=ServiceBroker,
                 scope=Scope.SINGLETON,
                 provider=lambda: service_broker,
             ),
             Dependency(
-                type=AbstractUnitOfWork,
+                dep_type=AbstractUnitOfWork,
                 scope=Scope.DISPATCH,
                 provider=lambda: SqlAlchemyUnitOfWork(session_factory, repo_registry),
             ),
@@ -72,7 +74,7 @@ def build_command_registry() -> CommandRegistry:
     registry = CommandRegistry()
     for handler in COMMAND_HANDLERS:
         binding = bind_handler(handler, Command)
-        registry.register(binding.action_type, binding)
+        registry.register(binding.msg_type, binding)
     registry.freeze()
     return registry
 
@@ -81,7 +83,7 @@ def build_query_registry() -> QueryRegistry:
     registry = QueryRegistry()
     for handler in QUERY_HANDLERS:
         binding = bind_handler(handler, Query)
-        registry.register(binding.action_type, binding)
+        registry.register(binding.msg_type, binding)
     registry.freeze()
     return registry
 
@@ -93,12 +95,12 @@ def build_event_registry() -> EventRegistry:
     for event_type in SERVICE_EVENTS:
         handler = make_service_publish_handler(event_type)
         binding = bind_handler(handler, Event)
-        registry.register(binding.action_type, binding)
+        registry.register(binding.msg_type, binding)
 
     # downstream work handlers responding to event effects
     for handler in EVENT_HANDLERS:
         binding = bind_handler(handler, Event)
-        registry.register(binding.action_type, binding)
+        registry.register(binding.msg_type, binding)
 
     registry.freeze()
     return registry

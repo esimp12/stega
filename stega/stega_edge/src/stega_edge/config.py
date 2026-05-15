@@ -21,8 +21,7 @@ class EdgeConfig(BaseConfig):
 
     STEGA_BROKER_EXCHANGE_NAME: str = "events"
     STEGA_BROKER_USERNAME: str
-    STEGA_BROKER_PASSWORD: str
-    STEGA_BROKER_HOST: str = "broker"
+    STEGA_BROKER_PASSWORD: str STEGA_BROKER_HOST: str = "broker"
     STEGA_BROKER_PORT: int = 5672
 
     @property
