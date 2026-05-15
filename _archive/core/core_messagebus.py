@@ -2,10 +2,9 @@
 
 import typing as T
 
-from stega_lib.events import Event, EventType
-
 from stega_core.config import create_config, create_logger
 from stega_core.domain.errors import CoreAppError
+from stega_lib.events import Event, EventType
 
 Message = Event
 

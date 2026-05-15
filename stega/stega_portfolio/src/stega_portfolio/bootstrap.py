@@ -1,69 +1,111 @@
+from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from dataclasses import dataclass
 
-from stega_portfolio.config import CoreConfig
-from stega_portfolio.services.handlers import (
-    COMMAND_HANDLERS,
-    QUERY_HANDLERS,
-    EVENT_HANDLERS,
-    PUBLISHED_EVENTS,
-)
-
-from stega_lib import (
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from stega_core import (
+    AbstractUnitOfWork,
     Command,
     CommandRegistry,
-    Event,
-    EventRegistry,
     Dependency,
     DependencyContainer,
+    Event,
+    EventRegistry,
     MessageBus,
+    Query,
+    QueryRegistry,
+    RabbitMqBroker,
+    RabbitMqConnectionParameters,
+    RepositoryRegistry,
     Scope,
-    AbstractUnitOfWork,
+    ServiceBroker,
     SqlAlchemyUnitOfWork,
-    RepoClassRegistry,
+    bind_handler,
+    make_service_publish_handler,
 )
-from stega_lib.transport.base import MessageTransport, make_publishing_handler
-from stega_lib.transport.rabbitmq import RabbitMqTransport, RabbitMqConnectionParameters
+
+from stega_portfolio.config import PortfolioConfig
+from stega_portfolio.ports.orm import start_mappers
+from stega_portfolio.ports.repository.base import PortfolioRepository
+from stega_portfolio.ports.repository.sqlalchemy import SqlAlchemyPortfolioRepository
+from stega_portfolio.services.handlers import (
+    COMMAND_HANDLERS,
+    EVENT_HANDLERS,
+    QUERY_HANDLERS,
+    SERVICE_EVENTS,
+)
 
 
+def build_container(config: PortfolioConfig) -> DependencyContainer:
+    # create external message broker
+    service_broker = RabbitMqBroker(
+        connection_parameters=RabbitMqConnectionParameters(
+            host=config.STEGA_BROKER_HOST,
+            port=config.STEGA_BROKER_PORT,
+            username=config.STEGA_BROKER_PASSWORD,
+            password=config.STEGA_BROKER_USERNAME,
+        ),
+        exchange_name=config.STEGA_BROKER_EXCHANGE_NAME,
+    )
 
-def build_command_registry(container: DependencyContainer) -> CommandRegistry:
+    # create session factory and repo registry for uow
+    session_factory = build_session_factory(config)
+    repo_registry = build_repo_registry()
+
+    return DependencyContainer(
+        [
+            Dependency(
+                type=ServiceBroker,
+                scope=Scope.SINGLETON,
+                provider=lambda: service_broker,
+            ),
+            Dependency(
+                type=AbstractUnitOfWork,
+                scope=Scope.DISPATCH,
+                provider=lambda: SqlAlchemyUnitOfWork(session_factory, repo_registry),
+            ),
+        ]
+    )
+
+
+def build_command_registry() -> CommandRegistry:
     registry = CommandRegistry()
     for handler in COMMAND_HANDLERS:
-        binding = bind_handler(handler, container, Command)
+        binding = bind_handler(handler, Command)
         registry.register(binding.action_type, binding)
     registry.freeze()
     return registry
 
 
-def build_query_registry(container: DependencyContainer) -> QueryRegistry:
+def build_query_registry() -> QueryRegistry:
     registry = QueryRegistry()
     for handler in QUERY_HANDLERS:
-        binding = bind_handler(handler, container, Query)
+        binding = bind_handler(handler, Query)
         registry.register(binding.action_type, binding)
     registry.freeze()
     return registry
 
 
-def build_event_registry(container: DependencyContainer) -> EventRegsitry:
+def build_event_registry() -> EventRegistry:
     registry = EventRegistry()
-    
-    # publishable events
-    for event_type in PUBLISHED_EVENTS:
-        handler = make_publishing_handler(event_type)
-        binding = bind_handler(handler, container, Event)
+
+    # service broker events
+    for event_type in SERVICE_EVENTS:
+        handler = make_service_publish_handler(event_type)
+        binding = bind_handler(handler, Event)
         registry.register(binding.action_type, binding)
 
-    # downstream work handlers responding to event effects 
+    # downstream work handlers responding to event effects
     for handler in EVENT_HANDLERS:
-        binding = bind_handler(handler, container, Event)
+        binding = bind_handler(handler, Event)
         registry.register(binding.action_type, binding)
 
     registry.freeze()
     return registry
 
 
-def build_repo_registry() -> RepoClassRegistry[AsyncSession]:
-    registry = RepoClassRegistry[AsyncSession]()
+def build_repo_registry() -> RepositoryRegistry[AsyncSession]:
+    registry = RepositoryRegistry[AsyncSession]()
     registry.register(
         PortfolioRepository,
         SqlAlchemyPortfolioRepository,
@@ -81,60 +123,46 @@ def build_session_factory(config: PortfolioConfig) -> async_sessionmaker[AsyncSe
     )
 
 
-def build_transport(config: PortfolioConfig) -> RabbitMqTransport:
-    transport = RabbitMqTransport(
-        connection_parameters=RabbitMqConnectionParameters(
-            host=config.STEGA_BROKER_HOST,
-            port=config.STEGA_BROKER_PORT,
-            username=config.STEGA_BROKER_PASSWORD,
-            password=config.STEGA_BROKER_USERNAME,
-        ),
-        exchange_name=config.STEGA_BROKER_EXCHANGE_NAME,
-    )
-    return transport
-
-
-def build_container(config: PortfolioConfig) -> DependencyContainer:
-    session_factory = build_session_factory(config)
-    repo_registry = build_repo_registry()
-    transport = build_transport(config)
-    
-    return DependencyContainer([
-        Dependency(
-            type=MessageTransport,
-            scope=Scope.SINGLETON,
-            provider=lambda: transport,
-        ),
-        Dependency(
-            type=AbstractUnitOfWork,
-            scope=Scope.DISPATCH,
-            provider=lambda: SqlAlchemyUnitOfWork(session_factory, repo_registry),
-        ),
-    ])
-
-
-def build_bus(config: PortfolioConfig, container: DependencyContainer) -> MessageBus:
+def build_bus(container: DependencyContainer) -> MessageBus:
     return MessageBus(
-        command_registry=build_command_registry(container),
-        query_registry=build_query_registry(container),
-        event_registry=build_event_registry(container),
+        command_registry=build_command_registry(),
+        query_registry=build_query_registry(),
+        event_registry=build_event_registry(),
         container=container,
     )
 
 
+@dataclass
+class ServiceLifespan:
+    service_broker: ServiceBroker
+    bus: MessageBus
+
+
 @asynccontextmanager
-async def service_lifespan(config: PortfolioConfig):
+async def service_lifespan(
+    config: PortfolioConfig,
+    *,
+    start_orm: bool = False,
+) -> AsyncIterator[ServiceLifespan]:
+    # handle persistence mappings
+    if start_orm:
+        start_mappers()
+
+    # construct messaging infrastructure
     container = build_container(config)
-    bus = build_bus(config, container)
-    transport = container.resolve_singleton(MessageTransport)
+    bus = build_bus(container)
+    service_broker = container.resolve_singleton(ServiceBroker)
 
     # start messaging constructs
-    await transport.start()
+    await service_broker.start()
     await bus.start()
 
     # manage service lifespan
     try:
-        yield bus
+        yield ServiceLifespan(
+            service_broker=service_broker,
+            bus=bus,
+        )
     finally:
         await bus.stop()
-        await transport.stop()
+        await service_broker.stop()

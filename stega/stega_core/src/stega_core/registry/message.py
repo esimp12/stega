@@ -1,16 +1,16 @@
 from __future__ import annotations
 
+from stega_core.di import MessageHandlerBinding
 from stega_core.message import (
-    Message,
-    MessageResponse,
     Command,
     CommandResponse,
     Event,
+    Message,
+    MessageResponse,
     Query,
     QueryResponse,
     View,
 )
-from stega_core.di import MessageHandlerBinding
 from stega_core.registry.base import (
     FanOutRegistry,
     Registry,

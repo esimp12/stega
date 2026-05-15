@@ -5,7 +5,6 @@ from stega_core.repository.base import (
 from stega_core.repository.memory import AbstractInMemoryRepository
 from stega_core.repository.sqlalchemy import AbstractSqlAlchemyRepository
 
-
 __all__ = [
     "AbstractInMemoryRepository",
     "AbstractRepository",

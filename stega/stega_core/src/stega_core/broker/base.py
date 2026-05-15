@@ -3,7 +3,6 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from collections.abc import AsyncIterator, Awaitable, Callable, Iterable
 from dataclasses import dataclass
-from typing import Any
 
 from stega_core.message import Event
 
@@ -11,11 +10,10 @@ from stega_core.message import Event
 @dataclass(frozen=True, kw_only=True)
 class Envelope[PayloadT]:
     topic: str
-    payload: PayloadT 
+    payload: PayloadT
 
 
 class MessageBroker[InT, OutT](ABC):
-
     @abstractmethod
     async def stop(self) -> None: ...
 
@@ -57,6 +55,7 @@ def make_service_publish_handler(event_type: type[Event]) -> ServicePublishHandl
                 payload=event.serialize(),
             )
         )
+
     publish.__name__ = f"publish_service_{event_type.__name__}"
     return publish
 
@@ -69,5 +68,6 @@ def make_client_publish_handler(event_type: type[Event]) -> ClientPublishHandler
                 payload=event.serialize(),
             )
         )
+
     publish.__name__ = f"publish_client_{event_type.__name__}"
     return publish

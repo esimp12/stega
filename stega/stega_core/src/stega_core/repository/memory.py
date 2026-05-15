@@ -15,17 +15,17 @@ class AbstractInMemoryRepository[AggregateT: Aggregate](AbstractRepository[Aggre
         self._store = dict[object, AggregateT] = {}
 
     async def _add(self, aggregate: AggregateT) -> None:
-        self._store[aggregate.aggregate_id] = aggregate
+        self._store[aggregate.id] = aggregate
 
     async def _get(self, aggregate_id: object) -> AggregateT | None:
         aggregate = self._store.get(aggregate_id)
         return cast("AggregateT | None", aggregate)
 
     async def _update(self, aggregate: AggregateT) -> None:
-        self._store[aggregate.aggregate_id] = aggregate
+        self._store[aggregate.id] = aggregate
 
     async def _delete(self, aggregate: AggregateT) -> None:
-        self._store.pop(aggregate.aggregate_id, None)
+        self._store.pop(aggregate.id, None)
 
     async def _list(self) -> Iterable[AggregateT]:
         aggregates = list(self._store.values())

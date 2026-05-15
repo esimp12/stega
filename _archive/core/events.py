@@ -1,6 +1,5 @@
-from stega_lib.events import Event
-
 from stega_core.services.handlers.streams import ClientStreams
+from stega_lib.events import Event
 
 
 def enqueue_streamed_event(event: Event, streams: ClientStreams) -> None:

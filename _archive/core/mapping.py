@@ -2,23 +2,20 @@
 
 import typing as T
 
-from stega_lib.domain import Command, CommandType, Query, QueryType
-from stega_lib.events import Event, EventType, PortfolioCreated, PortfolioDeleted, PortfolioUpdated
-
 from stega_core.domain.commands import CreatePortfolio, DeletePortfolio, UpdatePortfolio
 from stega_core.ports.base import ServiceType
 from stega_core.services.handlers.events import enqueue_streamed_event
 from stega_core.services.handlers.portfolio import create_portfolio, delete_portfolio, update_portfolio
 from stega_core.services.handlers.streams import ClientStreams
-from stega_core.domain.queries import GetPortfolio, ListPortfolios
-
+from stega_lib.domain import Command, CommandType, Query
+from stega_lib.events import Event, EventType, PortfolioCreated, PortfolioDeleted, PortfolioUpdated
 
 PrimitiveType = str | None
 
 CommandHandlerType = T.Callable[[Command, ServiceType], PrimitiveType]
 CommandHandlerMappingType = dict[CommandType, CommandHandlerType]
 
-QueryHandlerType = T.Callable[[Query, ServiceType], ]
+QueryHandlerType = T.Callable[[Query, ServiceType],]
 
 EventHandlerType = T.Callable[[Event, ClientStreams], None]
 EventHandlerMappingType = dict[EventType, EventHandlerType]

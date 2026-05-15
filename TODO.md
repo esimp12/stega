@@ -12,11 +12,11 @@ Target: a CLI client (`stega_cli`) can issue create/read/update/delete against
 - [x] Fix all syntax errors in `stega_core/messaging/bus.py` and `stega_core/di.py`
       (the `int = 0 shutdown_timeout: float = 30.0` lines, the
       `self._x = dict[T, U] = {}` lines)
-- [ ] Add an `invoke smoke` task that runs `python -c "import <pkg>"` for each
+- [x] Add an `invoke smoke` task that runs `python -c "import <pkg>"` for each
       workspace member; iterate ruff + smoke until both are green
 
 ## Day 2 — Lock the bus contract with the 5 unit tests
-- [ ] Delete (or move to `_archive`) the stale `stega_portfolio/tests/unit/*`
+- [x] Delete (or move to `_archive`) the stale `stega_portfolio/tests/unit/*`
 - [ ] Create `stega_core/tests/unit/{test_registry,test_di,test_bus}.py` with the
       5 tests from §1: action_types, bind_handler, dispatch_scope caching,
       command dispatch, sync event drain

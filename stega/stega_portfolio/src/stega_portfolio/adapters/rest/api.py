@@ -1,90 +1,62 @@
-"""API entrypoint for stega portfolio service."""
+from typing import Any
 
-import typing as T
+from quart import Blueprint, Request, request
 
-from flask import Blueprint, Request, request
-from stega_lib.domain import Command
-
-from stega_portfolio.adapters.rest.utils import ResponseType, ViewResponseType, get_bus
-from stega_portfolio.domain.commands import CreatePortfolio
-from stega_portfolio.views import portfolio as views
+from stega_portfolio.adapters.rest.utils import ResponseType, get_bus
+from stega_portfolio.domain.command import CreatePortfolio
+from stega_portfolio.domain.query import GetPortfolio, ListPortfolios
 
 api = Blueprint("portfolio_api", __name__)
 
 
 @api.route("/portfolio/<string:portfolio_id>", methods=["GET"])
-def get_portfolio(portfolio_id: str) -> ViewResponseType:
-    """Get a portfolio by its ID.
-
-    Args:
-        portfolio_id: A str of the unique ID representing the portfolio.
-
-    Return:
-        A ViewResponseType of the portfolio contents.
-
-    """
+async def get_portfolio(portfolio_id: str) -> ResponseType:
+    query = GetPortfolio(portfolio_id=portfolio_id)
     bus = get_bus()
-    view = views.get_portfolio(bus.uow, portfolio_id)
-    if view is None:
-        return {
-            "ok": False,
-            "msg": f"Failed to find portfolio with id '{portfolio_id}'.",
-        }, 404
-
+    resp = await bus.handle_query(query)
     return {
-        "ok": True,
-        "msg": f"Successfully found portfolio with id '{portfolio_id}'.",
-        "view": view,
+        "ok": resp.ok,
+        "msg": f"Successfully found portfolio with id '{portfolio_id}'",
+        "result": resp.result
     }, 200
 
 
 @api.route("/portfolios", methods=["GET"])
-def get_portfolios() -> ViewResponseType:
-    """Get a list of existing portfolios.
-
-    Return:
-        A ViewResponseType of the list of portfolios.
-
-    """
+async def get_portfolios() -> ResponseType:
+    query = ListPortfolios()
     bus = get_bus()
-    view = views.list_portfolios(bus.uow)
+    resp = await bus.handle_query(query)
     return {
-        "ok": True,
+        "ok": resp.ok,
         "msg": "Successfully retrieved all portfolios.",
-        "view": view,
+        "result": resp.result,
     }, 200
 
 
 @api.route("/portfolios", methods=["POST"])
-def create_portfolio() -> ResponseType:
-    """Create a new portfolio.
-
-    Return:
-        A ResponseType of the portfolio creation result.
-
-    """
+async def create_portfolio() -> ResponseType:
     payload = request.get_json()
     if payload is None:
         return {"ok": False, "msg": "Failed to process request."}, 400
 
-    bus = get_bus()
     correlation_id = _extract_correlation_id(request)
     cmd = _extract_create_portfolio_command(correlation_id, payload)
-    bus.handle(cmd)
+    bus = get_bus()
+    resp = await bus.handle_command(cmd)
     return {
-        "ok": True,
-        "msg": f"Successfully created portfolio '{cmd.name}' with id '{cmd.id}'.",
-        "id": cmd.id,
+        "ok": resp.ok,
+        "msg": f"Submitted request to create portfolio with status '{resp.status!r}'.",
+        "result": resp.result,
     }, 201
 
 
 def _extract_correlation_id(request: Request) -> str:
-    return request.headers.get("X-Request-Id", type=str, default=Command.gen_id())
+    return request.headers.get("X-Request-Id", type=str)
 
 
 def _extract_create_portfolio_command(
     correlation_id: str,
-    payload: dict[str, T.Any],
+    payload: dict[str, Any],
 ) -> CreatePortfolio:
     if "name" not in payload:
         err_msg = "'name' is required for create portfolio request"
@@ -102,7 +74,6 @@ def _extract_create_portfolio_command(
 
     return CreatePortfolio(
         correlation_id=correlation_id,
-        id=CreatePortfolio.gen_id(),
         name=name,
         assets=assets,
     )

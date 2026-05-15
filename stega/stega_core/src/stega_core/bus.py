@@ -8,13 +8,13 @@ from stega_core.di import (
     MessageHandlerBinding,
 )
 from stega_core.message import (
+    Command,
+    CommandResponse,
+    Event,
+    EventDispatch,
     Message,
     MessageResponse,
-    Command,
-    Event,
     Query,
-    EventDispatch,
-    CommandResponse,
     QueryResponse,
     QueryStatus,
     SubmissionStatus,

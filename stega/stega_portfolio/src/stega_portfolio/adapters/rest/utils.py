@@ -1,21 +1,8 @@
-"""Flask app utilities for the stega portfolio service."""
+from quart import current_app
+from stega_core import MessageBus
 
-from flask import current_app
-
-from stega_portfolio.services.messagebus import MessageBus
-from stega_portfolio.views.views import View
-
-Response = dict[str, str | int | bool]
-ViewResponse = dict[str, str | bool | View | list[View]]
-ResponseType = tuple[Response, int]
-ViewResponseType = tuple[ViewResponse, int]
+ResponseType = tuple[dict[str, str | int | bool], int]
 
 
 def get_bus() -> MessageBus:
-    """Get the current application MessageBus.
-
-    Returns:
-        A MessageBus instance.
-
-    """
     return current_app.extensions["bus"]

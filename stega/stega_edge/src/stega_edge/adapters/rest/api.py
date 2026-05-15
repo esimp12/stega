@@ -4,13 +4,12 @@ from stega_edge.adapters.rest.utils import ResponseType, get_bus
 from stega_edge.domain.command import CreatePortfolio
 from stega_edge.domain.query import GetPortfolio, ListPortfolios
 
-
 api = Blueprint("edge_portfolio_api", __name__)
 
 
 @api.route("/portfolio/<string:portfolio_id>", methods=["GET"])
 async def get_portfolio(portfolio_id: str) -> ResponseType:
-    query = GetPortfolio(portfolio_id) 
+    query = GetPortfolio(portfolio_id)
     bus = get_bus()
     resp = await bus.handle_query(query)
     return {
@@ -39,7 +38,7 @@ async def create_portfolio() -> ResponseType:
 
 @api.route("/portfolios", methods=["GET"])
 async def list_all_portfolios() -> ResponseType:
-    query = ListPortfolios() 
+    query = ListPortfolios()
     bus = get_bus()
     resp = await bus.handle_query(query)
     return {

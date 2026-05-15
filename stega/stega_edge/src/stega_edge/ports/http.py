@@ -1,11 +1,11 @@
 from stega_utils import http
+
 from stega_edge.domain.error import AppError
 from stega_edge.domain.portfolio import PortfolioData
 from stega_edge.ports.base import PortfolioServicePort
 
 
 class HttpRestPortfolioServicePort(PortfolioServicePort):
-
     async def get(self, portfolio_id: str) -> PortfolioData:
         url = f"portfolio/{portfolio_id}"
         async with http.acquire_async_session(self.config.portfolio_service_url) as session:
@@ -36,7 +36,7 @@ class HttpRestPortfolioServicePort(PortfolioServicePort):
             "assets": {asset.symbol: asset.weight for asset in portfolio_data.assets},
         }
         async with http.acquire_async_session(self.config.portfolio_service_url) as session:
-            resp = session.post(url, headers=headers, json=body)
+            session.post(url, headers=headers, json=body)
             # TODO
 
     async def update(self, correlation_id: str, portfolio_id: str, portfolio_data: PortfolioData) -> None:

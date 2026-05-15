@@ -4,7 +4,7 @@ from dataclasses import dataclass
 
 import aio_pika
 
-from stega_core.broker.base import MessageBroker, Envelope
+from stega_core.broker.base import Envelope, MessageBroker
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -16,7 +16,6 @@ class RabbitMqConnectionParameters:
 
 
 class RabbitMqBroker[InT, OutT](MessageBroker[InT, OutT]):
-
     def __init__(
         self,
         connection_params: RabbitMqConnectionParameters,

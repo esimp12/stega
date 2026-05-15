@@ -33,11 +33,11 @@ class Dependency[DepT]:
 
 
 class MessageHandler[MessageT: Message, MessageResponseT: MessageResponse](Protocol):
-    async def __call__(self, msg: MessageT, /, **kwargs: Any) -> MessageResponseT: ... # noqa: ANN401
+    async def __call__(self, msg: MessageT, /, **kwargs: Any) -> MessageResponseT: ...  # noqa: ANN401
 
 
 @dataclass(frozen=True)
-class MessageHandlerBinding[MessageT: Message, MessageResponseT: MessageResposne]:
+class MessageHandlerBinding[MessageT: Message, MessageResponseT: MessageResponse]:
     handler: MessageHandler[MessageT, MessageResponseT]
     msg_type: type[MessageT]
     dep_types: dict[str, type]
@@ -52,10 +52,7 @@ class DependencyContainer:
                 raise ValueError(err_msg)
             self._deps[d.dep_type] = d
 
-        self._singletons: dict[type, object] = {
-            d.dep_type: d.provider()
-            for d in deps if d.scope is Scope.SINGLETON
-        }
+        self._singletons: dict[type, object] = {d.dep_type: d.provider() for d in deps if d.scope is Scope.SINGLETON}
 
     def __contains__(self, dep_type: type) -> bool:
         return dep_type in self._deps
@@ -96,7 +93,7 @@ class DispatchScope:
 def bind_handler[MessageT, MessageResponseT](
     handler: MessageHandler[MessageT, MessageResponseT],
     expected_msg_base: type[MessageT],
-) -> MessageHandlerBinding[MessageT, MessageResposneT]:
+) -> MessageHandlerBinding[MessageT, MessageResponseT]:
     sig = inspect.signature(handler)
     hints = get_type_hints(sig)
     params = list(sig.parameters.values())

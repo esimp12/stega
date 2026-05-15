@@ -1,11 +1,10 @@
 import asyncio
 from collections.abc import AsyncIterator, Iterable
 
-from stega_core.broker.base import MessageBroker, Envelope
+from stega_core.broker.base import Envelope, MessageBroker
 
 
 class InMemoryBroker[InT, OutT](MessageBroker[InT, OutT]):
-
     def __init__(self, queue_maxsize: int = 100) -> None:
         self._subscribers: dict[str, list[asyncio.Queue[Envelope]]] = {}
         self._queue_maxsize = queue_maxsize
@@ -26,7 +25,7 @@ class InMemoryBroker[InT, OutT](MessageBroker[InT, OutT]):
 
     async def subscribe(self, topics: str | Iterable[str]) -> AsyncIterator[Envelope[InT]]:
         queue: asyncio.Queue[Envelope[InT]] = asyncio.Queue(maxsize=self._queue_maxsize)
-        
+
         topics = [topics] if isinstance(topics, str) else list(topics)
         for topic in topics:
             self._subscribers.setdefault(topic, []).append(queue)

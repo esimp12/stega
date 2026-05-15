@@ -1,14 +1,14 @@
-from stega_edge.services.handlers.portfolio import (
-    create_portfolio,
-    delete_portfolio,
-    update_portfolio,
-)
 from stega_contracts.portfolio import (
     PortfolioCreated,
     PortfolioDeleted,
     PortfolioUpdated,
 )
 
+from stega_edge.services.handlers.portfolio import (
+    create_portfolio,
+    delete_portfolio,
+    update_portfolio,
+)
 
 COMMAND_HANDLERS = [
     create_portfolio,

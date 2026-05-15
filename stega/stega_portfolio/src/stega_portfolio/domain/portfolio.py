@@ -1,112 +1,65 @@
-"""Portfolio domain model for the stega portfolio service."""
+from __future__ import annotations
 
-import typing as T
+from typing import TYPE_CHECKING, ClassVar
 
-from stega_lib.domain import Aggregate
-from stega_lib.events import PortfolioCreated, PortfolioDeleted, PortfolioUpdated
+from stega_contracts.portfolio import (
+    PortfolioCreated,
+    PortfolioDeleted,
+    PortfolioUpdated,
+)
+from stega_core import Aggregate
 
-from stega_portfolio.domain.commands import CreatePortfolio
+if TYPE_CHECKING:
+    from stega_portfolio.domain.command import CreatePortfolio
 
 
 class PortfolioAsset:
-    """Asset class to represent a stock in the portfolio.
-
-    Attributes:
-        symbol (str): The stock symbol. Uniquely identifies the stock in the portfolio.
-        weight (float): The weight of the stock in the portfolio.
-        portfolio_id (Optional[str]): The ID of the portfolio this asset belongs to.
-
-    """
-
     def __init__(
         self,
         symbol: str,
         weight: float,
         portfolio_id: str | None = None,
     ) -> None:
-        """Initialize a PortfolioAsset instance."""
         self.symbol = symbol
         self.weight = weight
         self.portfolio_id = portfolio_id
 
     @classmethod
-    def from_dict(cls, portfolio_id: str, assets: dict[str, float]) -> list[T.Self]:
-        """Create a list of PortfolioAsset instances from a dictionary of assets.
-
-        Args:
-            portfolio_id (str): The ID of the portfolio this asset belongs to.
-            assets (dict[str, float]): A dictionary mapping stock symbols to their weights.
-
-        Returns:
-            list[PortfolioAsset]: A list of PortfolioAsset instances.
-
-        """
+    def from_dict(cls, portfolio_id: str, assets: dict[str, float]) -> list[PortfolioAsset]:
         return [cls(symbol=symbol, weight=weight, portfolio_id=portfolio_id) for symbol, weight in assets.items()]
 
 
 class Portfolio(Aggregate):
-    """Portfolio class to represent a portfolio of stocks.
-
-    Attributes:
-        id (str): The unique identifier for the portfolio.
-        name (str): The name of the portfolio.
-        assets (Mapping[str, float]): A mapping of asset ids to their
-            respective weights in the portfolio.
-        version_number (int): The version number of the portfolio aggregate.
-        events (List[Event]): A list of events associated with the portfolio.
-
-    """
+    __id_attr__: ClassVar[str] = "portfolio_id"
 
     def __init__(
         self,
-        id: str,  # noqa: A002
+        portfolio_id: str,
         name: str,
         assets: list[PortfolioAsset],
         version_number: int = 0,
     ) -> None:
-        """Initialize a Portfolio instance."""
-        super().__init__(id, version_number)
+        super().__init__(version_number)
+        self.portfolio_id = portfolio_id
         self.name = name
         self.assets = assets
-        self.events = []
-
-    def allocate(self, correlation_id: str) -> None:
-        """Allocate the portfolio so it can be used."""
         event = PortfolioCreated(
-            correlation_id=correlation_id,
-            portfolio_id=self.id,
+            portfolio_id=self.portfolio_id,
             name=self.name,
-            assets=[{"symbol": asset.symbol, "weight": asset.weight} for asset in self.assets],
+            assets=self.assets,
         )
-        self.events.append(event)
+        self.record(event)
 
-    def deallocate(self) -> None:
-        """Deallocate the portfolio so it no longer exists along with its asset composition."""
+    def purge(self) -> None:
         self.assets.clear()
-        self.events.append(PortfolioDeleted(self.id))
+        self.record(PortfolioDeleted(self.portfolio_id))
 
     def update(self, name: str, assets: list[PortfolioAsset]) -> None:
-        """Update the portfolio with a new name and assets.
-
-        Args:
-            name (str): The new name for the portfolio.
-            assets (list[PortfolioAsset]): The new list of assets for the portfolio.
-
-        """
         self.name = name
         self.assets = assets
-        self.events.append(PortfolioUpdated(self.id))
+        self.record(PortfolioUpdated(self.portfolio_id))
 
     @classmethod
-    def from_command(cls, cmd: CreatePortfolio) -> T.Self:
-        """Create a Portfolio instance from a CreatePortfolio command.
-
-        Args:
-            cmd (CreatePortfolio): The command containing the portfolio name and assets.
-
-        Returns:
-            Portfolio: A Portfolio object with the specified name and assets.
-
-        """
-        assets = PortfolioAsset.from_dict(cmd.id, cmd.assets)
-        return cls(id=cmd.id, name=cmd.name, assets=assets)
+    def from_command(cls, cmd: CreatePortfolio) -> Portfolio:
+        assets = PortfolioAsset.from_dict(cmd.portfolio_id, cmd.assets)
+        return cls(portfolio_id=cmd.portfolio_id, name=cmd.name, assets=assets)

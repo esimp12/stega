@@ -1,10 +1,12 @@
+from collections.abc import Awaitable
+
 from quart import Quart
 
-from stega_edge.bootstrap import service_lifespan
-from stega_edge.config import EdgeConfig, create_config, create_logger
 from stega_edge.adapters.rest.api import api as edge_portfolio_api
 from stega_edge.adapters.rest.sse import api as edge_events_api
 from stega_edge.adapters.rest.utils import ResponseType
+from stega_edge.bootstrap import service_lifespan
+from stega_edge.config import EdgeConfig, create_config, create_logger
 from stega_edge.domain.error import (
     AppError,
     ConflictError,
@@ -12,25 +14,23 @@ from stega_edge.domain.error import (
 )
 
 
-def create_app() -> Quart:
+def create_app(config: EdgeConfig) -> Quart:
     app = Quart(__name__)
-    StegaQuartApp(app)
+    StegaQuartApp(config, app)
     register_blueprints(app)
     return app
 
 
 class StegaQuartApp:
-
     def __init__(self, config: EdgeConfig, app: Quart | None = None) -> None:
-        self._config = config
         if app is not None:
-            self.init_app(app)
+            self.init_app(config, app)
 
     def init_app(self, config: EdgeConfig, app: Quart) -> None:
-        app.extensions = getattr(app, "extensions", {}) 
+        app.extensions = getattr(app, "extensions", {})
 
         @app.while_serving
-        async def _manage_service():
+        async def _manage_service() -> Awaitable[None]:
             async with service_lifespan(config) as lifespan:
                 app.extensions["bus"] = lifespan.bus
                 app.extensions["service_broker"] = lifespan.service_broker

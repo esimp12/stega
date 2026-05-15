@@ -1,34 +1,37 @@
+import asyncio
+from collections.abc import AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager
-from collections.abc import AsyncIterator
 from dataclasses import dataclass
-from typing import Callable, Awaitable
 
 from stega_core import (
-   InMemoryBroker,
-   RabbitMqBroker,
-   RabbitMqConnectionParameters,
-   ServiceBroker,
-   ClientBroker,
-   DependencyContainer,
-   Dependency,
-   make_service_publish_handler,
-   make_client_publish_handler,
-   Command,
-   CommandRegistry,
-   Event,
-   EventRegistry,
-   MessageBus,
-   Scope,
-   QueryRegistry,
+    ClientBroker,
+    Command,
+    CommandRegistry,
+    Dependency,
+    DependencyContainer,
+    Event,
+    EventRegistry,
+    InMemoryBroker,
+    MessageBus,
+    Query,
+    QueryRegistry,
+    RabbitMqBroker,
+    RabbitMqConnectionParameters,
+    Scope,
+    ServiceBroker,
+    bind_handler,
+    make_client_publish_handler,
+    make_service_publish_handler,
 )
+
 from stega_edge.config import EdgeConfig
 from stega_edge.ports.base import PortfolioServicePort
 from stega_edge.ports.http import HttpRestPortfolioServicePort
 from stega_edge.services.handlers import (
-    COMMAND_HANDLERS,
-    QUERY_HANDLERS,
-    EVENT_HANDLERS,
     CLIENT_EVENTS,
+    COMMAND_HANDLERS,
+    EVENT_HANDLERS,
+    QUERY_HANDLERS,
     SERVICE_EVENTS,
 )
 
@@ -44,28 +47,30 @@ def build_container(config: EdgeConfig) -> DependencyContainer:
         ),
         exchange_name=config.STEGA_BROKER_EXCHANGE_NAME,
     )
-    client_broker = InMemoryStreamBroker()
+    client_broker = InMemoryBroker()
 
     # create service ports
     portfolio_service = HttpRestPortfolioServicePort()
 
-    return DependencyContainer([
-        Dependency(
-            type=ServiceBroker,
-            scope=Scope.SINGLETON,
-            provider=lambda: service_broker,
-        ),
-        Dependency(
-            type=ClientBroker,
-            scope=Scope.SINGLETON,
-            provider=lambda: client_broker,
-        ),
-        Dependency(
-            type=PortfolioServicePort,
-            scope=Scope.SINGLETON,
-            provider=lambda: portfolio_service, 
-        ),
-    ])
+    return DependencyContainer(
+        [
+            Dependency(
+                type=ServiceBroker,
+                scope=Scope.SINGLETON,
+                provider=lambda: service_broker,
+            ),
+            Dependency(
+                type=ClientBroker,
+                scope=Scope.SINGLETON,
+                provider=lambda: client_broker,
+            ),
+            Dependency(
+                type=PortfolioServicePort,
+                scope=Scope.SINGLETON,
+                provider=lambda: portfolio_service,
+            ),
+        ]
+    )
 
 
 def build_command_registry() -> CommandRegistry:
@@ -88,7 +93,7 @@ def build_query_registry() -> QueryRegistry:
 
 def build_event_registry() -> EventRegistry:
     registry = EventRegistry()
-    
+
     # service based broker events
     for event_type in SERVICE_EVENTS:
         handler = make_service_publish_handler(event_type)
@@ -97,11 +102,11 @@ def build_event_registry() -> EventRegistry:
 
     # client based broker events
     for event_type in CLIENT_EVENTS:
-        handler = make_client_publich_handler(event_type)
+        handler = make_client_publish_handler(event_type)
         binding = bind_handler(handler, Event)
         registry.register(binding.action_type, binding)
 
-    # downstream work handlers responding to event effects 
+    # downstream work handlers responding to event effects
     for handler in EVENT_HANDLERS:
         binding = bind_handler(handler, Event)
         registry.register(binding.action_type, binding)
@@ -110,7 +115,7 @@ def build_event_registry() -> EventRegistry:
     return registry
 
 
-def build_bus(config: EdgeConfig, container: DependencyContainer) -> MessageBus:
+def build_bus(container: DependencyContainer) -> MessageBus:
     return MessageBus(
         command_registry=build_command_registry(),
         query_registry=build_query_registry(),
@@ -143,7 +148,7 @@ class ServiceLifespan:
 async def service_lifespan(config: EdgeConfig) -> AsyncIterator[ServiceLifespan]:
     # construct messaging infrastructure
     container = build_container(config)
-    bus = build_bus(config, container)
+    bus = build_bus(container)
     service_broker = container.resolve_singleton(ServiceBroker)
     client_broker = container.resolve_singleton(ClientBroker)
 

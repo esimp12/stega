@@ -27,7 +27,7 @@ def run() -> None:
     envvars_str = "\n  ".join(f"{k} => {v!r}" for k, v in config.get_envvars())
     envvars_str = "\n  " + envvars_str
     logger.debug("Using following configuration... %s", envvars_str)
-    app = create_app()
+    app = create_app(config)
 
     # run with hypercorn
     if config.STEGA_EDGE_HYPERCORN:

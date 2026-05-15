@@ -1,5 +1,3 @@
-"""Configuration module for the portfolio service."""
-
 import inspect
 import logging
 import os
@@ -10,19 +8,14 @@ from stega_config import BaseConfig, source
 
 
 class PortfolioConfig(BaseConfig):
-    """Base configuration for the portfolio service.
-
-    NOTE: This class is intended to be extended by specific environment configurations.
-    """
-
     STEGA_PORTFOLIO_ENV: str
     STEGA_PORTFOLIO_DEBUG: bool = False
-    STEGA_PORTFOLIO_GUNICORN: bool = False
+    STEGA_PORTFOLIO_HYPERCORN: bool = False
 
     STEGA_PORTFOLIO_CONFIG_DIR: str = ".portfolio"
     STEGA_PORTFOLIO_LOG_LEVEL: str = "INFO"
 
-    STEGA_PORTFOLIO_GUNICORN_WORKERS: int = 4
+    STEGA_PORTFOLIO_HYPERCORN_WORKERS: int = 4
     STEGA_PORTFOLIO_SERVER_ADDRESS: str = "0.0.0.0"
     STEGA_PORTFOLIO_SERVER_PORT: int = 5000
 
@@ -33,52 +26,36 @@ class PortfolioConfig(BaseConfig):
     STEGA_PORTFOLIO_DBPORT: int = 5432
 
     STEGA_BROKER_EXCHANGE: str = "events"
-    STEGA_BROKER_USER: str
-    STEGA_BROKER_PASS: str
+    STEGA_BROKER_USERNAME: str
+    STEGA_BROKER_PASSWORD: str
     STEGA_BROKER_HOST: str = "broker"
     STEGA_BROKER_PORT: int = 5672
 
     @property
     def root(self) -> Path:
-        """Root file path of the application.
-
-        Returns:
-            A Path object.
-
-        """
         return Path(__file__).parent.parent.absolute()
 
     @property
     def path(self) -> Path:
-        """Path to the application config directory.
-
-        Returns:
-            A Path object.
-
-        """
         return self.root / self.STEGA_PORTFOLIO_CONFIG_DIR
 
     @property
     def db_uri(self) -> str:
-        """Returns the database URI for the portfolio service."""
         raise NotImplementedError
 
 
 class ProdConfig(PortfolioConfig):
-    """Production configuration for the portfolio service."""
-
     STEGA_PORTFOLIO_ENV: str = "prod"
-    STEGA_PORTFOLIO_GUNICORN: bool = True
+    STEGA_PORTFOLIO_HYPERCORN: bool = True
 
     STEGA_PORTFOLIO_DBUSER: str = source("file", path="/run/secrets")
     STEGA_PORTFOLIO_DBPASSWORD: str = source("file", path="/run/secrets")
 
-    STEGA_BROKER_USER: str = source("env")
-    STEGA_BROKER_PASS: str = source("env")
+    STEGA_BROKER_USERNAME: str = source("env")
+    STEGA_BROKER_PASSWORD: str = source("env")
 
     @property
     def db_uri(self) -> str:
-        """Returns the database URI for the portfolio service."""
         user = self.STEGA_PORTFOLIO_DBUSER
         password = quote_plus(self.STEGA_PORTFOLIO_DBPASSWORD)
         host = self.STEGA_PORTFOLIO_DBHOST
@@ -88,8 +65,6 @@ class ProdConfig(PortfolioConfig):
 
 
 class DevConfig(PortfolioConfig):
-    """Development configuration for the portfolio service."""
-
     STEGA_PORTFOLIO_ENV: str = "dev"
     STEGA_PORTFOLIO_DEBUG: bool = True
 
@@ -100,12 +75,11 @@ class DevConfig(PortfolioConfig):
     STEGA_PORTFOLIO_DBUSER: str = source("env")
     STEGA_PORTFOLIO_DBPASSWORD: str = source("env")
 
-    STEGA_BROKER_USER: str = source("env")
-    STEGA_BROKER_PASS: str = source("env")
+    STEGA_BROKER_USERNAME: str = source("env")
+    STEGA_BROKER_PASSWORD: str = source("env")
 
     @property
     def db_uri(self) -> str:
-        """Returns the database URI for the portfolio service."""
         if not Path.exists(self.path):
             Path.mkdir(self.path)
         path = self.path / f"{self.STEGA_PORTFOLIO_DBNAME}.db"
@@ -132,16 +106,6 @@ def create_logger(
     config: PortfolioConfig,
     third_party_loggers: list[str] | None = None,
 ) -> logging.Logger:
-    """Create a logger for the portfolio service.
-
-    Args:
-        config: The configuration instance for the portfolio service.
-        third_party_loggers: Optional list of third-party loggers to configure.
-
-    Returns:
-        A logger instance configured for the calling module of the portfolio service.
-
-    """
     if third_party_loggers is None:
         third_party_loggers = []
 
@@ -177,7 +141,6 @@ def create_logger(
 
 
 def get_caller_module() -> str:
-    """Get the name of the module that called this function."""
     frame = inspect.currentframe()
     caller_frame = frame.f_back
     module = inspect.getmodule(caller_frame)

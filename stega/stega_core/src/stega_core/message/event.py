@@ -9,7 +9,7 @@ if TYPE_CHECKING:
     from collections.abc import Callable
 
 
-class classproperty[T]: # noqa: N801
+class classproperty[T]:  # noqa: N801
     def __init__(self, fget: Callable[[type], T]) -> None:
         self.fget = fget
 
@@ -36,7 +36,7 @@ class Event(ABC):
 
     def __init_subclass__(
         cls,
-        **kwargs: Any, # noqa: ANN401
+        **kwargs: Any,  # noqa: ANN401
     ) -> None:
         super().__init_subclass__(**kwargs)
         # abstract class, skip

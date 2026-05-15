@@ -49,6 +49,8 @@ ignore = [
     "S110",
     "SIM105",
     "BLE001",
+    "TD",
+    "FIX",
 ]
 
 [tool.ruff.lint.pep8-naming]

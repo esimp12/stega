@@ -1,16 +1,16 @@
 import json
+from collections.abc import Awaitable
 from dataclasses import dataclass
 
-from quart import Blueprint, make_response
+from quart import Blueprint, Response, make_response
 
 from stega_edge.adapters.rest.utils import get_bus, get_client_broker
-
 
 api = Blueprint("edge_events_api", __name__)
 
 
 @api.route("/events/<string:topic>")
-async def stream_events(topic: str):
+async def stream_events(topic: str) -> Response:
     bus = get_bus()
     if topic not in bus.subscribed_topics:
         return {
@@ -20,7 +20,7 @@ async def stream_events(topic: str):
 
     client_broker = get_client_broker()
 
-    async def send_events():
+    async def send_events() -> Awaitable[bytes]:
         async for envelope in client_broker.subscribe(topic):
             event = ServerSentEvent(
                 data=json.dumps(envelope.payload),
@@ -53,5 +53,4 @@ class ServerSentEvent:
             message = f"{message}\nid: {self.sse_id}"
         if self.retry is not None:
             message = f"{message}\nretry: {self.retry}"
-        messag = f"{message}\n\n"
         return message.encode("utf-8")

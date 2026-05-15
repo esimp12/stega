@@ -5,7 +5,6 @@ from stega_core.registry.message import (
 )
 from stega_core.registry.repository import RepositoryRegistry
 
-
 __all__ = [
     "CommandRegistry",
     "EventRegistry",

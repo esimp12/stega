@@ -4,8 +4,8 @@ services:
     hostname: broker
     restart: always
     environment:
-      RABBITMQ_DEFAULT_USER: ${STEGA_BROKER_USER}
-      RABBITMQ_DEFAULT_PASS: ${STEGA_BROKER_PASS} 
+      RABBITMQ_DEFAULT_USER: ${STEGA_BROKER_USERNAME}
+      RABBITMQ_DEFAULT_PASS: ${STEGA_BROKER_PASSWORD} 
     volumes:
       - broker_data:/var/lib/rabbitmq
     healthcheck:

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from stega_core.repository import AbstractRepository, RepositoryFactory
 from stega_core.registry.base import Registry
+from stega_core.repository import AbstractRepository, RepositoryFactory
 
 
 class RepositoryRegistry[SessionT](Registry[type[AbstractRepository], RepositoryFactory[SessionT]]):

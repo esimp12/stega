@@ -1,8 +1,8 @@
-from typing import Awaitable
+from collections.abc import Awaitable
 
 from stega_edge.domain.command import CreatePortfolio, DeletePortfolio, UpdatePortfolio
-from stega_edge.domain.query import GetPortfolio, ListPortfolios
 from stega_edge.domain.portfolio import PortfolioAsset, PortfolioData
+from stega_edge.domain.query import GetPortfolio, ListPortfolios
 from stega_edge.ports.base import PortfolioServicePort
 
 
@@ -31,8 +31,5 @@ async def list_portfolios(_: ListPortfolios, service: PortfolioServicePort) -> A
 def _create_portfolio_data(name: str, assets: dict[str, float]) -> PortfolioData:
     return PortfolioData(
         name=name,
-        assets=[
-            PortfolioAsset(symbol=asset_name, weight=amount)
-            for asset_name, amount in assets.items()
-        ],
+        assets=[PortfolioAsset(symbol=asset_name, weight=amount) for asset_name, amount in assets.items()],
     )
