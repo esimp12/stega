@@ -12,6 +12,12 @@ from stega_portfolio.domain.portfolio import Portfolio, PortfolioAsset
 from stega_portfolio.ports.repository.base import PortfolioRepository
 
 
+async def get_portfolio(query: GetPortfolio, qc: QueryContext) -> None:
+    async with qc:
+        queries = qc.query(PortfolioQueries)
+        return await queries.get(query.portfolio_id)
+
+
 async def create_portfolio(cmd: CreatePortfolio, uow: AbstractUnitOfWork) -> None:
     async with uow:
         repo = uow.repo(PortfolioRepository)

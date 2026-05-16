@@ -39,10 +39,20 @@ from stega_core.message import (
     SubmissionStatus,
     View,
 )
+from stega_core.query_context import (
+    AbstractQueryContext,
+    AbstractSqlAlchemyQueryContext,
+)
+from stega_core.reader import (
+    AbstractReader,
+    AbstractSqlAlchemyReader,
+    ReaderFactory,
+)
 from stega_core.registry import (
     CommandRegistry,
     EventRegistry,
     QueryRegistry,
+    ReaderRegistry,
     RepositoryRegistry,
 )
 from stega_core.repository import (
@@ -58,7 +68,11 @@ from stega_core.uow import (
 
 __all__ = [
     "AbstractInMemoryRepository",
+    "AbstractQueryContext",
+    "AbstractReader",
     "AbstractRepository",
+    "AbstractSqlAlchemyQueryContext",
+    "AbstractSqlAlchemyReader",
     "AbstractSqlAlchemyRepository",
     "AbstractUnitOfWork",
     "Aggregate",
@@ -87,6 +101,8 @@ __all__ = [
     "QueryStatus",
     "RabbitMqBroker",
     "RabbitMqConnectionParameters",
+    "ReaderFactory",
+    "ReaderRegistry",
     "RepositoryFactory",
     "RepositoryRegistry",
     "Response",

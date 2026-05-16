@@ -1,21 +1,18 @@
 import inspect
 import logging
 import os
+import sys
 from pathlib import Path
 from urllib.parse import quote_plus
 
 from stega_config import BaseConfig, source
 
-
 class PortfolioConfig(BaseConfig):
     STEGA_PORTFOLIO_ENV: str
-    STEGA_PORTFOLIO_DEBUG: bool = False
-    STEGA_PORTFOLIO_HYPERCORN: bool = False
 
     STEGA_PORTFOLIO_CONFIG_DIR: str = ".portfolio"
     STEGA_PORTFOLIO_LOG_LEVEL: str = "INFO"
 
-    STEGA_PORTFOLIO_HYPERCORN_WORKERS: int = 4
     STEGA_PORTFOLIO_SERVER_ADDRESS: str = "0.0.0.0"
     STEGA_PORTFOLIO_SERVER_PORT: int = 5000
 
@@ -46,7 +43,6 @@ class PortfolioConfig(BaseConfig):
 
 class ProdConfig(PortfolioConfig):
     STEGA_PORTFOLIO_ENV: str = "prod"
-    STEGA_PORTFOLIO_HYPERCORN: bool = True
 
     STEGA_PORTFOLIO_DBUSER: str = source("file", path="/run/secrets")
     STEGA_PORTFOLIO_DBPASSWORD: str = source("file", path="/run/secrets")
@@ -68,7 +64,6 @@ class ProdConfig(PortfolioConfig):
 
 class DevConfig(PortfolioConfig):
     STEGA_PORTFOLIO_ENV: str = "dev"
-    STEGA_PORTFOLIO_DEBUG: bool = True
 
     STEGA_PORTFOLIO_LOG_LEVEL: str = "DEBUG"
 
@@ -91,21 +86,11 @@ class DevConfig(PortfolioConfig):
 
 
 def create_config(env: str | None = None) -> PortfolioConfig:
-    """Create a portfolio service configuration instance based on the environment.
-
-    Args:
-        env: The environment for which to create the configuration. If None,
-            defaults to 'dev'.
-
-    Returns:
-        An instance of PorftolioConfig for the specified environment.
-
-    """
     if env is None:
         env = os.getenv("STEGA_PORTFOLIO_ENV", "dev").lower()
     return PortfolioConfig.create_config(env)
 
-
+    
 def create_logger(
     config: PortfolioConfig,
     third_party_loggers: list[str] | None = None,
@@ -127,7 +112,7 @@ def create_logger(
         root_logger.setLevel(log_level)
         root_logger.addHandler(handler)
 
-    # Configure third-party loggers
+    # Configure third party loggers
     for third_party_logger_name in third_party_loggers:
         third_party_logger = logging.getLogger(third_party_logger_name)
         # Clear any existing handlers so that we can set our own

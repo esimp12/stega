@@ -3,11 +3,13 @@ from stega_core.registry.message import (
     EventRegistry,
     QueryRegistry,
 )
+from stega_core.registry.reader import ReaderRegistry
 from stega_core.registry.repository import RepositoryRegistry
 
 __all__ = [
     "CommandRegistry",
     "EventRegistry",
     "QueryRegistry",
+    "ReaderRegistry",
     "RepositoryRegistry",
 ]
