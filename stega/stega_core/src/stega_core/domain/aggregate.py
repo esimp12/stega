@@ -8,7 +8,7 @@ class Aggregate:
 
     def __init_subclass__(
         cls,
-        **kwargs: Any, # noqa: ANN401
+        **kwargs: Any,  # noqa: ANN401
     ) -> None:
         super().__init_subclass__(**kwargs)
         if "__id_attr__" not in cls.__dict__:

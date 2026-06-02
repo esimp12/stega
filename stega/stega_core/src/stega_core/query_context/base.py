@@ -12,7 +12,6 @@ if TYPE_CHECKING:
 
 
 class AbstractQueryContext[SessionT](ABC):
-
     def __init__(self, reader_factory_registry: ReaderRegistry[SessionT]) -> None:
         self._reader_factory_registry = reader_factory_registry
         self._readers: dict[type[AbstractReader], AbstractReader] = {}

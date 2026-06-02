@@ -1,5 +1,5 @@
 class AppError(Exception):
-    """Base class for all application errors."""
+    """Base class for all service errors."""
 
 
 class ConflictError(AppError):

@@ -1,5 +1,8 @@
 from stega_core import (
+    AbstractQueryContext,
     AbstractUnitOfWork,
+    QueryResponse,
+    QueryStatus,
 )
 
 from stega_portfolio.domain.command import (
@@ -9,13 +12,36 @@ from stega_portfolio.domain.command import (
 )
 from stega_portfolio.domain.error import ConflictError, ResourceNotFoundError
 from stega_portfolio.domain.portfolio import Portfolio, PortfolioAsset
+from stega_portfolio.domain.query import GetPortfolio, ListPortfolios
+from stega_portfolio.domain.view import PortfolioListView, PortfolioView
+from stega_portfolio.ports.reader.base import PortfolioReader
 from stega_portfolio.ports.repository.base import PortfolioRepository
 
 
-async def get_portfolio(query: GetPortfolio, qc: QueryContext) -> None:
+async def get_portfolio(
+    query: GetPortfolio[PortfolioView],
+    qc: AbstractQueryContext,
+) -> QueryResponse[PortfolioView]:
     async with qc:
-        queries = qc.query(PortfolioQueries)
-        return await queries.get(query.portfolio_id)
+        reader = qc.reader(PortfolioReader)
+        view = await reader.get(query.portfolio_id)
+        return QueryResponse(
+            status=QueryStatus.OK,
+            view=view,
+        )
+
+
+async def list_portfolios(
+    _: ListPortfolios[PortfolioListView],
+    qc: AbstractQueryContext,
+) -> QueryResponse[PortfolioListView]:
+    async with qc:
+        reader = qc.reader(PortfolioReader)
+        view = await reader.list()
+        return QueryResponse(
+            status=QueryStatus.OK,
+            view=view,
+        )
 
 
 async def create_portfolio(cmd: CreatePortfolio, uow: AbstractUnitOfWork) -> None:

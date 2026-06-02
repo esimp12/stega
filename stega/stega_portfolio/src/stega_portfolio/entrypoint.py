@@ -1,49 +1,61 @@
 import asyncio
-import logging
 
-from hypercorn.asyncio import serve
-from hypercorn.config import Config as HypercornConfig
-from hypercorn.logging import Logger as HypercornLogger
+from stega_core import HypercornRuntimeFields, Route, build_quart_app, init_logger, serve_hypercorn
 
-from stega_portfolio.adapters.rest.app import create_app
-from stega_portfolio.config import PortfolioConfig, create_config, create_logger
-
-
-class CustomLogger(HypercornLogger):
-    def __init__(self, hc_config: HypercornConfig) -> None:
-        hc_config.access_log_format = "%(h)s %(r)s %(s)s %(b)s %(D)s"
-        hc_config.accesslog = "-"
-        super().__init__(hc_config)
-
-        config = create_config()
-        null_handler = logging.NullHandler() 
-        log_level = config.STEGA_PORTFOLIO_LOG_LEVEL.upper()
-        for logger in (self.error_logger, self.access_logger):
-            if logger:
-                logger.handlers.clear()
-                logger.addHandler(null_handler)
-                logger.setLevel(log_level)
-                logger.propagate = True
+from stega_portfolio.bootstrap import build_service
+from stega_portfolio.config import create_config
+from stega_portfolio.domain.command import (
+    CreatePortfolio,
+)
+from stega_portfolio.domain.query import (
+    GetPortfolio,
+    ListPortfolios,
+)
 
 
-def create_hypercorn_config(config: PortfolioConfig) -> HypercornConfig:
-    hc_config = HypercornConfig()
-    hc_config.bind = [
-        f"{config.STEGA_PORTFOLIO_SERVER_ADDRESS}:{config.STEGA_PORTFOLIO_SERVER_PORT}",
+def routes() -> list[Route]:
+    return [
+        # get portfolio
+        Route(
+            method="GET",
+            path="/portfolio/<string:portfolio_id>",
+            msg_type=GetPortfolio,
+            msg_callback=lambda _: "Successfully fetched portfolio.",
+            prefix="/api",
+        ),
+        # list portfolios
+        Route(
+            method="GET",
+            path="/portfolios",
+            msg_type=ListPortfolios,
+            msg_callback=lambda _: "Successfully fetched all portfolios.",
+            prefix="/api",
+        ),
+        # create portfolio
+        Route(
+            method="POST",
+            path="/portfolios",
+            msg_type=CreatePortfolio,
+            msg_callback=lambda _: "Successfully submitted request to create portfolio.",
+            prefix="/api",
+        ),
     ]
-    hc_config.logger_class = CustomLogger
-    return hc_config
 
 
-def run() -> None:
+def run_rest_app() -> None:
     config = create_config()
-    logger = create_logger(config, third_party_loggers=["hypercorn"])
-    logger.info("Starting stega portfolio service...")
-    envvars_str = "\n  ".join(f"{k} => {v!r}" for k, v in config.get_envvars())
-    envvars_str = "\n  " + envvars_str
-    logger.debug("Using following configuration... %s", envvars_str)
-    app = create_app(config)
-
-    # run with hypercorn
-    hc_config = create_hypercorn_config(config)
-    asyncio.run(serve(app, hc_config))
+    init_logger(
+        service_name="stega_portfolio",
+        log_level=config.STEGA_PORTFOLIO_LOG_LEVEL,
+        third_party_logger_names=["hypercorn"],
+    )
+    service = build_service(config)
+    app = build_quart_app(service, routes())
+    runtime_fields = HypercornRuntimeFields()
+    asyncio.run(
+        serve_hypercorn(
+            app=app,
+            config=config,
+            runtime_fields=runtime_fields,
+        )
+    )

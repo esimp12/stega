@@ -1,32 +1,23 @@
-from collections.abc import AsyncIterator
-from contextlib import asynccontextmanager
-from dataclasses import dataclass
+from pathlib import Path
+from urllib.parse import quote_plus
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from stega_core import (
-    AbstractUnitOfWork,
-    Command,
-    CommandRegistry,
-    Dependency,
-    DependencyContainer,
-    Event,
-    EventRegistry,
-    MessageBus,
-    Query,
-    QueryRegistry,
     InMemoryBroker,
     RabbitMqBroker,
     RabbitMqConnectionParameters,
-    RepositoryRegistry,
-    Scope,
-    ServiceBroker,
+    ReaderRuntime,
+    RepositoryRuntime,
+    Service,
+    ServiceBrokerRuntime,
+    ServiceBuilder,
+    SqlAlchemyQueryContext,
     SqlAlchemyUnitOfWork,
-    bind_handler,
-    make_service_publish_handler,
 )
 
 from stega_portfolio.config import PortfolioConfig
-from stega_portfolio.ports.orm import start_mappers
+from stega_portfolio.ports.reader.base import PortfolioReader
+from stega_portfolio.ports.reader.sqlalchemy import SqlAlchemyPortfolioReader
 from stega_portfolio.ports.repository.base import PortfolioRepository
 from stega_portfolio.ports.repository.sqlalchemy import SqlAlchemyPortfolioRepository
 from stega_portfolio.services.handlers import (
@@ -37,87 +28,8 @@ from stega_portfolio.services.handlers import (
 )
 
 
-def build_container(config: PortfolioConfig) -> DependencyContainer:
-    # create external message broker
-    # service_broker = RabbitMqBroker(
-    #     connection_params=RabbitMqConnectionParameters(
-    #         host=config.STEGA_BROKER_HOST,
-    #         port=config.STEGA_BROKER_PORT,
-    #         username=config.STEGA_BROKER_PASSWORD,
-    #         password=config.STEGA_BROKER_USERNAME,
-    #     ),
-    #     exchange_name=config.STEGA_BROKER_EXCHANGE_NAME,
-    # )
-    service_broker = InMemoryBroker()
-
-    # create session factory and repo registry for uow
-    session_factory = build_session_factory(config)
-    repo_registry = build_repo_registry()
-
-    return DependencyContainer(
-        [
-            Dependency(
-                dep_type=ServiceBroker,
-                scope=Scope.SINGLETON,
-                provider=lambda: service_broker,
-            ),
-            Dependency(
-                dep_type=AbstractUnitOfWork,
-                scope=Scope.DISPATCH,
-                provider=lambda: SqlAlchemyUnitOfWork(session_factory, repo_registry),
-            ),
-        ]
-    )
-
-
-def build_command_registry() -> CommandRegistry:
-    registry = CommandRegistry()
-    for handler in COMMAND_HANDLERS:
-        binding = bind_handler(handler, Command)
-        registry.register(binding.msg_type, binding)
-    registry.freeze()
-    return registry
-
-
-def build_query_registry() -> QueryRegistry:
-    registry = QueryRegistry()
-    for handler in QUERY_HANDLERS:
-        binding = bind_handler(handler, Query)
-        registry.register(binding.msg_type, binding)
-    registry.freeze()
-    return registry
-
-
-def build_event_registry() -> EventRegistry:
-    registry = EventRegistry()
-
-    # service broker events
-    for event_type in SERVICE_EVENTS:
-        handler = make_service_publish_handler(event_type)
-        binding = bind_handler(handler, Event)
-        registry.register(binding.msg_type, binding)
-
-    # downstream work handlers responding to event effects
-    for handler in EVENT_HANDLERS:
-        binding = bind_handler(handler, Event)
-        registry.register(binding.msg_type, binding)
-
-    registry.freeze()
-    return registry
-
-
-def build_repo_registry() -> RepositoryRegistry[AsyncSession]:
-    registry = RepositoryRegistry[AsyncSession]()
-    registry.register(
-        PortfolioRepository,
-        SqlAlchemyPortfolioRepository,
-    )
-    registry.freeze()
-    return registry
-
-
-def build_session_factory(config: PortfolioConfig) -> async_sessionmaker[AsyncSession]:
-    engine = create_async_engine(config.db_uri)
+def build_sqlalchemy_session_factory(db_uri: str) -> async_sessionmaker[AsyncSession]:
+    engine = create_async_engine(db_uri)
     return async_sessionmaker(
         bind=engine,
         expire_on_commit=False,
@@ -125,46 +37,108 @@ def build_session_factory(config: PortfolioConfig) -> async_sessionmaker[AsyncSe
     )
 
 
-def build_bus(container: DependencyContainer) -> MessageBus:
-    return MessageBus(
-        command_registry=build_command_registry(),
-        query_registry=build_query_registry(),
-        event_registry=build_event_registry(),
-        container=container,
+def build_sqlite_session_factory(config: PortfolioConfig) -> async_sessionmaker[AsyncSession]:
+    path = Path.expanduser(config.DATA_DIR)
+    name = config.REPOSITORY_DBNAME
+    if not Path.exists(path):
+        Path.mkdir(path)
+    path = Path(path) / f"{name}.db"
+    db_uri = f"sqlite+aiosqlite:///{path}"
+    return build_sqlalchemy_session_factory(db_uri)
+
+
+def build_postgres_session_factory(config: PortfolioConfig) -> async_sessionmaker[AsyncSession]:
+    user = config.REPOSITORY_DBUSER
+    password = quote_plus(config.REPOSITORY_DBPASS)
+    host = config.REPOSITORY_DBHOST
+    port = config.REPOSITORY_DBPORT
+    name = config.REPOSITORY_DBNAME
+    db_uri = f"postgresql+asyncpg://{user}:{password}@{host}:{port}/{name}"
+    return build_sqlalchemy_session_factory(db_uri)
+
+
+def build_in_memory_session_factory(_: PortfolioConfig) -> None:
+    return None
+
+
+def build_rabbitmq_service_broker(config: PortfolioConfig) -> RabbitMqBroker:
+    connection_params = RabbitMqConnectionParameters(
+        host=config.SERVICE_BROKER_HOST,
+        port=config.SERVICE_BROKER_PORT,
+        username=config.SERVICE_BROKER_USER,
+        password=config.SERVICE_BROKER_PASS,
+    )
+    return RabbitMqBroker(
+        connection_params=connection_params,
+        exchange_name=config.SERVICE_BROKER_EXCHANGE_NAME,
     )
 
 
-@dataclass
-class ServiceLifespan:
-    service_broker: ServiceBroker
-    bus: MessageBus
+def build_in_memory_service_broker(_: PortfolioConfig) -> InMemoryBroker:
+    return InMemoryBroker()
 
 
-@asynccontextmanager
-async def service_lifespan(
-    config: PortfolioConfig,
-    *,
-    start_orm: bool = False,
-) -> AsyncIterator[ServiceLifespan]:
-    # handle persistence mappings
-    if start_orm:
-        start_mappers()
+def build_service(config: PortfolioConfig) -> Service:
+    builder = ServiceBuilder(config)
 
-    # construct messaging infrastructure
-    container = build_container(config)
-    bus = build_bus(container)
-    service_broker = container.resolve_singleton(ServiceBroker)
+    # set runtimes
+    builder = (
+        builder.with_repo_runtime("REPOSITORY_RUNTIME")
+        .with_reader_runtime("READER_RUNTIME")
+        .with_service_broker_runtime("SERVICE_BROKER_RUNTIME")
+    )
 
-    # start messaging constructs
-    await service_broker.start()
-    await bus.start()
+    # create repo constructs
+    uow_session_factories = {
+        RepositoryRuntime.POSTGRES: build_postgres_session_factory,
+        RepositoryRuntime.SQLITE: build_sqlite_session_factory,
+    }
+    uow_classes = {
+        RepositoryRuntime.POSTGRES: SqlAlchemyUnitOfWork,
+        RepositoryRuntime.SQLITE: SqlAlchemyUnitOfWork,
+    }
+    portfolio_repositories = {
+        RepositoryRuntime.POSTGRES: SqlAlchemyPortfolioRepository,
+        RepositoryRuntime.SQLITE: SqlAlchemyPortfolioRepository,
+    }
+    builder = (
+        builder.with_unit_of_work_session(uow_session_factories)
+        .with_unit_of_work(uow_classes)
+        .with_repository(PortfolioRepository, portfolio_repositories)
+    )
 
-    # manage service lifespan
-    try:
-        yield ServiceLifespan(
-            service_broker=service_broker,
-            bus=bus,
-        )
-    finally:
-        await bus.stop()
-        await service_broker.stop()
+    # create reader constructs
+    qctx_session_factories = {
+        ReaderRuntime.POSTGRES: build_postgres_session_factory,
+        ReaderRuntime.SQLITE: build_sqlite_session_factory,
+    }
+    qctx_classes = {
+        ReaderRuntime.POSTGRES: SqlAlchemyQueryContext,
+        ReaderRuntime.SQLITE: SqlAlchemyQueryContext,
+    }
+    portfolio_readers = {
+        ReaderRuntime.POSTGRES: SqlAlchemyPortfolioReader,
+        ReaderRuntime.SQLITE: SqlAlchemyPortfolioReader,
+    }
+    builder = (
+        builder.with_query_context_session(qctx_session_factories)
+        .with_query_context(qctx_classes)
+        .with_reader(PortfolioReader, portfolio_readers)
+    )
+
+    # create service broker
+    service_broker_factories = {
+        ServiceBrokerRuntime.RABBITMQ: build_rabbitmq_service_broker,
+        ServiceBrokerRuntime.MEMORY: build_in_memory_service_broker,
+    }
+    builder = builder.with_service_broker(service_broker_factories)
+
+    # create handlers
+    builder = (
+        builder.with_command_handlers(COMMAND_HANDLERS)
+        .with_query_handlers(QUERY_HANDLERS)
+        .with_event_handlers(EVENT_HANDLERS)
+        .with_service_events(SERVICE_EVENTS)
+    )
+
+    return builder.build()

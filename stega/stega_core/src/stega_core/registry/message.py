@@ -3,7 +3,6 @@ from __future__ import annotations
 from stega_core.di import MessageHandlerBinding
 from stega_core.message import (
     Command,
-    CommandResponse,
     Event,
     Message,
     MessageResponse,
@@ -33,6 +32,6 @@ class MessageFanOutRegistry[MessageT: Message, MessageResponseT: MessageResponse
         return self.keys
 
 
-CommandRegistry = MessageRegistry[Command, CommandResponse]
+CommandRegistry = MessageRegistry[Command, None]
 QueryRegistry = MessageRegistry[Query, QueryResponse[View]]
 EventRegistry = MessageFanOutRegistry[Event, None]

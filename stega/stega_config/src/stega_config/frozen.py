@@ -3,115 +3,9 @@
 from __future__ import annotations
 
 import inspect
-import os
-import typing as T
 import warnings
-from pathlib import Path
 
-
-class Source:
-    """Base class for defining a config source.
-
-    NOTE: A config source is a way to load config values from different
-    sources such as environment variables, files, etc. This class is intended
-    to be extended by specific source classes that implement the _source method.
-
-    WARNING: Instances of the Source class (or any children) should not be created
-    or called directly by clients. The intended usage is to associate a FrozenConfig
-    class attribute with a Source instance, which will then make the appropriate calls
-    to load the config value from the given source type using both the class attribute's
-    name and type from the known annotations.
-    """
-
-    def __call__(self, field: str, rt: type) -> T.Any:
-        """Calls the source to get the value for a given field."""
-        val = self._source(field)
-        try:
-            if rt is bool:
-                val = True if _is_truthy(val) else False
-            else:
-                val = rt(val)
-        except (TypeError, ValueError):
-            warnings.warn(f"Could not convert value '{val}' to type {rt}. Casting to str.")
-            val = str(val)
-        return val
-
-    def _source(self, field: str, rt: type):
-        """Returns the value for a given field from the source."""
-        raise NotImplementedError("Subclasses must implement this method.")
-
-
-class FileSource(Source):
-    """Source for loading config values from a file.
-
-    NOTE: The name of the file is the field name and the value is the entire
-    contents of the file. The file is expected to be a text file with a single line
-    containing the value. If the file does not exist, a FileNotFoundError is raised.
-    """
-
-    def __init__(self, path: str):
-        super().__init__()
-        self.path = path
-
-    def _source(self, field: str):
-        path = Path(self.path) / field
-        if not path.exists():
-            raise FileNotFoundError(f"File not found: {path}")
-        return path.read_text().strip()
-
-
-class EnvSource(Source):
-    """Source for loading config values from environment variables.
-
-    NOTE: The name of the environment variable is the field name and the value is
-    the value of the environment variable. If the environment variable does not exist,
-    a KeyError is raised. If the environment variable is set to an empty string,
-    the default value will be used instead.
-    """
-
-    def __init__(self, default: T.Any | None = None):
-        super().__init__()
-        self.default = default
-
-    def _source(self, field: str):
-        value = os.getenv(field, self.default)
-        if value == "":
-            value = self.default # empty string is considered as no value set
-        if value is None:
-            raise ValueError(f"Default value for '{field}' is not set and no environment variable exists.")
-        return value
-
-
-def source(source_type, **kwargs) -> Source:
-    """Allows loading a config value based on a given source type.
-
-    All config values will check the environment for a value first, even if
-    no 'source()' is identified and just a primitive type is provided. This allows
-    for easy overriding of config values at runtime without having to specify an
-    'env' source for every config value. Other source types require explicit call outs
-    (e.g. 'source("file", path="/path/to/file")').
-
-    NOTE: The following source types are supported:
-        - file: Loads the config value from a file at the given path.
-        - env: Loads the config value from an environment variable.
-
-    Args:
-        source_type: A string of the type of source to load the config value from.
-        **kwargs: Additional arguments to pass based on the source type.
-
-    Returns:
-        source: A Source instance for the given source type.
-
-    """
-    if source_type == "file":
-        if "path" not in kwargs:
-            raise ValueError("FileSource requires a 'path' argument.")
-        return FileSource(**kwargs)
-    if source_type == "env":
-        if "default" in kwargs:
-            return EnvSource(**kwargs)
-        return EnvSource()
-    raise ValueError(f"Unknown source type: {source_type}")
+from stega_config.source import Source, source
 
 
 class FrozenConfigMeta(type):
@@ -232,6 +126,8 @@ class FrozenConfig(metaclass=FrozenConfigMeta):
 
     """
 
+    __prefix__: ClassVar[str | None] = None
+
     def __init__(self, mapping: dict | None = None):
         """Inits FrozenConfig.
 
@@ -242,67 +138,78 @@ class FrozenConfig(metaclass=FrozenConfigMeta):
             mapping: A dict of initial values to set for the config.
 
         """
+        # check if config is already frozen
+        if not getattr(self.__class__, "__frozen"):
+            return
+
+        # initial mapping to set for config
         if mapping is None:
             mapping = {}
         self.__data = {}
         for key, value in mapping.items():
             self.__data[key] = value
 
-        if not getattr(self.__class__, "__frozen"):
-            for cls_attr, cls_attr_rt in get_class_config_annotations(self.__class__):
-                # NOTE: A class attribute may not have a default value because it is expected
-                # or required to be set at runtime. If this is the case, then we warn the
-                # user that it is not set but still allow it to be set to None.
-                try:
-                    cls_attr_value = getattr(self.__class__, cls_attr)
-                except AttributeError:
-                    cls_attr_value = None
-                    warnings.warn(
-                        f"Config attribute '{cls_attr}' not found in class '{self.__class__.__name__}',"
-                        " using None as default value.",
-                    )
 
-                # If the class attribute is not a Source instance, we still assume a user will want to
-                # set the value at runtime, but default to only check an environment variable. And so,
-                # we recreate the class attribute as a EnvSource instance with the default value given
-                # by the actual class attribute value.
-                if not isinstance(cls_attr_value, Source):
-                    cls_attr_value = source("env", default=cls_attr_value)
+        # get prefix once
+        prefix = getattr(self.__class__, "__prefix__", None)
 
-                # At this point we should always have a Source instance, we call it to load the actual
-                # config value. Note this automatically handles type casting based on the config class
-                # type annotation.
-                if isinstance(cls_attr_value, Source):
-                    cls_attr_value = cls_attr_value(cls_attr, cls_attr_rt)
+        triples = []
+        for cls_attr, cls_attr_rt in get_class_config_annotations(self.__class__):
+            # NOTE: A class attribute may not have a default value because it is expected
+            # or required to be set at runtime. If this is the case, then we warn the
+            # user that it is not set but still allow it to be set to None.
+            try:
+                cls_attr_value = getattr(self.__class__, cls_attr)
+            except AttributeError:
+                cls_attr_value = None
+                warnings.warn(
+                    f"Config attribute '{cls_attr}' not found in class '{self.__class__.__name__}',"
+                    " using None as default value.",
+                )
+                
+            # If the class attribute is not a Source instance, we still assume a user will want to
+            # set the value at runtime, but default to only check an environment variable. And so,
+            # we recreate the class attribute as a EnvSource instance with the default value given
+            # by the actual class attribute value.
+            if not isinstance(cls_attr_value, Source):
+                cls_attr_value = source("env", default=cls_attr_value)
 
-                # NOTE: The below works, but I believe the original intention was to 'remove' any class attributes
-                # and essentially force any config access to go through the __data dict. The problem was that
-                # we were only removing class level attributes of FrozenConfig but we had multiple parent class
-                # layers between the child config class actually used and this FrozenConfig class (e.g.
-                # FrozenConfig -> BaseConfig -> PortfolioConfig -> ProdConfig). I believe if we defined a class
-                # attribute on the PortfolioConfig class it would never be removed even if overridden by an
-                # environment variable. And so if a child class (e.g. ProdConfig) didn't overwrite that class
-                # attribute but at runtime we wanted to set the value, it would only look to the parent class for
-                # accessing that attribute (e.g. see super().__getattribute__(name) in the metaclass above) which
-                # may be completely different than what the user set at runtime.
+            triples.append((cls_attr, cls_attr_rt, cls_attr_value))
 
-                # And so, maybe the 'right' solution is to walk up the class hierarchy and remove the given class
-                # attribute from all parent classes up the chain. Then we would default to only accessing the class
-                # attribute via the __data dict. The question remains whether removing all of the class attributes
-                # actually allows class level access to work. I think the answer is yes, because the metaclass
-                # __call__ method forces the class to be instantiated as a singleton and so the __data dict would
-                # get populated, but am not sure. This proposed solution is straightforward enough to introduce
-                # (e.g. for cls in cls.__mro__ ...), but am leaving as a TODO for now given that the solution below
-                # works (we just set the class attribute directly on the config class) and we can always change
-                # it later if needed.
+        # build sources that are dependencies for other sources
+        depended_on = {
+            src._depends_on
+            for _, _, src in triples
+            if src._depnds_on is not None
+        }
+        depends_attrs_map: ditc[str, T.Any] = {}
 
-                # TODO: Explore above and see if it works as expected.
-                setattr(self.__class__, cls_attr, cls_attr_value)
+        # resolve depended on sources first
+        for attr, rt, src in triples:
+            if attr not in depended_on:
+                continue
+            if src._depends_on is not None:
+                err_msg = f"'{attr}' may not depend on itself"
+                raise RuntimeError(err_msg)
+            value = src(field=attr, rt=rt, prefix=prefix)
+            depends_attrs_map[attr] = value
+            self.__data[attr] = value
+            setattr(self.__class__, attr, value)
 
-                # Control config attribute access via __data
-                self.__data[cls_attr] = cls_attr_value
+        # resolve all other sources
+        for attr, rt, src in triples:
+            if attr in depended_on:
+                continue
+            value = src(
+                field=attr,
+                rt=rt,
+                depends_attrs_map=depends_attrs_map,
+                prefix=prefix,
+            )
+            self.__data[attr] = value
+            setattr(self.__class__, attr, value)
 
-        # Do not allow any modification at this point
+        # do not allow any modification at this point
         setattr(self.__class__, "__frozen", True)
 
     def __setitem__(self, key: str, value: T.Any) -> None:

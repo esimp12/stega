@@ -7,9 +7,9 @@ from stega_contracts.portfolio import (
 from stega_portfolio.services.handlers.portfolio import (
     create_portfolio,
     delete_portfolio,
-    update_portfolio,
     get_portfolio,
     list_portfolios,
+    update_portfolio,
 )
 
 COMMAND_HANDLERS = [

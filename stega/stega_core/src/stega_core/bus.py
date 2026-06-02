@@ -30,8 +30,8 @@ from stega_core.uow import AbstractUnitOfWork
 
 @dataclass(frozen=True)
 class BusConfig:
-    worker_count: int = 1
-    async_queue_maxsize: int = 0
+    event_worker_count: int = 1
+    event_queue_maxsize: int = 0
     shutdown_timeout_seconds: float = 30.0
 
 
@@ -50,10 +50,11 @@ class MessageBus:
         self._container = container
         self._config = config or BusConfig()
 
-        self._async_queue: asyncio.Queue[Event] = asyncio.Queue(
-            maxsize=self._config.async_queue_maxsize,
+        self._command_tasks: set[asyncio.Task] = set()
+        self._event_queue: asyncio.Queue[Event] = asyncio.Queue(
+            maxsize=self._config.event_queue_maxsize,
         )
-        self._workers: list[asyncio.Task] = []
+        self._event_workers: list[asyncio.Task] = []
         self._running = False
 
     @property
@@ -64,9 +65,9 @@ class MessageBus:
         if self._running:
             return
         self._running = True
-        self._workers = [
-            asyncio.create_task(self._worker_loop(), name=f"event-worker-{id}")
-            for i in range(self._config.worker_count)
+        self._event_workers = [
+            asyncio.create_task(self._event_worker_loop(), name=f"event-worker-{id}")
+            for i in range(self._config.event_worker_count)
         ]
 
     async def stop(self) -> None:
@@ -74,20 +75,26 @@ class MessageBus:
             return
         self._running = False
 
+        # cancel command tasks
+        for task in self._command_tasks:
+            task.cancel()
+        await asyncio.gather(self._command_tasks, return_exceptions=True)
+        self._command_tasks = set()
+
         # wait for queue events to process or automatically shutdown after timeout
         try:
             await asyncio.wait_for(
-                self._async_queue.join(),
+                self._event_queue.join(),
                 timeout=self._config.shutdown_timeout_seconds,
             )
         except TimeoutError:
             pass
 
-        # cancel workers
-        for worker in self._workers:
+        # cancel event workers
+        for worker in self._event_workers:
             worker.cancel()
-        await asyncio.gather(*self._workers, return_exceptions=True)
-        self._workers = []
+        await asyncio.gather(*self._event_workers, return_exceptions=True)
+        self._event_workers = []
 
     async def handle_command(self, command: Command) -> CommandResponse:
         cmd_type = type(command)
@@ -98,18 +105,25 @@ class MessageBus:
                 error=f"No handler registered for {cmd_type.__name__}",
             )
 
+        async def invoke_coro() -> None:
+            _, scope = await self._invoke(binding, command, type(None))
+            for event in self._drain_events(scope):
+                await self.handle_event(event)
+
         try:
-            response, scope = await self._invoke(binding, command, CommandResponse)
+            task = asyncio.create_task(invoke_coro())
+            self._command_tasks.add(task)
+            task.add_done_callback(self._command_tasks.discard)
         except Exception as exc:
             return CommandResponse(
                 status=SubmissionStatus.FAILED,
                 error=f"{type(exc).__name__}: {exc}",
             )
 
-        for event in self._drain_events(scope):
-            await self.handle_event(event)
-
-        return response
+        return CommandResponse(
+            status=SubmissionStatus.ACCEPTED,
+            correlation_id=command.correlation_id,
+        )
 
     async def handle_query[ViewT: View](self, query: Query[ViewT]) -> QueryResponse[ViewT]:
         query_type = type(query)
@@ -132,7 +146,7 @@ class MessageBus:
 
     async def handle_event(self, event: Event) -> None:
         if event.dispatch is EventDispatch.ASYNC:
-            await self._async_queue.put(event)
+            await self._event_queue.put(event)
             return
 
         sync_queue: list[Event] = [event]
@@ -141,7 +155,7 @@ class MessageBus:
             cascaded = await self._dispatch_event_locally(current)
             for next_event in cascaded:
                 if next_event.dispatch is EventDispatch.ASYNC:
-                    await self._async_queue.put(event)
+                    await self._event_queue.put(event)
                 else:
                     sync_queue.append(next_event)
 
@@ -184,9 +198,9 @@ class MessageBus:
             return []
         return list(uow.collect_new_events())
 
-    async def _worker_loop(self) -> None:
+    async def _event_worker_loop(self) -> None:
         while True:
-            event = await self._async_queue.get()
+            event = await self._event_queue.get()
             try:
                 sync_queue: list[Event] = [event]
                 while sync_queue:
@@ -194,10 +208,10 @@ class MessageBus:
                     cascaded = await self._dispatch_event_locally(current)
                     for next_event in cascaded:
                         if next_event.dispatch is EventDispatch.ASYNC:
-                            await self._async_queue.put(next_event)
+                            await self._event_queue.put(next_event)
                         else:
                             sync_queue.append(next_event)
             except Exception:
                 pass
             finally:
-                self._async_queue.task_done()
+                self._event_queue.task_done()
