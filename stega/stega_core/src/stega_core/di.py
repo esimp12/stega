@@ -77,7 +77,7 @@ class DependencyContainer:
 class DispatchScope:
     def __init__(self, container: DependencyContainer) -> None:
         self._container = container
-        self.resolved = dict[type, object] = {}
+        self.resolved: dict[type, object] = {}
 
     def resolve[DepT](self, dep_type: type[DepT]) -> DepT:
         dep = self._container.get_dependency(dep_type)

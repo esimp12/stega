@@ -1,4 +1,5 @@
 import functools
+import logging
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
 from typing import Any, TypedDict
@@ -40,10 +41,10 @@ async def merge_request(request: Request, translation: dict[str, str]) -> dict[s
     if request.is_json:
         raw |= await request.get_json()
     raw |= request.args.to_dict()
-    raw |= request.view_args.to_dict()
-    for source_key in translation:
+    raw |= request.view_args
+    for source_key, translated_key in translation.items():
         if source_key in request.headers:
-            raw[source_key] = request.headers[source_key]
+            raw[translated_key] = request.headers[source_key]
     return raw
 
 
@@ -69,8 +70,8 @@ async def handle_request(
     route: Route,
     **_: Any,  # noqa: ANN401
 ) -> AppResponse:
-    raw = await merge_request(request)
-    message = marshal(route.msg_type, raw, route.translation)
+    raw = await merge_request(request, route.translation)
+    message = marshal(route.msg_type, raw)
     bus = get_bus()
     if isinstance(message, Command):
         resp = await bus.handle_command(message)
@@ -89,8 +90,7 @@ async def handle_request(
     return make_app_response(resp.ok, route.msg_callback(resp), resp.result, return_code)
 
 
-def app_exception_handler(exc: Exception) -> AppResponse:
-    err_msg = str(exc)
+def app_exception_handler(exc: Exception, logger: logging.Logger) -> AppResponse:
     return_code = 500
     if isinstance(exc, ConflictError):
         return_code = 409
@@ -99,9 +99,11 @@ def app_exception_handler(exc: Exception) -> AppResponse:
     elif isinstance(exc, AppError):
         return_code = 400
 
+    exc_info = (type(exc), exc, exc.__traceback__)
+    logger.exception(exc, exc_info=exc_info)
     return make_app_response(
         ok=False,
-        msg=err_msg,
+        msg=str(exc),
         result=None,
         return_code=return_code,
     )
@@ -137,6 +139,7 @@ def build_quart_app(service: Service, routes: list[Route]) -> Quart:
         )
 
     # add health route
+    @app.route("/api/health", methods=["GET"])
     async def health() -> AppResponse:
         return make_app_response(
             ok=True,
@@ -145,14 +148,13 @@ def build_quart_app(service: Service, routes: list[Route]) -> Quart:
             return_code=200,
         )
 
-    app.add_url_rule(
-        rule="/api/health",
-        endpoint="<GET /api/health>",
-        view_func=health,
-        methods=["GET"],
-    )
+    # add favicon.ico route
+    @app.route("/favicon.ico", methods=["GET"])
+    async def favicon() -> tuple[str, int]:
+        return "", 204
 
     # register error handlers
-    app.register_error_handler(Exception, app_exception_handler)
+    exc_handler = functools.partial(app_exception_handler, logger=service.logger)
+    app.register_error_handler(Exception, exc_handler)
 
     return app

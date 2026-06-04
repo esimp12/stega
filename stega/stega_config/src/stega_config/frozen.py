@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import inspect
 import warnings
+from typing import Any
 
 from stega_config.source import Source, source
 
@@ -16,7 +17,6 @@ class FrozenConfigMeta(type):
         __instances: A dict for creating unique config instances.
 
     """
-
     __frozen: bool = False
     __instances: dict = {}
 
@@ -139,7 +139,7 @@ class FrozenConfig(metaclass=FrozenConfigMeta):
 
         """
         # check if config is already frozen
-        if not getattr(self.__class__, "__frozen"):
+        if getattr(self.__class__, "__frozen"):
             return
 
         # initial mapping to set for config
@@ -148,7 +148,6 @@ class FrozenConfig(metaclass=FrozenConfigMeta):
         self.__data = {}
         for key, value in mapping.items():
             self.__data[key] = value
-
 
         # get prefix once
         prefix = getattr(self.__class__, "__prefix__", None)
@@ -180,9 +179,9 @@ class FrozenConfig(metaclass=FrozenConfigMeta):
         depended_on = {
             src._depends_on
             for _, _, src in triples
-            if src._depnds_on is not None
+            if src._depends_on is not None
         }
-        depends_attrs_map: ditc[str, T.Any] = {}
+        depends_attrs_map: dict[str, Any] = {}
 
         # resolve depended on sources first
         for attr, rt, src in triples:
@@ -193,8 +192,8 @@ class FrozenConfig(metaclass=FrozenConfigMeta):
                 raise RuntimeError(err_msg)
             value = src(field=attr, rt=rt, prefix=prefix)
             depends_attrs_map[attr] = value
-            self.__data[attr] = value
             setattr(self.__class__, attr, value)
+            self.__data[attr] = value
 
         # resolve all other sources
         for attr, rt, src in triples:
@@ -206,13 +205,13 @@ class FrozenConfig(metaclass=FrozenConfigMeta):
                 depends_attrs_map=depends_attrs_map,
                 prefix=prefix,
             )
-            self.__data[attr] = value
             setattr(self.__class__, attr, value)
+            self.__data[attr] = value
 
         # do not allow any modification at this point
         setattr(self.__class__, "__frozen", True)
 
-    def __setitem__(self, key: str, value: T.Any) -> None:
+    def __setitem__(self, key: str, value: Any) -> None:
         """Sets the value for a FrozenConfig attribute.
 
         Args:
@@ -222,7 +221,7 @@ class FrozenConfig(metaclass=FrozenConfigMeta):
         """
         self.__setattr__(key, value)
 
-    def __setattribute__(self, name: str, value: T.Any) -> None:
+    def __setattribute__(self, name: str, value: Any) -> None:
         """Sets the value for a FrozenConfig attribute.
 
         Args:
@@ -232,7 +231,7 @@ class FrozenConfig(metaclass=FrozenConfigMeta):
         """
         self.__setattr__(name, value)
 
-    def __setattr__(self, name: str, value: T.Any) -> None:
+    def __setattr__(self, name: str, value: Any) -> None:
         """Sets the value for a FrozenConfig attribute.
 
         Args:
@@ -247,7 +246,7 @@ class FrozenConfig(metaclass=FrozenConfigMeta):
             raise AttributeError(f"Cannot set class attributes of {self.__class__.__name__}!")
         super().__setattr__(name, value)
 
-    def __getitem__(self, key: str) -> T.Any:
+    def __getitem__(self, key: str) -> Any:
         """Gets the value for a FrozenConfig attribute.
 
         Args:
@@ -259,7 +258,7 @@ class FrozenConfig(metaclass=FrozenConfigMeta):
         """
         return self.__getattr__(key)
 
-    def __getattr__(self, name: str) -> T.Any:
+    def __getattr__(self, name: str) -> Any:
         """Gets the value for a FrozenConfig attribute.
 
         Args:
@@ -306,7 +305,7 @@ class BaseConfig(FrozenConfig):
         envvars = ",\n".join(f"\t{k}={v!r}" for k, v in envvars)
         return f"""{self.__class__.__name__}(\n{envvars}\n)"""
 
-    def get_envvars(self) -> T.Sequence[tuple[str, T.Any]]:
+    def get_envvars(self) -> T.Sequence[tuple[str, Any]]:
         """Returns a sequence of environment variables defined in the config."""
         envvars = []
         for k, v in self.items():
@@ -349,30 +348,17 @@ def get_class_config_annotations(cls):
         A list of class config annotation pairs.
 
     """
-    # Collect all possible public class annotations of the config class up the
-    # inheritance chain until we get to the BaseConfig class.
-    if len(cls.__bases__) == 0:
-        return []
-
-    attrs = set()
     annotations = []
-    current_cls = cls
-    parent_cls = current_cls.__bases__[0]
-    while parent_cls is not BaseConfig:
-        current_annotations = [
-            (attr, rt) for attr, rt in inspect.get_annotations(current_cls).items() if attr not in attrs
-        ]
-        annotations.extend(current_annotations)
-        attrs.update(attr for attr, _ in current_annotations)
-        current_cls = parent_cls
-        if len(current_cls.__bases__) == 0:
-            break
-        parent_cls = current_cls.__bases__[0]
-
-    # Add the last BaseConfig child class annotations
-    if parent_cls is BaseConfig:
-        annotations.extend((attr, rt) for attr, rt in inspect.get_annotations(current_cls).items() if attr not in attrs)
-
+    seen = set()
+    for klass in cls.__mro__:
+        if klass in (BaseConfig, object):
+            continue
+        private_class_attrs = get_private_class_attributes(klass)
+        for attr, rt in inspect.get_annotations(klass).items():
+            if attr in seen or attr in private_class_attrs:
+                continue
+            seen.add(attr)
+            annotations.append((attr, rt))
     return annotations
 
 

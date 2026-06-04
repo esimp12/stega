@@ -58,7 +58,7 @@ class SqlAlchemyPortfolioReader(AbstractSqlAlchemyReader, PortfolioReader):
               p.portfolio_id = a.portfolio_id
             """
         )
-        result = self._session.execute(stmt)
+        result = await self._session.execute(stmt)
         rows = result.all()
         portfolios = _get_portfolios(rows)
         views = [

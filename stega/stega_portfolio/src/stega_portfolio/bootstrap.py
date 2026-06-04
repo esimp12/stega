@@ -1,3 +1,5 @@
+import functools
+import logging
 from pathlib import Path
 from urllib.parse import quote_plus
 
@@ -28,6 +30,27 @@ from stega_portfolio.services.handlers import (
 )
 
 
+def get_db_uri(config: PortfolioConfig, is_async: bool = True) -> str:
+    if bool(config.REPOSITORY_RUNTIME & RepositoryRuntime.SQLITE):
+        path = Path.expanduser(Path(config.DATA_DIR))
+        name = config.REPOSITORY_DBNAME
+        if not Path.exists(path):
+            Path.mkdir(path)
+        path = Path(path) / f"{name}.db"
+        dialect = "+aiosqlite" if is_async else ""
+        return f"sqlite{dialect}:///{path}"
+    elif bool(config.REPOSITORY_RUNTIME & RepositoryRuntime.POSTGRES):
+        user = config.REPOSITORY_DBUSER
+        password = quote_plus(config.REPOSITORY_DBPASS)
+        host = config.REPOSITORY_DBHOST
+        port = config.REPOSITORY_DBPORT
+        name = config.REPOSITORY_DBNAME
+        dialect = "+asyncpg" if is_async else ""
+        return f"postgresql{dialect}://{user}:{password}@{host}:{port}/{name}"
+    else:
+        return ""
+
+
 def build_sqlalchemy_session_factory(db_uri: str) -> async_sessionmaker[AsyncSession]:
     engine = create_async_engine(db_uri)
     return async_sessionmaker(
@@ -38,22 +61,12 @@ def build_sqlalchemy_session_factory(db_uri: str) -> async_sessionmaker[AsyncSes
 
 
 def build_sqlite_session_factory(config: PortfolioConfig) -> async_sessionmaker[AsyncSession]:
-    path = Path.expanduser(config.DATA_DIR)
-    name = config.REPOSITORY_DBNAME
-    if not Path.exists(path):
-        Path.mkdir(path)
-    path = Path(path) / f"{name}.db"
-    db_uri = f"sqlite+aiosqlite:///{path}"
+    db_uri = get_db_uri(config)
     return build_sqlalchemy_session_factory(db_uri)
 
 
 def build_postgres_session_factory(config: PortfolioConfig) -> async_sessionmaker[AsyncSession]:
-    user = config.REPOSITORY_DBUSER
-    password = quote_plus(config.REPOSITORY_DBPASS)
-    host = config.REPOSITORY_DBHOST
-    port = config.REPOSITORY_DBPORT
-    name = config.REPOSITORY_DBNAME
-    db_uri = f"postgresql+asyncpg://{user}:{password}@{host}:{port}/{name}"
+    db_uri = get_db_uri(config)
     return build_sqlalchemy_session_factory(db_uri)
 
 
@@ -79,19 +92,21 @@ def build_in_memory_service_broker(_: PortfolioConfig) -> InMemoryBroker:
 
 
 def build_service(config: PortfolioConfig) -> Service:
-    builder = ServiceBuilder(config)
+    sqlite_session_factory = functools.partial(build_sqlite_session_factory, config)
+    postgres_session_factory = functools.partial(build_postgres_session_factory, config)
 
+    builder = ServiceBuilder(config)
     # set runtimes
     builder = (
-        builder.with_repo_runtime("REPOSITORY_RUNTIME")
+        builder.with_repository_runtime("REPOSITORY_RUNTIME")
         .with_reader_runtime("READER_RUNTIME")
         .with_service_broker_runtime("SERVICE_BROKER_RUNTIME")
     )
 
     # create repo constructs
     uow_session_factories = {
-        RepositoryRuntime.POSTGRES: build_postgres_session_factory,
-        RepositoryRuntime.SQLITE: build_sqlite_session_factory,
+        RepositoryRuntime.POSTGRES: postgres_session_factory,
+        RepositoryRuntime.SQLITE: sqlite_session_factory,
     }
     uow_classes = {
         RepositoryRuntime.POSTGRES: SqlAlchemyUnitOfWork,
@@ -102,15 +117,15 @@ def build_service(config: PortfolioConfig) -> Service:
         RepositoryRuntime.SQLITE: SqlAlchemyPortfolioRepository,
     }
     builder = (
-        builder.with_unit_of_work_session(uow_session_factories)
+        builder.with_unit_of_work_sessions(uow_session_factories)
         .with_unit_of_work(uow_classes)
         .with_repository(PortfolioRepository, portfolio_repositories)
     )
 
     # create reader constructs
     qctx_session_factories = {
-        ReaderRuntime.POSTGRES: build_postgres_session_factory,
-        ReaderRuntime.SQLITE: build_sqlite_session_factory,
+        ReaderRuntime.POSTGRES: postgres_session_factory,
+        ReaderRuntime.SQLITE: sqlite_session_factory,
     }
     qctx_classes = {
         ReaderRuntime.POSTGRES: SqlAlchemyQueryContext,
@@ -121,7 +136,7 @@ def build_service(config: PortfolioConfig) -> Service:
         ReaderRuntime.SQLITE: SqlAlchemyPortfolioReader,
     }
     builder = (
-        builder.with_query_context_session(qctx_session_factories)
+        builder.with_query_context_sessions(qctx_session_factories)
         .with_query_context(qctx_classes)
         .with_reader(PortfolioReader, portfolio_readers)
     )
@@ -141,4 +156,4 @@ def build_service(config: PortfolioConfig) -> Service:
         .with_service_events(SERVICE_EVENTS)
     )
 
-    return builder.build()
+    return builder.build(logging.getLogger(__name__))

@@ -21,7 +21,7 @@ def init_logger(
     third_party_loggers = [
         logging.getLogger(third_party_logger_name) for third_party_logger_name in third_party_logger_names
     ]
-    for logger in root_logger + third_party_loggers:
+    for logger in [root_logger] + third_party_loggers:
         if handler not in logger.handlers:
             logger.handlers.clear()
         if not logger.hasHandlers():

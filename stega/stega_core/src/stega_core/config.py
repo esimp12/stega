@@ -12,7 +12,7 @@ class ServiceConfig:
     ENV: str = source("env", default="dev")
     LOG_LEVEL: str = source("env", default="INFO")
 
-    HOST: str = source("env", deault="127.0.0.1")
+    HOST: str = source("env", default="127.0.0.1")
     PORT: int = source("env", default=5000)
 
 

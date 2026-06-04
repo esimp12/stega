@@ -1,28 +1,17 @@
 import logging
-from collections.abc import Callable
-from dataclasses import dataclass
 
 from hypercorn.asyncio import serve
 from hypercorn.config import Config as HypercornConfig
 from hypercorn.logging import Logger as HypercornLogger
 from quart import Quart
-from stega_config import BaseConfig
-
-
-@dataclass(frozen=True, kw_only=True)
-class HypercornRuntimeFields:
-    log_level_field: str
-    server_address_field: str
-    server_port_field: str
 
 
 async def serve_hypercorn(
-    app_factory: Callable[[BaseConfig], Quart],
-    config: BaseConfig,
-    runtime_fields: HypercornRuntimeFields,
+    app: Quart,
+    log_level: int = logging.INFO,
+    host: str = "127.0.0.1",
+    port: int = 5000,
 ) -> None:
-    log_level = getattr(config, runtime_fields.log_level_field)
-
     # override hypercorn logging to stay consistent with app logging
     class CustomLogger(HypercornLogger):
         def __init__(self, hc_config: HypercornConfig) -> None:
@@ -39,12 +28,9 @@ async def serve_hypercorn(
                     logger.propagate = True
 
     # create hypercorn config for serving
-    address = getattr(config, runtime_fields.server_address_field)
-    port = getattr(config, runtime_fields.server_port_field)
     hc_config = HypercornConfig()
-    hc_config.bind = [f"{address}:{port}"]
+    hc_config.bind = [f"{host}:{port}"]
     hc_config.logger_class = CustomLogger
 
     # create and serve app
-    app = app_factory(config)
     await serve(app, hc_config)

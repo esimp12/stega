@@ -78,7 +78,7 @@ class MessageBus:
         # cancel command tasks
         for task in self._command_tasks:
             task.cancel()
-        await asyncio.gather(self._command_tasks, return_exceptions=True)
+        await asyncio.gather(*self._command_tasks, return_exceptions=True)
         self._command_tasks = set()
 
         # wait for queue events to process or automatically shutdown after timeout
@@ -137,6 +137,11 @@ class MessageBus:
         try:
             response, _ = await self._invoke(binding, query, QueryResponse)
         except Exception as exc:
+            import logging
+
+            logger = logging.getLogger("stega_portfolio")
+            logger.exception(exc)
+
             return QueryResponse(
                 status=QueryStatus.FAILED,
                 error=f"{type(exc).__name__}: {exc}",

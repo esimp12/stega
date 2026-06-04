@@ -25,8 +25,6 @@ class PortfolioConfig(
     REPOSITORY_DBNAME: str = source(
         "env",
         default="stega_portfolio",
-        depends_on="REPOSITORY_RUNTIME",
-        depends_value=RepositoryRuntime.POSTGRES,
     )
     REPOSITORY_DBHOST: str = source(
         "env",
@@ -37,8 +35,6 @@ class PortfolioConfig(
     READER_DBNAME: str = source(
         "env",
         default="stega_portfolio",
-        depends_on="READER_RUNTIME",
-        depends_value=ReaderRuntime.POSTGRES,
     )
     READER_DBHOST: str = source(
         "env",

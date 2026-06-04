@@ -1,7 +1,6 @@
 from sqlalchemy import (
     BigInteger,
     Column,
-    Engine,
     ForeignKey,
     Integer,
     Numeric,
@@ -42,10 +41,9 @@ asset_table = Table(
 )
 
 
-def get_engine(uri: str) -> Engine:
-    engine = create_engine(uri)
+def init_metadata(db_uri: str) -> None:
+    engine = create_engine(db_uri)
     metadata.create_all(engine)
-    return engine
 
 
 def start_mappers() -> None:

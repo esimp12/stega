@@ -3,6 +3,8 @@ from stega_core import (
     AbstractUnitOfWork,
     QueryResponse,
     QueryStatus,
+    ConflictError,
+    ResourceNotFoundError,
 )
 
 from stega_portfolio.domain.command import (
@@ -10,7 +12,6 @@ from stega_portfolio.domain.command import (
     DeletePortfolio,
     UpdatePortfolio,
 )
-from stega_portfolio.domain.error import ConflictError, ResourceNotFoundError
 from stega_portfolio.domain.portfolio import Portfolio, PortfolioAsset
 from stega_portfolio.domain.query import GetPortfolio, ListPortfolios
 from stega_portfolio.domain.view import PortfolioListView, PortfolioView
@@ -19,7 +20,7 @@ from stega_portfolio.ports.repository.base import PortfolioRepository
 
 
 async def get_portfolio(
-    query: GetPortfolio[PortfolioView],
+    query: GetPortfolio,
     qc: AbstractQueryContext,
 ) -> QueryResponse[PortfolioView]:
     async with qc:
@@ -27,12 +28,12 @@ async def get_portfolio(
         view = await reader.get(query.portfolio_id)
         return QueryResponse(
             status=QueryStatus.OK,
-            view=view,
+            result=view,
         )
 
 
 async def list_portfolios(
-    _: ListPortfolios[PortfolioListView],
+    _: ListPortfolios,
     qc: AbstractQueryContext,
 ) -> QueryResponse[PortfolioListView]:
     async with qc:
@@ -40,7 +41,7 @@ async def list_portfolios(
         view = await reader.list()
         return QueryResponse(
             status=QueryStatus.OK,
-            view=view,
+            result=view,
         )
 
 

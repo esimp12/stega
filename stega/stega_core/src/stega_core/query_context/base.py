@@ -26,7 +26,7 @@ class AbstractQueryContext[SessionT](ABC):
 
     async def __aenter__(self) -> AbstractQueryContext[SessionT]:
         session = await self._begin()
-        for reader_type in self._reader_factory_registry.reader_types():
+        for reader_type in self._reader_factory_registry.reader_types:
             reader_factory = self._reader_factory_registry.get(reader_type)
             self._readers[reader_type] = reader_factory(session)
         self._entered = True

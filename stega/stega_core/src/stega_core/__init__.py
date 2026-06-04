@@ -40,9 +40,11 @@ from stega_core.di import (
 from stega_core.domain import (
     Aggregate,
     DomainEntity,
+    AppError,
+    ConflictError,
+    ResourceNotFoundError,
 )
 from stega_core.hosting import (
-    HypercornRuntimeFields,
     Route,
     build_quart_app,
     serve_hypercorn,
@@ -155,4 +157,7 @@ __all__ = [
     "make_client_publish_handler",
     "make_service_publish_handler",
     "serve_hypercorn",
+    "AppError",
+    "ConflictError",
+    "ResourceNotFoundError",
 ]

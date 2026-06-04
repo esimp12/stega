@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from contextlib import asynccontextmanager
 from enum import Flag, auto
 from typing import TYPE_CHECKING, Any
@@ -52,24 +53,36 @@ if TYPE_CHECKING:
     )
 
 
-class RepositoryRuntime(Flag):
+class RuntimeFlag(Flag):
+
+    @classmethod
+    def _missing_(cls, value: Any) -> RuntimeFlag:
+        if isinstance(value, str):
+            try:
+                return cls[value.strip().upper()]
+            except KeyError:
+                return None
+        return super()._missing_(value)
+
+
+class RepositoryRuntime(RuntimeFlag):
     MEMORY = auto()
     SQLITE = auto()
     POSTGRES = auto()
 
 
-class ReaderRuntime(Flag):
+class ReaderRuntime(RuntimeFlag):
     MEMORY = auto()
     SQLITE = auto()
     POSTGRES = auto()
 
 
-class ServiceBrokerRuntime(Flag):
+class ServiceBrokerRuntime(RuntimeFlag):
     MEMORY = auto()
     RABBITMQ = auto()
 
 
-class ClientBrokerRuntime(Flag):
+class ClientBrokerRuntime(RuntimeFlag):
     MEMORY = auto()
     RABBITMQ = auto()
 
@@ -127,20 +140,18 @@ class ServiceBuilder:
         self._client_broker_runtime_field = runtime_field
         return self
 
-    def with_unit_of_work_session(
+    def with_unit_of_work_sessions(
         self,
-        runtime: RepositoryRuntime,
-        factory: Callable[[BaseConfig], Any],
+        factories: dict[RepositoryRuntime, Callable[[BaseConfig], Any]],
     ) -> ServiceBuilder:
-        self._uow_session_factories[runtime] = factory
+        self._uow_session_factories = factories
         return self
 
-    def with_query_context_session(
+    def with_query_context_sessions(
         self,
-        runtime: ReaderRuntime,
-        factory: Callable[[BaseConfig], Any],
+        factories: dict[ReaderRuntime, Callable[[BaseConfig], Any]],
     ) -> ServiceBuilder:
-        self._qctx_session_factories[runtime] = factory
+        self._qctx_session_factories = factories
         return self
 
     def with_repository(
@@ -207,7 +218,7 @@ class ServiceBuilder:
         self._client_events = events
         return self
 
-    def build(self) -> Service:
+    def build(self, logger: logging.Logger) -> Service:
         # track dependencies
         deps = []
 
@@ -290,7 +301,7 @@ class ServiceBuilder:
             deps.append(
                 Dependency(
                     dep_type=AbstractQueryContext,
-                    scope=Scope.DISTPATCH,
+                    scope=Scope.DISPATCH,
                     provider=lambda: qctx_factory(qctx_session_factory, reader_registry),
                 )
             )
@@ -338,14 +349,14 @@ class ServiceBuilder:
             event_registry=event_registry,
             container=container,
         )
-        return Service(container=container, bus=bus)
+        return Service(container=container, bus=bus, logger=logger)
 
     def _build_session_factory(
         self,
         runtime_field: str,
         session_factories: dict[RepositoryRuntime | ReaderRuntime, Callable[[BaseConfig], Any]],
     ) -> Callable[[BaseConfig], Any]:
-        return self._select(runtime_field, session_factories)
+        return self._select(runtime_field, session_factories)()
 
     def _build_repo_registry(
         self,
@@ -457,13 +468,20 @@ class ServiceBuilder:
 
 class Service:
     def __init__(
-        self: DependencyContainer,
+        self,
+        container: DependencyContainer,
         bus: MessageBus,
+        logger: logging.Logger,
     ) -> None:
-        self._container = self
+        self._container = container
         self._bus = bus
-        self._service_broker: ServiceBroker | None = self._container.resolve_singleton(ServiceBroker)
-        self._client_broker: ClientBroker | None = self._container.resolve_singleton(ClientBroker)
+        self._logger = logger
+        self._service_broker: ServiceBroker | None = self._resolve_broker(ServiceBroker) 
+        self._client_broker: ClientBroker | None = self._resolve_broker(ClientBroker)
+
+    @property
+    def logger(self) -> logging.Logger:
+        return self._logger
 
     @property
     def bus(self) -> MessageBus:
@@ -502,3 +520,10 @@ class Service:
                 await client_broker.stop()
             if service_broker is not None:
                 await service_broker.stop()
+
+    def _resolve_broker(self, broker_cls: type[ServiceBroker]| type[ClientBroker]) -> ServiceBroker | ClientBroker | None:
+        try:
+            return self._container.resolve_singleton(broker_cls)
+        except KeyError:
+            pass
+        return None
