@@ -17,6 +17,9 @@ class Aggregate:
 
     def __init__(self, version_number: int = 0) -> None:
         self.version_number: int = version_number
+        self._init_transients()
+
+    def _init_transients(self) -> None:
         self.events: list[Event] = []
 
     def record(self, event: Event) -> None:

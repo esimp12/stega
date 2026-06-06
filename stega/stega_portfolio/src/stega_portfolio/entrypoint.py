@@ -14,6 +14,8 @@ from stega_portfolio.bootstrap import build_service, get_db_uri
 from stega_portfolio.config import create_config
 from stega_portfolio.domain.command import (
     CreatePortfolio,
+    UpdatePortfolio,
+    DeletePortfolio,
 )
 from stega_portfolio.domain.query import (
     GetPortfolio,
@@ -26,7 +28,7 @@ def routes() -> list[Route]:
         # get portfolio
         Route(
             method="GET",
-            path="/portfolio/<string:portfolio_id>",
+            path="/portfolios/<string:portfolio_id>",
             msg_type=GetPortfolio,
             msg_callback=lambda _: "Successfully fetched portfolio.",
             prefix="/api",
@@ -45,6 +47,26 @@ def routes() -> list[Route]:
             path="/portfolios",
             msg_type=CreatePortfolio,
             msg_callback=lambda _: "Successfully submitted request to create portfolio.",
+            prefix="/api",
+            translation={"X-Request-Id": "correlation_id"},
+            contextvars={"correlation_id"},
+        ),
+        # update portfolio
+        Route(
+            method="PATCH",
+            path="/portfolios/<string:portfolio_id>",
+            msg_type=UpdatePortfolio,
+            msg_callback=lambda _: "Successfully submitted request to update portfolio.",
+            prefix="/api",
+            translation={"X-Request-Id": "correlation_id"},
+            contextvars={"correlation_id"},
+        ),
+        # delete portfolio
+        Route(
+            method="DELETE",
+            path="/portfolios/<string:portfolio_id>",
+            msg_type=DeletePortfolio,
+            msg_callback=lambda _: "Successfully submitted request to delete portfolio.",
             prefix="/api",
             translation={"X-Request-Id": "correlation_id"},
             contextvars={"correlation_id"},

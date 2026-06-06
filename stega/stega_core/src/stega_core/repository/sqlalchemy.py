@@ -35,7 +35,7 @@ class AbstractSqlAlchemyRepository[AggregateT: Aggregate](AbstractRepository[Agg
     async def _get(self, aggregate_id: object) -> AggregateT | None:
         aggregate_id_col = getattr(self.model, self.model.id_attr)
         stmt = select(self.model).where(aggregate_id_col == aggregate_id)
-        result = await self._session.execute(stmt)
+        result = await self._session.scalars(stmt)
         return cast("AggregateT | None", result.one_or_none())
 
     async def _update(self, _: AggregateT) -> None:
@@ -45,5 +45,5 @@ class AbstractSqlAlchemyRepository[AggregateT: Aggregate](AbstractRepository[Agg
         await self._session.delete(aggregate)
 
     async def _list(self) -> Iterable[AggregateT]:
-        result = await self._session.execute(select(self.model))
-        return cast("Iterable[AggregateT]", result.scalars().all())
+        result = await self._session.scalars(select(self.model))
+        return cast("Iterable[AggregateT]", result.all())

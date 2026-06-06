@@ -26,7 +26,7 @@ class SqlAlchemyPortfolioReader(AbstractSqlAlchemyReader, PortfolioReader):
               p.portfolio_id = :portfolio_id
             """
         )
-        result = self._session.execute(stmt, {"portfolio_id": portfolio_id})
+        result = await self._session.execute(stmt, {"portfolio_id": portfolio_id})
         rows = result.all()
         portfolios = _get_portfolios(rows)
         portfolio_keys = list(portfolios.keys())

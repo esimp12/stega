@@ -18,5 +18,5 @@ class DeletePortfolio(Command):
 @dataclass(frozen=True, kw_only=True)
 class UpdatePortfolio(Command):
     portfolio_id: str
-    name: str
-    assets: dict[str, float]
+    name: str | None = None
+    assets: dict[str, float] | None = None

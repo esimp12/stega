@@ -8,6 +8,7 @@ from sqlalchemy import (
     Table,
     UniqueConstraint,
     create_engine,
+    event,
 )
 from sqlalchemy.orm import registry, relationship
 
@@ -78,8 +79,14 @@ def start_mappers() -> None:
                 PortfolioAsset,
                 cascade="all, delete-orphan",
                 passive_deletes=True,
+                lazy="selectin",
             ),
         },
         primary_key=[portfolio_table.c.portfolio_id],
         version_id_col=portfolio_table.c.version_number,
+    )
+    event.listen(
+        Portfolio,
+        "load",
+        lambda obj, _: obj._init_transients(),
     )

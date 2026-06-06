@@ -52,12 +52,28 @@ class Portfolio(Aggregate):
 
     def purge(self) -> None:
         self.assets.clear()
-        self.record(PortfolioDeleted(self.portfolio_id))
+        self.record(
+            PortfolioDeleted(
+                portfolio_id=self.portfolio_id,
+            )
+        )
 
-    def update(self, name: str, assets: list[PortfolioAsset]) -> None:
-        self.name = name
-        self.assets = assets
-        self.record(PortfolioUpdated(self.portfolio_id))
+    def update(
+        self,
+        name: str | None = None,
+        assets: list[PortfolioAsset] | None = None,
+    ) -> None:
+        if name is None and assets is None:
+            return
+        if name:
+            self.name = name
+        if assets:
+            self.assets = assets
+        self.record(
+            PortfolioUpdated(
+                portfolio_id=self.portfolio_id,
+            )
+        )
 
     @classmethod
     def from_command(cls, cmd: CreatePortfolio) -> Portfolio:

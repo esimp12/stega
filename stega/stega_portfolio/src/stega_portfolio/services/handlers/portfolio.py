@@ -62,7 +62,7 @@ async def delete_portfolio(cmd: DeletePortfolio, uow: AbstractUnitOfWork) -> Non
     async with uow:
         repo = uow.repo(PortfolioRepository)
 
-        portfolio = repo.get(cmd.portfolio_id)
+        portfolio = await repo.get(cmd.portfolio_id)
         if portfolio is None:
             err_msg = f"Portfolio with ID {cmd.portfolio_id} does not exist."
             raise ResourceNotFoundError(err_msg)
@@ -76,14 +76,14 @@ async def update_portfolio(cmd: UpdatePortfolio, uow: AbstractUnitOfWork) -> Non
     async with uow:
         repo = uow.repo(PortfolioRepository)
 
-        portfolio = repo.get(cmd.portfolio_id)
+        portfolio = await repo.get(cmd.portfolio_id)
         if portfolio is None:
             err_msg = f"Portfolio with ID {cmd.portfolio_id} does not exist."
             raise ResourceNotFoundError(err_msg)
 
-        portfolio.update(
-            name=cmd.name,
-            assets=PortfolioAsset.from_dict(portfolio.portfolio_id, cmd.assets),
-        )
+        assets = None
+        if cmd.assets is not None:
+            assets = PortfolioAsset.from_dict(portfolio.portfolio_id, cmd.assets)
+        portfolio.update(name=cmd.name, assets=assets)
         await repo.update(portfolio)
         await uow.commit()
