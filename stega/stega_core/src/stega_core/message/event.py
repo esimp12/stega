@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC
-from dataclasses import dataclass, fields, field
+from dataclasses import dataclass, field, fields
 from enum import Enum
 from typing import TYPE_CHECKING, Any, ClassVar, overload
 

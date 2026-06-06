@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import logging
 from contextlib import asynccontextmanager
 from enum import Flag, auto
 from typing import TYPE_CHECKING, Any
@@ -41,6 +40,7 @@ from stega_core.uow import (
 )
 
 if TYPE_CHECKING:
+    import logging
     from collections.abc import Callable, Iterator
 
     from stega_config import BaseConfig
@@ -54,9 +54,11 @@ if TYPE_CHECKING:
 
 
 class RuntimeFlag(Flag):
-
     @classmethod
-    def _missing_(cls, value: Any) -> RuntimeFlag:
+    def _missing_(
+        cls,
+        value: Any,  # noqa: ANN401
+    ) -> RuntimeFlag:
         if isinstance(value, str):
             try:
                 return cls[value.strip().upper()]
@@ -476,7 +478,7 @@ class Service:
         self._container = container
         self._bus = bus
         self._logger = logger
-        self._service_broker: ServiceBroker | None = self._resolve_broker(ServiceBroker) 
+        self._service_broker: ServiceBroker | None = self._resolve_broker(ServiceBroker)
         self._client_broker: ClientBroker | None = self._resolve_broker(ClientBroker)
 
     @property
@@ -521,7 +523,7 @@ class Service:
             if service_broker is not None:
                 await service_broker.stop()
 
-    def _resolve_broker(self, broker_cls: type[ServiceBroker]| type[ClientBroker]) -> ServiceBroker | ClientBroker | None:
+    def _resolve_broker(self, broker_cls: type[ServiceBroker | ClientBroker]) -> ServiceBroker | ClientBroker | None:
         try:
             return self._container.resolve_singleton(broker_cls)
         except KeyError:

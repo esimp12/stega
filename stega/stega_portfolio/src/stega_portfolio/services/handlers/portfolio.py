@@ -1,9 +1,9 @@
 from stega_core import (
     AbstractQueryContext,
     AbstractUnitOfWork,
+    ConflictError,
     QueryResponse,
     QueryStatus,
-    ConflictError,
     ResourceNotFoundError,
 )
 
@@ -47,7 +47,7 @@ async def list_portfolios(
 
 async def create_portfolio(cmd: CreatePortfolio, uow: AbstractUnitOfWork) -> None:
     async with uow:
-        repo = uow.repo(PortfolioRepository) 
+        repo = uow.repo(PortfolioRepository)
         existing = await repo.get(cmd.portfolio_id)
         if existing is not None:
             err_msg = f"Portfolio with ID {cmd.portfolio_id} already exists."

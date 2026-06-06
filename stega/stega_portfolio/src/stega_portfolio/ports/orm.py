@@ -88,5 +88,5 @@ def start_mappers() -> None:
     event.listen(
         Portfolio,
         "load",
-        lambda obj, _: obj._init_transients(),
+        lambda obj, _: obj.init_transients(),
     )

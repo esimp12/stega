@@ -2,25 +2,25 @@ import asyncio
 import logging
 
 from stega_core import (
+    RepositoryRuntime,
     Route,
     build_quart_app,
     init_logger,
     serve_hypercorn,
-    RepositoryRuntime,
 )
 
-from stega_portfolio.ports.orm import start_mappers, init_metadata
 from stega_portfolio.bootstrap import build_service, get_db_uri
 from stega_portfolio.config import create_config
 from stega_portfolio.domain.command import (
     CreatePortfolio,
-    UpdatePortfolio,
     DeletePortfolio,
+    UpdatePortfolio,
 )
 from stega_portfolio.domain.query import (
     GetPortfolio,
     ListPortfolios,
 )
+from stega_portfolio.ports.orm import init_metadata, start_mappers
 
 
 def routes() -> list[Route]:

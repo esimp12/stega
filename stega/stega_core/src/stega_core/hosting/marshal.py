@@ -22,7 +22,7 @@ def marshal(msg_type: type[Message], data: dict[str, Any]) -> Message:
     return msg_type(**kwargs)
 
 
-def coerce(  # noqa: PLR0911
+def coerce(  # noqa: PLR0911, C901
     value: Any,  # noqa: ANN401
     annotation: type,
 ) -> Any:  # noqa: ANN401

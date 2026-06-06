@@ -1,4 +1,5 @@
 import asyncio
+import logging
 from dataclasses import dataclass
 from typing import cast
 
@@ -139,10 +140,8 @@ class MessageBus:
         try:
             response, _ = await self._invoke(binding, query, QueryResponse)
         except Exception as exc:
-            import logging
-
             logger = logging.getLogger("stega_portfolio")
-            logger.exception(exc)
+            logger.exception("Error handling query")
 
             return QueryResponse(
                 status=QueryStatus.FAILED,

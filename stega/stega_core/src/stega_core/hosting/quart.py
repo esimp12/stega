@@ -74,7 +74,7 @@ async def handle_request(
 ) -> AppResponse:
     # parse raw envelope of request
     raw = await merge_request(request, route.translation)
-    
+
     # set request context based on requested route contextvars
     if route.contextvars:
         ctx = current_context()

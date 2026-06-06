@@ -30,7 +30,11 @@ from stega_portfolio.services.handlers import (
 )
 
 
-def get_db_uri(config: PortfolioConfig, is_async: bool = True) -> str:
+def get_db_uri(
+    config: PortfolioConfig,
+    *,
+    is_async: bool = True,
+) -> str:
     if bool(config.REPOSITORY_RUNTIME & RepositoryRuntime.SQLITE):
         path = Path.expanduser(Path(config.DATA_DIR))
         name = config.REPOSITORY_DBNAME
@@ -39,7 +43,7 @@ def get_db_uri(config: PortfolioConfig, is_async: bool = True) -> str:
         path = Path(path) / f"{name}.db"
         dialect = "+aiosqlite" if is_async else ""
         return f"sqlite{dialect}:///{path}"
-    elif bool(config.REPOSITORY_RUNTIME & RepositoryRuntime.POSTGRES):
+    if bool(config.REPOSITORY_RUNTIME & RepositoryRuntime.POSTGRES):
         user = config.REPOSITORY_DBUSER
         password = quote_plus(config.REPOSITORY_DBPASS)
         host = config.REPOSITORY_DBHOST
@@ -47,8 +51,7 @@ def get_db_uri(config: PortfolioConfig, is_async: bool = True) -> str:
         name = config.REPOSITORY_DBNAME
         dialect = "+asyncpg" if is_async else ""
         return f"postgresql{dialect}://{user}:{password}@{host}:{port}/{name}"
-    else:
-        return ""
+    return ""
 
 
 def build_sqlalchemy_session_factory(db_uri: str) -> async_sessionmaker[AsyncSession]:
