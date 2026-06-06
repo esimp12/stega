@@ -2,6 +2,8 @@ from stega_core.message.command import Command
 from stega_core.message.event import (
     Event,
     EventDispatch,
+    classproperty,
+    get_correlation_id,
 )
 from stega_core.message.query import Query
 from stega_core.message.response import (
@@ -30,4 +32,6 @@ __all__ = [
     "Response",
     "SubmissionStatus",
     "View",
+    "classproperty",
+    "get_correlation_id",
 ]

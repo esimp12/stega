@@ -1,14 +1,17 @@
 from __future__ import annotations
 
 from abc import ABC
-from dataclasses import dataclass, fields
+from dataclasses import dataclass, fields, field
 from enum import Enum
 from typing import TYPE_CHECKING, Any, ClassVar, overload
+
+from stega_core.context import current_context
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
 
+# TODO: move this to utils
 class classproperty[T]:  # noqa: N801
     def __init__(self, fget: Callable[[type], T]) -> None:
         self.fget = fget
@@ -19,6 +22,11 @@ class classproperty[T]:  # noqa: N801
     def __get__(self, _: object, owner: type) -> T: ...
     def __get__(self, _: object | None, owner: type) -> T:
         return self.fget(owner)
+
+
+def get_correlation_id() -> str:
+    ctx = current_context()
+    return ctx["correlation_id"]
 
 
 class EventDispatch(Enum):
@@ -32,7 +40,7 @@ class Event(ABC):
     dispatch: ClassVar[EventDispatch] = EventDispatch.ASYNC
     _registry: ClassVar[dict[str, type[Event]]] = {}
 
-    correlation_id: str
+    correlation_id: str = field(default_factory=get_correlation_id)
 
     def __init_subclass__(
         cls,

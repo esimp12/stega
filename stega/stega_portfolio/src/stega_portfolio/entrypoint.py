@@ -46,6 +46,8 @@ def routes() -> list[Route]:
             msg_type=CreatePortfolio,
             msg_callback=lambda _: "Successfully submitted request to create portfolio.",
             prefix="/api",
+            translation={"X-Request-Id": "correlation_id"},
+            contextvars={"correlation_id"},
         ),
     ]
 

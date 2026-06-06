@@ -34,7 +34,7 @@ class AbstractUnitOfWork[SessionT](ABC):
 
     async def __aenter__(self) -> AbstractUnitOfWork[SessionT]:
         session = await self._begin()
-        for repo_type in self._repo_factory_registry.types():
+        for repo_type in self._repo_factory_registry.repo_types:
             repo_factory = self._repo_factory_registry.get(repo_type)
             self._repos[repo_type] = repo_factory(session)
         self._entered = True

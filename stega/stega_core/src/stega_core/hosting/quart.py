@@ -8,6 +8,7 @@ from quart import Quart, Request, current_app, request
 
 from stega_core.bootstrap import Service
 from stega_core.bus import MessageBus
+from stega_core.context import current_context, set_context
 from stega_core.domain import (
     AppError,
     ConflictError,
@@ -34,6 +35,7 @@ class Route:
     msg_callback: Callable[[MessageResponse], str]
     prefix: str | None = None
     translation: dict[str, str] = field(default_factory=dict)
+    contextvars: set[str] = field(default_factory=set)
 
 
 async def merge_request(request: Request, translation: dict[str, str]) -> dict[str, Any]:
@@ -70,14 +72,26 @@ async def handle_request(
     route: Route,
     **_: Any,  # noqa: ANN401
 ) -> AppResponse:
+    # parse raw envelope of request
     raw = await merge_request(request, route.translation)
+    
+    # set request context based on requested route contextvars
+    if route.contextvars:
+        ctx = current_context()
+        for var in route.contextvars:
+            ctx[var] = raw.get(var)
+        set_context(ctx)
+
+    # create concrete Command message and handle on bus
     message = marshal(route.msg_type, raw)
     bus = get_bus()
     if isinstance(message, Command):
         resp = await bus.handle_command(message)
+        result = None
         return_code = 201
     if isinstance(message, Query):
         resp = await bus.handle_query(message)
+        result = resp.result
         return_code = 200
 
     if resp is None:
@@ -87,7 +101,7 @@ async def handle_request(
     if not resp.ok:
         raise AppError(resp.error)
 
-    return make_app_response(resp.ok, route.msg_callback(resp), resp.result, return_code)
+    return make_app_response(resp.ok, route.msg_callback(resp), result, return_code)
 
 
 def app_exception_handler(exc: Exception, logger: logging.Logger) -> AppResponse:

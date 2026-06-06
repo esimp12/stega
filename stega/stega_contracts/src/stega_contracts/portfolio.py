@@ -12,7 +12,6 @@ class AssetAllocation(TypedDict):
 @dataclass(frozen=True, kw_only=True)
 class PortfolioCreated(Event):
     topic: ClassVar[str] = "portfolio_created"
-    correlation_id: str
     portfolio_id: str
     name: str
     assets: list[AssetAllocation]
@@ -21,12 +20,10 @@ class PortfolioCreated(Event):
 @dataclass(frozen=True, kw_only=True)
 class PortfolioDeleted(Event):
     topic: ClassVar[str] = "portfolio_deleted"
-    correlation_id: str
     portfolio_id: str
 
 
 @dataclass(frozen=True, kw_only=True)
 class PortfolioUpdated(Event):
     topic: ClassVar[str] = "portfolio_updated"
-    correlation_id: str
     portfolio_id: str

@@ -1,6 +1,6 @@
 from typing import Any, ClassVar
 
-from stega_core.message import Event
+from stega_core.message import Event, classproperty
 
 
 class Aggregate:
@@ -22,6 +22,6 @@ class Aggregate:
     def record(self, event: Event) -> None:
         self.events.append(event)
 
-    @property
-    def id(self) -> object:
-        return getattr(self, self.__id_attr__)
+    @classproperty
+    def id_attr(self) -> str:
+        return self.__id_attr__

@@ -28,6 +28,10 @@ from stega_core.config import (
     ServiceBrokerConfig,
     ServiceConfig,
 )
+from stega_core.context import (
+    current_context,
+    set_context,
+)
 from stega_core.di import (
     Dependency,
     DependencyContainer,
@@ -160,4 +164,6 @@ __all__ = [
     "AppError",
     "ConflictError",
     "ResourceNotFoundError",
+    "current_context",
+    "set_context",
 ]

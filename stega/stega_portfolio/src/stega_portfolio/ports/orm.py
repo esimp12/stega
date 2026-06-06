@@ -19,7 +19,12 @@ metadata = mapper_registry.metadata
 portfolio_table = Table(
     "portfolios",
     metadata,
-    Column("_id", BigInteger, primary_key=True, autoincrement=True),
+    Column(
+        "_id",
+        BigInteger().with_variant(Integer, "sqlite"),
+        primary_key=True,
+        autoincrement=True,
+    ),
     Column("portfolio_id", String, nullable=False, unique=True),
     Column("name", String, nullable=False, unique=True),
     Column("version_number", Integer, nullable=False, default=0),
@@ -28,7 +33,12 @@ portfolio_table = Table(
 asset_table = Table(
     "assets",
     metadata,
-    Column("_id", BigInteger, primary_key=True, autoincrement=True),
+    Column(
+        "_id",
+        BigInteger().with_variant(Integer, "sqlite"),
+        primary_key=True,
+        autoincrement=True,
+    ),
     Column(
         "portfolio_id",
         String,

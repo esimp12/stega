@@ -19,6 +19,7 @@ from stega_core.message import (
     QueryStatus,
     SubmissionStatus,
     View,
+    get_correlation_id,
 )
 from stega_core.registry import (
     CommandRegistry,
@@ -97,6 +98,7 @@ class MessageBus:
         self._event_workers = []
 
     async def handle_command(self, command: Command) -> CommandResponse:
+        correlation_id = get_correlation_id()
         cmd_type = type(command)
         binding = self._commands.get(cmd_type)
         if binding is None:
@@ -122,7 +124,7 @@ class MessageBus:
 
         return CommandResponse(
             status=SubmissionStatus.ACCEPTED,
-            correlation_id=command.correlation_id,
+            correlation_id=correlation_id,
         )
 
     async def handle_query[ViewT: View](self, query: Query[ViewT]) -> QueryResponse[ViewT]:
@@ -160,7 +162,7 @@ class MessageBus:
             cascaded = await self._dispatch_event_locally(current)
             for next_event in cascaded:
                 if next_event.dispatch is EventDispatch.ASYNC:
-                    await self._event_queue.put(event)
+                    await self._event_queue.put(next_event)
                 else:
                     sync_queue.append(next_event)
 

@@ -36,12 +36,20 @@ def coerce(  # noqa: PLR0911
         return coerce(value, args[0])
 
     # handle list[T] annotations
-    if origin in (list, list):
+    if origin is list:
         (inner,) = get_args(annotation) or (Any,)
         if not isinstance(value, list):
             err_msg = f"expected list, got {type(value).__name__}"
             raise TypeError(err_msg)
         return [coerce(val, inner) for val in value]
+
+    # handle dict[K, V] annotations
+    if origin is dict:
+        key_t, val_t = get_args(annotation) or (Any, Any)
+        if not isinstance(value, dict):
+            err_msg = f"expected dict, got {type(value).__name__}"
+            raise TypeError(err_msg)
+        return {coerce(k, key_t): coerce(v, val_t) for k, v in value.items()}
 
     # handle any/None
     if annotation is Any or annotation is None:

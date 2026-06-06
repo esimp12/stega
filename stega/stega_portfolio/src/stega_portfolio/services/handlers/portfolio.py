@@ -47,14 +47,15 @@ async def list_portfolios(
 
 async def create_portfolio(cmd: CreatePortfolio, uow: AbstractUnitOfWork) -> None:
     async with uow:
-        repo = uow.repo(PortfolioRepository)
-        if repo.get(cmd.portfolio_id) is not None:
+        repo = uow.repo(PortfolioRepository) 
+        existing = await repo.get(cmd.portfolio_id)
+        if existing is not None:
             err_msg = f"Portfolio with ID {cmd.portfolio_id} already exists."
             raise ConflictError(err_msg)
 
         portfolio = Portfolio.from_command(cmd)
-        repo.add(portfolio)
-        uow.commit()
+        await repo.add(portfolio)
+        await uow.commit()
 
 
 async def delete_portfolio(cmd: DeletePortfolio, uow: AbstractUnitOfWork) -> None:
@@ -67,8 +68,8 @@ async def delete_portfolio(cmd: DeletePortfolio, uow: AbstractUnitOfWork) -> Non
             raise ResourceNotFoundError(err_msg)
 
         portfolio.purge()
-        repo.delete(portfolio)
-        uow.commit()
+        await repo.delete(portfolio)
+        await uow.commit()
 
 
 async def update_portfolio(cmd: UpdatePortfolio, uow: AbstractUnitOfWork) -> None:
@@ -84,5 +85,5 @@ async def update_portfolio(cmd: UpdatePortfolio, uow: AbstractUnitOfWork) -> Non
             name=cmd.name,
             assets=PortfolioAsset.from_dict(portfolio.portfolio_id, cmd.assets),
         )
-        repo.update(portfolio)
-        uow.commit()
+        await repo.update(portfolio)
+        await uow.commit()
