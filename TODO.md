@@ -1,4 +1,4 @@
-- create a "global command context" object that allows for carrying around the correlation id so it is completely separate from the domain/command
 - create an abstract Session for UnitOfWork and QueryContext to use for typing guarantees
 - standardize base/abstract class naming across core constructs 
-
+- do not provide portfolio_id as an option for CreatePortfolio command, keep this internal to the service
+- after delete of portfolio, ensuing GET succeeds with same deleted portfolio id but returns None, should be a ResourceNotFoundError
