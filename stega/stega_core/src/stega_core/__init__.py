@@ -95,6 +95,20 @@ from stega_core.uow import (
     AbstractUnitOfWork,
     SqlAlchemyUnitOfWork,
 )
+from stega_core.service import (
+    Channel,
+    HttpChannel,
+    HttpTransport,
+    InMemoryChannel,
+    InMemoryTransport,
+    StegaServicePort,
+    ServiceSpec,
+    HttpServiceSpec,
+    InMemoryServiceSpec,
+    ServiceResult,
+    AbstractTransport,
+    ServiceContract,
+)
 
 __all__ = [
     "AbstractInMemoryRepository",
@@ -166,4 +180,16 @@ __all__ = [
     "make_service_publish_handler",
     "serve_hypercorn",
     "set_context",
+    "Channel",
+    "HttpChannel",
+    "HttpTransport",
+    "InMemoryChannel",
+    "InMemoryTransport",
+    "StegaServicePort",
+    "ServiceSpec",
+    "HttpServiceSpec",
+    "InMemoryServiceSpec",
+    "ServiceResult",
+    "AbstractTransport",
+    "ServiceContract",
 ]

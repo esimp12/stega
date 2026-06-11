@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 from stega_core import Query
 
-from stega_portfolio.domain.view import PortfolioListView, PortfolioView
+from stega_contracts.portfolio.view import PortfolioListView, PortfolioView
 
 
 @dataclass(frozen=True, kw_only=True)

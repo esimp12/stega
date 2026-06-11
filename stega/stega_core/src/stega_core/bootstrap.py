@@ -4,6 +4,11 @@ from contextlib import asynccontextmanager
 from enum import Flag, auto
 from typing import TYPE_CHECKING, Any
 
+from stega_core.service import (
+    ServiceContract,
+    ServiceSpec,
+    StegaServicePort,
+)
 from stega_core.broker import (
     ClientBroker,
     ServiceBroker,
@@ -126,6 +131,9 @@ class ServiceBuilder:
         self._service_events: list[Event] = []
         self._client_events: list[Event] = []
 
+        # service ports
+        self._service_ports: dict[type[StegaServicePort], tuple[str, dict[RuntimeFlag, ServiceSpect]]] = {}
+
     def with_repository_runtime(self, runtime_field: str) -> ServiceBuilder:
         self._repo_runtime_field = runtime_field
         return self
@@ -218,6 +226,20 @@ class ServiceBuilder:
 
     def with_client_events(self, events: list[Event]) -> ServiceBuilder:
         self._client_events = events
+        return self
+
+    def with_service(
+        self,
+        port_base: type[StegaServicePort],
+        runtime_field: str,
+        specs: list[ServiceSpec],
+    ) -> ServiceBuilder:
+        self._service_ports[port_base] = (runtime_field, {s.runtime: s for s in specs})
+        return self
+
+    def with_service_contracts(self, contracts: list[ServiceContract]) -> ServiceBuilder:
+        for c in contracts:
+            self.with_service(c.port_base, c.runtime_field, c.specs)
         return self
 
     def build(self, logger: logging.Logger) -> Service:
@@ -342,6 +364,19 @@ class ServiceBuilder:
             self._service_events,
             self._client_events,
         )
+
+        # constrcut service ports
+        for port_base, (runtime_field, specs_by_flag) in self._service_ports.items():
+            spec = self._select(runtime_field, specs_by_flag)
+            channel_factory = spec.channel_factory(self._config)
+            transport_type = spec.transport_type
+            deps.append(
+                Dependency(
+                    dep_type=port_base,
+                    scope=Scope.DISPATCH,
+                    provider=lambda: port_base(channel_factory, transport_type),
+                )
+            )
 
         # construct container dependencies
         container = DependencyContainer(deps)

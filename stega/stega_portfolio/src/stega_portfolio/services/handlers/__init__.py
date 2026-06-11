@@ -1,4 +1,4 @@
-from stega_contracts.portfolio import (
+from stega_contracts.portfolio.event import (
     PortfolioCreated,
     PortfolioDeleted,
     PortfolioUpdated,

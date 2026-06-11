@@ -4,7 +4,7 @@ from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
 from typing import Any, TypedDict
 
-from quart import Quart, Request, current_app, request
+from quart import Quart, Request, current_app, request, Response, make_response
 
 from stega_core.bootstrap import Service
 from stega_core.bus import MessageBus
@@ -38,6 +38,30 @@ class Route:
     contextvars: set[str] = field(default_factory=set)
 
 
+@dataclass(frozen=True, kw_only=True)
+class SseRoute:
+    path: str
+    prefix: str | None = None
+
+
+@dataclass
+class ServerSentEvent:
+    data: str
+    event: str | None = None
+    sse_id: int | None = None
+    retry: int | None = None
+
+    def encode(self) -> bytes:
+        message = f"data: {self.data}"
+        if self.event is not None:
+            message = f"{message}\nevent: {self.event}"
+        if self.sse_id is not None:
+            message = f"{message}\nid: {self.sse_id}" 
+        if self.retry is not None:
+            message = f"{message}\nretry: {self.retry}"
+        return message.encode("utf-8")
+
+
 async def merge_request(request: Request, translation: dict[str, str]) -> dict[str, Any]:
     raw: dict[str, Any] = {}
     if request.is_json:
@@ -50,9 +74,12 @@ async def merge_request(request: Request, translation: dict[str, str]) -> dict[s
     return raw
 
 
+def get_service() -> Service:
+    return current_app.extensions["service"]
+
+
 def get_bus() -> MessageBus:
-    service = current_app.extensions["service"]
-    return service.bus
+    return get_service().bus
 
 
 def make_app_response(
@@ -123,7 +150,46 @@ def app_exception_handler(exc: Exception, logger: logging.Logger) -> AppResponse
     )
 
 
-def build_quart_app(service: Service, routes: list[Route]) -> Quart:
+def make_sse_handler(sse_route: SseRoute) -> Callable[..., Awaitable[Response]]:
+    async def handle_sse(topic: str, **_: Any) -> Response:
+        service = get_service()
+        if topic not in service.bus.subscribed_topics:
+            return make_app_response(
+                ok=False,
+                msg=f"No topic found for '{topic}'!",
+                result=None,
+                return_code=400,
+            )
+
+        client_broker = service.client_broker
+
+        async def send_events() -> AsyncIterator[bytes]:
+            async for envelope in client_broker.subscribe(topic):
+                event = ServerSentEvent(
+                    data=json.dumps(envelope.payload),
+                    event=envelope.topic,
+                )
+                yield event.encode()
+
+        headers = {
+            "Content-Type": "text/event-stream",
+            "Cache-Control": "no-cache",
+            "Transfer-Encoding": "chunked",
+        }
+        response = await make_response(send_events(), headers)
+        response.timeout = None
+        return response
+    return handle_sse
+
+
+def build_quart_app(
+    service: Service,
+    routes: list[Route],
+    sse_routes: list[SseRoute] | None = None,
+) -> Quart:
+    if sse_routes is None:
+        sse_routes = []
+
     app = Quart(__name__)
 
     # setup service lifespan
@@ -144,12 +210,23 @@ def build_quart_app(service: Service, routes: list[Route]) -> Quart:
             handle_request,
             route=route,
         )
-        rule = f"{route.path}" if route.prefix is None else f"{route.prefix}{route.path}"
+        rule = route.path if route.prefix is None else f"{route.prefix}{route.path}"
         app.add_url_rule(
             rule=rule,
             endpoint=f"<{route.method} {rule}>",
             view_func=handler,
             methods=[route.method],
+        )
+
+    # register sse routes
+    for sse_route in sse_routes:
+        handler = make_sse_handler(sse_route)
+        rule = sse_route.path if sse_route.prefix is None else f"{sse_route.prefix}{sse_route.path}"
+        app.add_url_rule(
+            rule=rule,
+            endpoint=f"<SSE GET {rule}>",
+            view_func=handler,
+            methods=["GET"],
         )
 
     # add health route

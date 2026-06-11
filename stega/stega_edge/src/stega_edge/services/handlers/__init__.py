@@ -1,10 +1,12 @@
-from stega_contracts.portfolio import (
+from stega_contracts.portfolio.event import (
     PortfolioCreated,
     PortfolioDeleted,
     PortfolioUpdated,
 )
 
 from stega_edge.services.handlers.portfolio import (
+    get_portfolio,
+    list_portfolio,
     create_portfolio,
     delete_portfolio,
     update_portfolio,
@@ -16,7 +18,10 @@ COMMAND_HANDLERS = [
     update_portfolio,
 ]
 
-QUERY_HANDLERS = []
+QUERY_HANDLERS = [
+    get_portfolio,
+    list_portfolio,
+]
 
 SERVICE_EVENTS = []
 CLIENT_EVENTS = [

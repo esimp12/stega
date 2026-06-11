@@ -2,7 +2,7 @@ from abc import abstractmethod
 
 from stega_core import AbstractReader
 
-from stega_portfolio.domain.view import PortfolioListView, PortfolioView
+from stega_contracts.portfolio.view import PortfolioListView, PortfolioView
 
 
 class PortfolioReader(AbstractReader):

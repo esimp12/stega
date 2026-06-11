@@ -5,6 +5,7 @@ requires-python = ">=3.12"
 version = "0.1.0"
 description = "Messaging contracts for all stega services"
 dependencies = [
+    "stega_config",
     "stega_core",
 ]
 
@@ -14,3 +15,4 @@ build-backend = "uv_build"
 
 [tool.uv.sources]
 stega_core = { workspace = true }
+stega_config = { workspace = true }

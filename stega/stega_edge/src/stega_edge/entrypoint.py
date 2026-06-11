@@ -1,42 +1,47 @@
 import asyncio
 
-from hypercorn.asyncio import serve
-from hypercorn.config import Config as HypercornConfig
+from stega_core import (
+    build_quart_app,
+    init_logger,
+    serve_hypercorn,
+    SseRoute,
+)
 
-from stega_edge.adapters.rest.app import create_app
-from stega_edge.config import EdgeConfig, create_config, create_logger
-
-
-def create_hypercorn_config(config: EdgeConfig) -> HypercornConfig:
-    hc_config = HypercornConfig()
-    hc_config.bind = [
-        f"{config.STEGA_EDGE_SERVER_ADDRESS}:{config.STEGA_EDGE_SERVER_PORT}",
-    ]
-    hc_config.loglevel = config.STEGA_EDGE_LOG_LEVEL.lower()
-
-    hc_config.errorlog = "hypercorn.error"
-    hc_config.accesslog = "hypercorn.access"
-    return hc_config
+from stega_edge.config import create_config
+from stega_edge.bootstrap import build_service
+from stega_contracts.portfolio.routes import ROUTES as PORTFOLIO_ROUTES
 
 
-def run() -> None:
-    # create app
+ROUTES = [
+    PORTFOLIO_ROUTES,
+]
+
+SSE_ROUTES = [
+    SseRoute(
+        path="/events/<string:topic>",
+        prefix="/api",
+    ),
+]
+
+
+def run_rest_app() -> None:
+    # setup config and logger
     config = create_config()
-    logger = create_logger(config, third_party_loggers=["hypercorn.error", "hypercorn.access"])
-    logger.info("Starting stega edge service...")
-    envvars_str = "\n  ".join(f"{k} => {v!r}" for k, v in config.get_envvars())
-    envvars_str = "\n  " + envvars_str
-    logger.debug("Using following configuration... %s", envvars_str)
-    app = create_app(config)
+    init_logger(
+        service_name="stega_edge",
+        log_leve=config.LOG_LEVEL,
+        third_party_logger_names=["hypercorn"],
+    )
 
-    # run with hypercorn
-    if config.STEGA_EDGE_HYPERCORN:
-        hc_config = create_hypercorn_config(config)
-        asyncio.run(serve(app, hc_config))
-    # run with quart
-    else:
-        app.run(
-            host=config.STEGA_EDGE_SERVER_ADDRESS,
-            port=config.STEGA_EDGE_SERVER_PORT,
-            debug=config.STEGA_EDGE_DEBUG,
+    # build service and app 
+    service = build_service(config)
+    app = build_quart_app(service, ROUTES, SSE_ROUTES)
+
+    asyncio.run(
+        serve_hypercorn(
+            app=app,
+            log_level=config.LOG_LEVEL,
+            host=config.HOST,
+            port=config.PORT,
         )
+    )

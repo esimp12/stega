@@ -7,14 +7,14 @@ from stega_core import (
     ResourceNotFoundError,
 )
 
-from stega_portfolio.domain.command import (
+from stega_contracts.portfolio.command import (
     CreatePortfolio,
     DeletePortfolio,
     UpdatePortfolio,
 )
 from stega_portfolio.domain.portfolio import Portfolio, PortfolioAsset
-from stega_portfolio.domain.query import GetPortfolio, ListPortfolios
-from stega_portfolio.domain.view import PortfolioListView, PortfolioView
+from stega_contracts.portfolio.query import GetPortfolio, ListPortfolios
+from stega_contracts.portfolio.view import PortfolioListView, PortfolioView
 from stega_portfolio.ports.reader.base import PortfolioReader
 from stega_portfolio.ports.repository.base import PortfolioRepository
 
