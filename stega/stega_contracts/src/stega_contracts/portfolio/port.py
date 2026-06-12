@@ -1,4 +1,4 @@
-from stega_core.service import StegaServicePort
+from stega_core import StegaServicePort
 
-class PortfolioServicePort(SteagServicePort):
-    ...
+
+class PortfolioServicePort(StegaServicePort): ...

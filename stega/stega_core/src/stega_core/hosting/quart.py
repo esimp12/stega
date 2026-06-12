@@ -1,10 +1,12 @@
 import functools
+import json
 import logging
-from collections.abc import Awaitable, Callable
+from collections.abc import AsyncIterator, Awaitable, Callable
 from dataclasses import dataclass, field
+from enum import StrEnum
 from typing import Any, TypedDict
 
-from quart import Quart, Request, current_app, request, Response, make_response
+from quart import Quart, Request, Response, current_app, make_response, request
 
 from stega_core.bootstrap import Service
 from stega_core.bus import MessageBus
@@ -16,6 +18,30 @@ from stega_core.domain import (
 )
 from stega_core.hosting.marshal import marshal
 from stega_core.message import Command, Message, MessageResponse, Query
+
+
+class Wire(StrEnum):
+    BODY = "body"
+    QUERY = "query"
+    PATH = "path"
+    HEADER = "header"
+
+
+class Origin(StrEnum):
+    MESSAGE = "message"
+    CONTEXT = "context"
+
+
+@dataclass(frozen=True, kw_only=True)
+class Binding:
+    key: str
+    wire: Wire
+    origin: Origin = Origin.MESSAGE
+    wire_key: str | None = None
+
+    @property
+    def name(self) -> str:
+        return self.wire_key or self.key
 
 
 class ResponsePayload(TypedDict):
@@ -34,8 +60,7 @@ class Route:
     msg_type: type[Message]
     msg_callback: Callable[[MessageResponse], str]
     prefix: str | None = None
-    translation: dict[str, str] = field(default_factory=dict)
-    contextvars: set[str] = field(default_factory=set)
+    bindings: list[Binding] = field(default_factory=list)
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -56,22 +81,34 @@ class ServerSentEvent:
         if self.event is not None:
             message = f"{message}\nevent: {self.event}"
         if self.sse_id is not None:
-            message = f"{message}\nid: {self.sse_id}" 
+            message = f"{message}\nid: {self.sse_id}"
         if self.retry is not None:
             message = f"{message}\nretry: {self.retry}"
         return message.encode("utf-8")
 
 
-async def merge_request(request: Request, translation: dict[str, str]) -> dict[str, Any]:
-    raw: dict[str, Any] = {}
+async def deserialize(route: Route, request: Request) -> tuple[Message, dict[str, Any]]:
+    body = {}
     if request.is_json:
-        raw |= await request.get_json()
-    raw |= request.args.to_dict()
-    raw |= request.view_args
-    for source_key, translated_key in translation.items():
-        if source_key in request.headers:
-            raw[translated_key] = request.headers[source_key]
-    return raw
+        body = await request.get_json()
+    raw: dict = {**body, **request.args.to_dict(), **request.view_args}
+    ctx: dict = {}
+    readers = {
+        Wire.HEADER: request.headers.get,
+        Wire.QUERY: request.args.get,
+        Wire.PATH: request.view_args.get,
+        Wire.BODY: body.get,
+    }
+    for b in route.bindings:
+        val = readers[b.wire](b.name)
+        if val is None:
+            continue
+        if b.origin is Origin.CONTEXT:
+            ctx[b.key] = val
+            raw.pop(b.key, None)
+        else:
+            raw[b.key] = val
+    return marshal(route.msg_type, raw), ctx
 
 
 def get_service() -> Service:
@@ -99,18 +136,17 @@ async def handle_request(
     route: Route,
     **_: Any,  # noqa: ANN401
 ) -> AppResponse:
-    # parse raw envelope of request
-    raw = await merge_request(request, route.translation)
+    # deserialize raw request into message and context vars
+    message, ctxvars = await deserialize(route, request)
 
     # set request context based on requested route contextvars
-    if route.contextvars:
+    if ctxvars:
         ctx = current_context()
-        for var in route.contextvars:
-            ctx[var] = raw.get(var)
+        for ctxkey, ctxval in ctxvars.items():
+            ctx[ctxkey] = ctxval
         set_context(ctx)
 
-    # create concrete Command message and handle on bus
-    message = marshal(route.msg_type, raw)
+    # handle message on bus
     bus = get_bus()
     if isinstance(message, Command):
         resp = await bus.handle_command(message)
@@ -150,8 +186,11 @@ def app_exception_handler(exc: Exception, logger: logging.Logger) -> AppResponse
     )
 
 
-def make_sse_handler(sse_route: SseRoute) -> Callable[..., Awaitable[Response]]:
-    async def handle_sse(topic: str, **_: Any) -> Response:
+def make_sse_handler() -> Callable[..., Awaitable[Response]]:
+    async def handle_sse(
+        topic: str,
+        **_: Any,  # noqa: ANN401
+    ) -> Response:
         service = get_service()
         if topic not in service.bus.subscribed_topics:
             return make_app_response(
@@ -179,6 +218,7 @@ def make_sse_handler(sse_route: SseRoute) -> Callable[..., Awaitable[Response]]:
         response = await make_response(send_events(), headers)
         response.timeout = None
         return response
+
     return handle_sse
 
 
@@ -220,7 +260,7 @@ def build_quart_app(
 
     # register sse routes
     for sse_route in sse_routes:
-        handler = make_sse_handler(sse_route)
+        handler = make_sse_handler()
         rule = sse_route.path if sse_route.prefix is None else f"{sse_route.prefix}{sse_route.path}"
         app.add_url_rule(
             rule=rule,

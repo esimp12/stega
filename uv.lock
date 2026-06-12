@@ -1010,11 +1010,15 @@ name = "stega-contracts"
 version = "0.1.0"
 source = { editable = "stega/stega_contracts" }
 dependencies = [
+    { name = "stega-config" },
     { name = "stega-core" },
 ]
 
 [package.metadata]
-requires-dist = [{ name = "stega-core", editable = "stega/stega_core" }]
+requires-dist = [
+    { name = "stega-config", editable = "stega/stega_config" },
+    { name = "stega-core", editable = "stega/stega_core" },
+]
 
 [[package]]
 name = "stega-core"
@@ -1022,12 +1026,14 @@ version = "0.1.0"
 source = { editable = "stega/stega_core" }
 dependencies = [
     { name = "aio-pika" },
+    { name = "httpx" },
     { name = "sqlalchemy", extra = ["asyncio"] },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "aio-pika", specifier = ">=9.6.2" },
+    { name = "httpx", specifier = ">=0.28.1" },
     { name = "sqlalchemy", extras = ["asyncio"], specifier = ">=2.0.43" },
 ]
 

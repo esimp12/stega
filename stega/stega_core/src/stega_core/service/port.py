@@ -1,14 +1,18 @@
 from __future__ import annotations
 
-from typing import Callable
+from typing import TYPE_CHECKING, Self
 
 from stega_core.domain import AppError
-from stega_core.service.channel import Channel
-from stega_core.service.transport import AbstractTransport, ServiceResult
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    from stega_core.message import Message
+    from stega_core.service.channel import Channel
+    from stega_core.service.transport import AbstractTransport, ServiceResult
 
 
 class StegaServicePort:
-
     def __init__(
         self,
         channel_factory: Callable[[], Channel],
@@ -19,7 +23,7 @@ class StegaServicePort:
         self._channel: Channel | None = None
         self._transport: AbstractTransport | None = None
 
-    async def __aenter__(self) -> StegaServicePort:
+    async def __aenter__(self) -> Self:
         self._channel = self._channel_factory()
         self._transport = self._transport_type(self._channel)
         await self._channel.open()

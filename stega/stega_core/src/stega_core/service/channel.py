@@ -1,10 +1,9 @@
-from abc import ABC
+from abc import ABC, abstractmethod
 
 
 class Channel(ABC):
+    @abstractmethod
+    async def open(self) -> None: ...
 
-    async def open(self) -> None:
-        ...
-
-    async def close(self) -> None:
-        ...
+    @abstractmethod
+    async def close(self) -> None: ...

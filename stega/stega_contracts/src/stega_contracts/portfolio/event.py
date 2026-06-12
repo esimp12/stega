@@ -16,6 +16,7 @@ class PortfolioCreated(Event):
     name: str
     assets: list[AssetAllocation]
 
+
 @dataclass(frozen=True, kw_only=True)
 class PortfolioDeleted(Event):
     topic: ClassVar[str] = "portfolio_deleted"

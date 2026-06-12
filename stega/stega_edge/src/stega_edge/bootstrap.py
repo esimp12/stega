@@ -1,23 +1,23 @@
 import logging
 
+from stega_contracts.portfolio import CONTRACT as PORTFOLIO_CONTRACT
 from stega_core import (
+    ClientBrokerRuntime,
     InMemoryBroker,
     RabbitMqBroker,
     RabbitMqConnectionParameters,
     Service,
     ServiceBrokerRuntime,
-    ClientBrokerRuntime,
     ServiceBuilder,
 )
 
 from stega_edge.config import EdgeConfig
-from stega_contracts.portfolio import CONTRACT as PORTFOLIO_CONTRACT
 from stega_edge.services.handlers import (
+    CLIENT_EVENTS,
     COMMAND_HANDLERS,
     EVENT_HANDLERS,
     QUERY_HANDLERS,
     SERVICE_EVENTS,
-    CLIENT_EVENTS,
 )
 
 
@@ -42,9 +42,8 @@ def build_service(config: EdgeConfig) -> Service:
     builder = ServiceBuilder(config)
 
     # set runtimes
-    builder = (
-        builder.with_service_broker_runtime("SERVICE_BROKER_RUNTIME")
-        .with_client_broker_runtime("CLIENT_BROKER_RUNTIME")
+    builder = builder.with_service_broker_runtime("SERVICE_BROKER_RUNTIME").with_client_broker_runtime(
+        "CLIENT_BROKER_RUNTIME"
     )
 
     # create service broker
@@ -61,10 +60,11 @@ def build_service(config: EdgeConfig) -> Service:
     builder = builder.with_client_broker(client_broker_factories)
 
     # create service ports
-    builder = build.with_service_contracts([
-        PORTFOLIO_CONTRACT,
-    ])
-
+    builder = builder.with_service_contracts(
+        [
+            PORTFOLIO_CONTRACT,
+        ]
+    )
 
     # create handlers
     builder = (

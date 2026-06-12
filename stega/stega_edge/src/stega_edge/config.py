@@ -1,12 +1,12 @@
 import os
 
 from stega_config import BaseConfig, source
+from stega_contracts.portfolio import PortfolioServiceConfig
 from stega_core import (
     ClientBrokerConfig,
     ServiceBrokerConfig,
     ServiceConfig,
 )
-from stega_contracts.portfolio import PortfolioServiceConfig
 
 
 class EdgeConfig(

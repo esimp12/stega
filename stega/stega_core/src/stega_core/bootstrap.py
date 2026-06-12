@@ -4,11 +4,6 @@ from contextlib import asynccontextmanager
 from enum import Flag, auto
 from typing import TYPE_CHECKING, Any
 
-from stega_core.service import (
-    ServiceContract,
-    ServiceSpec,
-    StegaServicePort,
-)
 from stega_core.broker import (
     ClientBroker,
     ServiceBroker,
@@ -55,6 +50,13 @@ if TYPE_CHECKING:
     )
     from stega_core.repository import (
         AbstractRepository,
+    )
+    from stega_core.service import (
+        AbstractTransport,
+        Channel,
+        ServiceContract,
+        ServiceSpec,
+        StegaServicePort,
     )
 
 
@@ -132,7 +134,7 @@ class ServiceBuilder:
         self._client_events: list[Event] = []
 
         # service ports
-        self._service_ports: dict[type[StegaServicePort], tuple[str, dict[RuntimeFlag, ServiceSpect]]] = {}
+        self._service_ports: dict[type[StegaServicePort], tuple[str, dict[RuntimeFlag, ServiceSpec]]] = {}
 
     def with_repository_runtime(self, runtime_field: str) -> ServiceBuilder:
         self._repo_runtime_field = runtime_field
@@ -242,7 +244,7 @@ class ServiceBuilder:
             self.with_service(c.port_base, c.runtime_field, c.specs)
         return self
 
-    def build(self, logger: logging.Logger) -> Service:
+    def build(self, logger: logging.Logger) -> Service:  # noqa: C901
         # track dependencies
         deps = []
 
@@ -366,15 +368,23 @@ class ServiceBuilder:
         )
 
         # constrcut service ports
-        for port_base, (runtime_field, specs_by_flag) in self._service_ports.items():
+        for pb, (runtime_field, specs_by_flag) in self._service_ports.items():
             spec = self._select(runtime_field, specs_by_flag)
-            channel_factory = spec.channel_factory(self._config)
-            transport_type = spec.transport_type
+            cf = spec.channel_factory(self._config)
+            tp = spec.transport_type
+
+            def provider(
+                pb: type[StegaServicePort] = pb,
+                cf: Callable[[], Channel] = cf,
+                tp: type[AbstractTransport] = tp,
+            ) -> StegaServicePort:
+                return pb(cf, tp)
+
             deps.append(
                 Dependency(
-                    dep_type=port_base,
+                    dep_type=pb,
                     scope=Scope.DISPATCH,
-                    provider=lambda: port_base(channel_factory, transport_type),
+                    provider=provider,
                 )
             )
 

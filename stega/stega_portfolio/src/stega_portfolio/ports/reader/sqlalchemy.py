@@ -1,9 +1,9 @@
 from collections import defaultdict
 
 from sqlalchemy import Row, text
+from stega_contracts.portfolio.view import AssetView, PortfolioListView, PortfolioView
 from stega_core import AbstractSqlAlchemyReader
 
-from stega_contracts.portfolio.view import AssetView, PortfolioListView, PortfolioView
 from stega_portfolio.ports.reader.base import PortfolioReader
 
 

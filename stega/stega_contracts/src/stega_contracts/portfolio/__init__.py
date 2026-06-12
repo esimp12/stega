@@ -3,9 +3,11 @@ from enum import auto
 from stega_config import source
 from stega_core import (
     HttpServiceSpec,
-    ServiceContract,
     RuntimeFlag,
+    ServiceContract,
 )
+
+from stega_contracts.portfolio.port import PortfolioServicePort
 from stega_contracts.portfolio.routes import ROUTES
 
 

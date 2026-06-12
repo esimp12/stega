@@ -1,6 +1,7 @@
 import asyncio
 import logging
 
+from stega_contracts.portfolio.routes import ROUTES
 from stega_core import (
     RepositoryRuntime,
     build_quart_app,
@@ -10,7 +11,6 @@ from stega_core import (
 
 from stega_portfolio.bootstrap import build_service, get_db_uri
 from stega_portfolio.config import create_config
-from stega_contracts.portfolio.routes import ROUTES
 from stega_portfolio.ports.orm import init_metadata, start_mappers
 
 

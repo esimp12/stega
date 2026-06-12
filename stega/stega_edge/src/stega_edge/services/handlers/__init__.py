@@ -5,10 +5,10 @@ from stega_contracts.portfolio.event import (
 )
 
 from stega_edge.services.handlers.portfolio import (
-    get_portfolio,
-    list_portfolio,
     create_portfolio,
     delete_portfolio,
+    get_portfolio,
+    list_portfolio,
     update_portfolio,
 )
 

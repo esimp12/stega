@@ -1,15 +1,14 @@
-from stega_core import Route
+from stega_core import Binding, Origin, Route, Wire
 
 from stega_contracts.portfolio.command import (
     CreatePortfolio,
-    UpdatePortfolio,
     DeletePortfolio,
+    UpdatePortfolio,
 )
 from stega_contracts.portfolio.query import (
     GetPortfolio,
     ListPortfolios,
 )
-
 
 ROUTES = [
     # get portfolio
@@ -35,8 +34,9 @@ ROUTES = [
         msg_type=CreatePortfolio,
         msg_callback=lambda _: "Successfully submitted request to create portfolio.",
         prefix="/api",
-        translation={"X-Request-Id": "correlation_id"},
-        contextvars={"correlation_id"},
+        bindings=[
+            Binding(key="correlation_id", wire=Wire.HEADER, origin=Origin.CONTEXT, wire_key="X-Request-Id"),
+        ],
     ),
     # update portfolio
     Route(
@@ -45,8 +45,9 @@ ROUTES = [
         msg_type=UpdatePortfolio,
         msg_callback=lambda _: "Successfully submitted request to update portfolio.",
         prefix="/api",
-        translation={"X-Request-Id": "correlation_id"},
-        contextvars={"correlation_id"},
+        bindings=[
+            Binding(key="correlation_id", wire=Wire.HEADER, origin=Origin.CONTEXT, wire_key="X-Request-Id"),
+        ],
     ),
     # delete portfolio
     Route(
@@ -55,7 +56,8 @@ ROUTES = [
         msg_type=DeletePortfolio,
         msg_callback=lambda _: "Successfully submitted request to delete portfolio.",
         prefix="/api",
-        translation={"X-Request-Id": "correlation_id"},
-        contextvars={"correlation_id"},
+        bindings=[
+            Binding(key="correlation_id", wire=Wire.HEADER, origin=Origin.CONTEXT, wire_key="X-Request-Id"),
+        ],
     ),
 ]

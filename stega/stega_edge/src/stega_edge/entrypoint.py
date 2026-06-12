@@ -1,16 +1,15 @@
 import asyncio
 
+from stega_contracts.portfolio.routes import ROUTES as PORTFOLIO_ROUTES
 from stega_core import (
+    SseRoute,
     build_quart_app,
     init_logger,
     serve_hypercorn,
-    SseRoute,
 )
 
-from stega_edge.config import create_config
 from stega_edge.bootstrap import build_service
-from stega_contracts.portfolio.routes import ROUTES as PORTFOLIO_ROUTES
-
+from stega_edge.config import create_config
 
 ROUTES = [
     PORTFOLIO_ROUTES,
@@ -33,7 +32,7 @@ def run_rest_app() -> None:
         third_party_logger_names=["hypercorn"],
     )
 
-    # build service and app 
+    # build service and app
     service = build_service(config)
     app = build_quart_app(service, ROUTES, SSE_ROUTES)
 

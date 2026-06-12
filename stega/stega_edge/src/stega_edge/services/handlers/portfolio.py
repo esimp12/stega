@@ -1,8 +1,7 @@
-
 from stega_contracts.portfolio.command import CreatePortfolio, DeletePortfolio, UpdatePortfolio
-from stega_contracts.portfolio.query import GetPortfolio, ListPortfolios
 from stega_contracts.portfolio.port import PortfolioServicePort
-from stega_contracts.portfolio.view import PortfolioView, PortfolioListView
+from stega_contracts.portfolio.query import GetPortfolio, ListPortfolios
+from stega_contracts.portfolio.view import PortfolioListView, PortfolioView
 
 
 async def get_portfolio(query: GetPortfolio, service: PortfolioServicePort) -> PortfolioView:
@@ -20,7 +19,7 @@ async def create_portfolio(cmd: CreatePortfolio, service: PortfolioServicePort) 
         await service.forward(cmd)
 
 
-async def update_portfolio(cmd: UpdatePortfolio, service: PortfolioServicePort) -> None: 
+async def update_portfolio(cmd: UpdatePortfolio, service: PortfolioServicePort) -> None:
     async with service:
         await service.forward(cmd)
 
