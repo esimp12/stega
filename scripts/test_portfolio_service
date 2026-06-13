@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+
+set -eux
+
+ENDPOINT=localhost:5000/api
+
+# health api
+http "${ENDPOINT}/health"
+
+# create portfolio
+cat scripts/create-1.json | http POST "${ENDPOINT}/portfolios" X-Request-Id:test-01
+
+# get portfolio
+http "${ENDPOINT}/portfolios/test-01"
+
+# update portfolio
+cat scripts/update.json | http PATCH "${ENDPOINT}/portfolios/test-01" X-Request-Id:test-02 
+
+# get portfolio
+http "${ENDPOINT}/portfolios/test-01"
+
+# create portfolio
+cat scripts/create-2.json | http POST "${ENDPOINT}/portfolios" X-Request-Id:test-03
+
+# list portfolio
+http "${ENDPOINT}/portfolios"

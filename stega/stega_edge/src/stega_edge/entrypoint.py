@@ -11,9 +11,7 @@ from stega_core import (
 from stega_edge.bootstrap import build_service
 from stega_edge.config import create_config
 
-ROUTES = [
-    PORTFOLIO_ROUTES,
-]
+ROUTES = PORTFOLIO_ROUTES
 
 SSE_ROUTES = [
     SseRoute(
@@ -28,7 +26,7 @@ def run_rest_app() -> None:
     config = create_config()
     init_logger(
         service_name="stega_edge",
-        log_leve=config.LOG_LEVEL,
+        log_level=config.LOG_LEVEL,
         third_party_logger_names=["hypercorn"],
     )
 

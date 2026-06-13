@@ -28,7 +28,7 @@ class HttpChannel(Channel):
 
     async def close(self) -> None:
         if self.session is not None:
-            await self.session.close()
+            await self.session.aclose()
             self.session = None
 
 
@@ -43,10 +43,10 @@ class HttpTransport(AbstractTransport[HttpChannel]):
             kwargs["params"] = params
         if body:
             kwargs["json"] = body
-        async with self._channel.session() as client:
-            request = client.build_request(route.method, path, **kwargs)
-            resp = await client.send(request)
-            data = resp.json()
+        client = self._channel.session
+        request = client.build_request(route.method, path, **kwargs)
+        resp = await client.send(request)
+        data = resp.json()
         return ServiceResult(
             ok=data["ok"],
             msg=data["msg"],

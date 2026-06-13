@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, ClassVar
 
-from stega_contracts.portfolio import (
+from stega_contracts.portfolio.event import (
     PortfolioCreated,
     PortfolioDeleted,
     PortfolioUpdated,

@@ -8,7 +8,7 @@ from stega_edge.services.handlers.portfolio import (
     create_portfolio,
     delete_portfolio,
     get_portfolio,
-    list_portfolio,
+    list_portfolios,
     update_portfolio,
 )
 
@@ -20,7 +20,7 @@ COMMAND_HANDLERS = [
 
 QUERY_HANDLERS = [
     get_portfolio,
-    list_portfolio,
+    list_portfolios,
 ]
 
 SERVICE_EVENTS = []

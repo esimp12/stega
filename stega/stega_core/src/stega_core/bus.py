@@ -199,7 +199,12 @@ class MessageBus:
         return cascaded
 
     def _drain_events(self, scope: DispatchScope) -> list[Event]:
-        uow = scope.resolve(AbstractUnitOfWork)
+        uow = None
+        try:
+            uow = scope.resolve(AbstractUnitOfWork)
+        except KeyError:
+            pass
+            
         if uow is None:
             return []
         return list(uow.collect_new_events())
