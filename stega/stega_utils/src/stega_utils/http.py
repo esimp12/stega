@@ -12,35 +12,6 @@ if TYPE_CHECKING:
     from collections.abc import AsyncIterator, Iterator
 
 
-class AsyncRateLimiter:
-    def __init__(self, limit: int = 1, period: int = 1) -> None:
-        self.limit = limit
-        self.period = period
-        self.lock = asyncio.Lock()
-        self.signal = asyncio.Event()
-        self._tasks = [asyncio.create_task(self.tick())]
-        self.signal.set()
-
-    async def tick(self) -> None:
-        while True:
-            await asyncio.sleep(self.period / self.limit)
-            self.signal.set()
-
-    async def __aenter__(self) -> Self:
-        async with self.lock:
-            await self.signal.wait()
-            self.signal.clear()
-        return self
-
-    async def __aexit__(
-        self,
-        _exc_type: type[BaseException] | None,
-        _exc_value: BaseException | None,
-        _traceback: types.TracebackType | None,
-    ) -> None:
-        pass
-
-
 def fetch(
     session: httpx.Client,
     url: str,

@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, AsyncExitStack
 from enum import Flag, auto
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Callable
 
 from stega_core.broker import (
     ClientBroker,
@@ -41,7 +41,7 @@ from stega_core.uow import (
 
 if TYPE_CHECKING:
     import logging
-    from collections.abc import Callable, Iterator
+    from collections.abc import Callable, AsyncIterator
 
     from stega_config import BaseConfig
 
@@ -135,6 +135,22 @@ class ServiceBuilder:
 
         # service ports
         self._service_ports: dict[type[StegaServicePort], tuple[str, dict[RuntimeFlag, ServiceSpec]]] = {}
+
+        # generic dependencies
+        self._dependencies: list[Dependency] = []
+
+    def with_dependency[DepT](
+        self,
+        dep_type: type[DepT],
+        scope: Scope,
+        provider: Callable[[], DepT],
+    ) -> ServiceBuilder: 
+        self._dependencies.append(Dependency(
+            dep_type=dep_type,
+            scope=scope,
+            provider=provider,
+        ))
+        return self
 
     def with_repository_runtime(self, runtime_field: str) -> ServiceBuilder:
         self._repo_runtime_field = runtime_field
@@ -367,7 +383,7 @@ class ServiceBuilder:
             self._client_events,
         )
 
-        # constrcut service ports
+        # construct service ports
         for pb, (runtime_field, specs_by_flag) in self._service_ports.items():
             spec = self._select(runtime_field, specs_by_flag)
             cf = spec.channel_factory(self._config)
@@ -389,14 +405,25 @@ class ServiceBuilder:
             )
 
         # construct container dependencies
-        container = DependencyContainer(deps)
-        bus = MessageBus(
-            command_registry=command_registry,
-            query_registry=query_registry,
-            event_registry=event_registry,
-            container=container,
+        deps.append(
+            Dependency(
+                dep_type=MessageBus,
+                scope=Scope.SINGLETON,
+                provider=lambda: MessageBus(
+                    command_registry=command_registry,
+                    query_registry=query_registry,
+                    event_registry=event_registry,
+                    container=container,
+                ),
+                requires=(ServiceBroker, ClientBroker),
+            )
         )
-        return Service(container=container, bus=bus, logger=logger)
+
+        # register custom dependencies
+        deps.extend(self._dependencies)
+
+        container = DependencyContainer(deps)
+        return Service(container=container, logger=logger)
 
     def _build_session_factory(
         self,
@@ -517,12 +544,11 @@ class Service:
     def __init__(
         self,
         container: DependencyContainer,
-        bus: MessageBus,
         logger: logging.Logger,
     ) -> None:
         self._container = container
-        self._bus = bus
         self._logger = logger
+        self._bus = self._container.resolve_singleton(MessageBus)
         self._service_broker: ServiceBroker | None = self._resolve_broker(ServiceBroker)
         self._client_broker: ClientBroker | None = self._resolve_broker(ClientBroker)
 
@@ -549,24 +575,12 @@ class Service:
         return self._client_broker
 
     @asynccontextmanager
-    async def lifespan(self) -> Iterator[Service]:
-        service_broker = self._service_broker
-        client_broker = self._client_broker
-        bus = self.bus
-
-        if service_broker is not None:
-            await service_broker.start()
-        if client_broker is not None:
-            await client_broker.start()
-        await bus.start()
-        try:
+    async def lifespan(self) -> AsyncIterator[Service]:
+        async with AsyncExitStack() as stack:
+            for resource in self._container.lifecycle_singletons():
+                await resource.start()
+                stack.push_async_callback(resource.stop)
             yield self
-        finally:
-            await bus.stop()
-            if client_broker is not None:
-                await client_broker.stop()
-            if service_broker is not None:
-                await service_broker.stop()
 
     def _resolve_broker(self, broker_cls: type[ServiceBroker | ClientBroker]) -> ServiceBroker | ClientBroker | None:
         try:

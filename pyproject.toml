@@ -16,6 +16,7 @@ members = [
     "stega/stega_contracts",
     "stega/stega_core",
     "stega/stega_edge",
+    "stega/stega_market_data",
     "stega/stega_portfolio",
     "stega/stega_utils",
 ]

@@ -10,6 +10,7 @@ members = [
     "stega-contracts",
     "stega-core",
     "stega-edge",
+    "stega-market-data",
     "stega-portfolio",
     "stega-utils",
 ]
@@ -1170,6 +1171,26 @@ requires-dist = [
     { name = "stega-core", editable = "stega/stega_core" },
     { name = "stega-utils", editable = "stega/stega_utils" },
 ]
+
+[[package]]
+name = "stega-market-data"
+version = "0.1.0"
+source = { editable = "stega/stega_market_data" }
+dependencies = [
+    { name = "stega-config" },
+    { name = "stega-contracts" },
+    { name = "stega-core" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "stega-config", editable = "stega/stega_config" },
+    { name = "stega-contracts", editable = "stega/stega_contracts" },
+    { name = "stega-core", editable = "stega/stega_core" },
+]
+
+[package.metadata.requires-dev]
+dev = []
 
 [[package]]
 name = "stega-portfolio"
