@@ -1,15 +1,39 @@
-import httpx
+import functools
+import logging
+from collections.abc import Callable
+from pathlib import Path
+from urllib.parse import quote_plus
+
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from stega_core import (
+    HttpProviderChannel,
+    InMemoryBroker,
+    RabbitMqBroker,
+    RabbitMqConnectionParameters,
+    RepositoryRuntime,
+    Scope,
+    Service,
+    ServiceBrokerRuntime,
+    ServiceBuilder,
+    SqlAlchemyUnitOfWork,
+)
+from stega_utils.limiter import QuotaRateLimiter, RateLimiterStack, SmoothingRateLimiter
 
 from stega_market_data.config import MarketDataConfig
-from stega_core import HttpProviderChannel
-from stega_utils.limiter import RateLimiterStack, SmoothingRateLimiter, QuotaRateLimiter
+from stega_market_data.ports.provider.price.base import PriceProvider
+from stega_market_data.ports.provider.price.http import HttpPriceProvider
+from stega_market_data.ports.repository.base import PricePullRepository
+from stega_market_data.ports.repository.sqlalchemy import SqlAlchemyPricePullRepository
+from stega_market_data.services.handlers import COMMAND_HANDLERS, EVENT_HANDLERS, QUERY_HANDLERS, SERVICE_EVENTS
 
 
 def build_eod_channel(config: MarketDataConfig) -> HttpProviderChannel:
-    limiters = RateLimiterStack([
-        SmoothingRateLimiter(int(config.EOD_QUOTA_PER_MIN * 0.95), 60),
-        QuotaRateLimiter(config.EOD_QUOTA_PER_MIN, 60),
-    ])
+    limiters = RateLimiterStack(
+        [
+            SmoothingRateLimiter(int(config.EOD_QUOTA_PER_MIN * 0.95), 60),
+            QuotaRateLimiter(config.EOD_QUOTA_PER_MIN, 60),
+        ]
+    )
     return HttpProviderChannel(
         base_url=config.EOD_BASE_URL,
         http2=True,
@@ -23,6 +47,7 @@ def price_provider_factory(config: MarketDataConfig) -> Callable[[HttpProviderCh
             channel=channel,
             api_key=config.EOD_API_KEY,
         )
+
     return build
 
 
@@ -73,6 +98,19 @@ def build_in_memory_session_factory(_: MarketDataConfig) -> None:
     return None
 
 
+def build_rabbitmq_service_broker(config: MarketDataConfig) -> RabbitMqBroker:
+    connection_params = RabbitMqConnectionParameters(
+        host=config.SERVICE_BROKER_HOST,
+        port=config.SERVICE_BROKER_PORT,
+        username=config.SERVICE_BROKER_USER,
+        password=config.SERVICE_BROKER_PASS,
+    )
+    return RabbitMqBroker(
+        connection_params=connection_params,
+        exchange_name=config.SERVICE_BROKER_EXCHANGE_NAME,
+    )
+
+
 def build_in_memory_service_broker(_: MarketDataConfig) -> InMemoryBroker:
     return InMemoryBroker()
 
@@ -83,9 +121,8 @@ def build_service(config: MarketDataConfig) -> Service:
 
     builder = ServiceBuilder(config)
     # set runtimes
-    builder = (
-        builder.with_repository_runtime("REPOSITORY_RUNTIME")
-        .with_service_broker_runtime("SERVICE_BROKER_RUNTIME")
+    builder = builder.with_repository_runtime("REPOSITORY_RUNTIME").with_service_broker_runtime(
+        "SERVICE_BROKER_RUNTIME"
     )
 
     # create repo constructs
@@ -115,10 +152,9 @@ def build_service(config: MarketDataConfig) -> Service:
     builder = builder.with_service_broker(service_broker_factories)
 
     # create providers
-    builder = (
-        builder.with_dependency(HttpProviderChannel, Scope.SINGLETON, lambda: build_eod_channel(config))
-        .with_dependency(PriceProvider, Scope.SINGLETON, price_provider_factory(config))
-    )
+    builder = builder.with_dependency(
+        HttpProviderChannel, Scope.SINGLETON, lambda: build_eod_channel(config)
+    ).with_dependency(PriceProvider, Scope.SINGLETON, price_provider_factory(config))
 
     # create handlers
     builder = (

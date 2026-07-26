@@ -192,7 +192,7 @@ class MessageBus:
         cascaded: list[Event] = []
         for binding in bindings:
             try:
-                result, scope = await self._invoke(binding, event, type(None))
+                _result, scope = await self._invoke(binding, event, type(None))
                 cascaded.extend(self._drain_events(scope))
             except Exception:
                 pass
@@ -204,7 +204,7 @@ class MessageBus:
             uow = scope.resolve(AbstractUnitOfWork)
         except KeyError:
             pass
-            
+
         if uow is None:
             return []
         return list(uow.collect_new_events())

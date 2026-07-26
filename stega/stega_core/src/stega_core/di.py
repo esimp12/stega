@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import inspect
+from collections import deque
 from dataclasses import dataclass
 from enum import Enum
 from typing import (
@@ -22,11 +23,9 @@ if TYPE_CHECKING:
 
 
 @runtime_checkable
-class Lifecyle(Protocol):
-    async def start(self) -> None:
-        ...
-    async def stop(self) -> None:
-        ...
+class Lifecycle(Protocol):
+    async def start(self) -> None: ...
+    async def stop(self) -> None: ...
 
 
 class Scope(Enum):
@@ -97,7 +96,7 @@ class DependencyContainer:
 
     def lifecycle_singletons(self) -> list[Lifecycle]:
         order = self._singleton_start_order()
-        resources: list[Lifecyle] = []
+        resources: list[Lifecycle] = []
         for dep_type in order:
             instance = self.resolve_singleton(dep_type)
             if isinstance(instance, Lifecycle):
@@ -127,7 +126,7 @@ class DependencyContainer:
         ready = deque(sorted((t for t, n in indegree.items() if n == 0), key=index.__getitem__))
         order: list[type] = []
         while ready:
-            none = ready.popleft()
+            node = ready.popleft()
             order.append(node)
             freed = []
             for nxt in adj[node]:

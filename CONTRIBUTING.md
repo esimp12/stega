@@ -75,3 +75,13 @@ docker compose --env-file .env.prod down
 ```
 uv run invoke serve <service_name>
 ```
+
+### Linting & Formatting
+
+```
+uv run ruff format
+```
+
+```
+uv run ruff check --fix --unsafe-fixes
+```

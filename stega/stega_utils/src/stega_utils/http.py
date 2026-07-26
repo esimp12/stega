@@ -1,22 +1,13 @@
 from __future__ import annotations
 
-import asyncio
 import contextlib
 import functools
-from typing import TYPE_CHECKING, Any, Self
+from typing import TYPE_CHECKING, Any
 
 import httpx
 
 if TYPE_CHECKING:
-    import types
     from collections.abc import AsyncIterator, Iterator
-
-
-def fetch(
-    session: httpx.Client,
-    url: str,
-) -> httpx.Response:
-    return session.get(url)
 
 
 @contextlib.contextmanager
@@ -58,15 +49,6 @@ def acquire_session(
 
     with client_context_mgr() as client:
         yield client
-
-
-async def fetch_async(
-    rate: AsyncRateLimiter,
-    session: httpx.AsyncClient,
-    url: str,
-) -> httpx.Response:
-    async with rate:
-        return await session.get(url)
 
 
 @contextlib.asynccontextmanager

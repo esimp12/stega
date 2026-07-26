@@ -1,8 +1,9 @@
 from __future__ import annotations
 
-from contextlib import asynccontextmanager, AsyncExitStack
+from collections.abc import Callable
+from contextlib import AsyncExitStack, asynccontextmanager
 from enum import Flag, auto
-from typing import TYPE_CHECKING, Any, Callable
+from typing import TYPE_CHECKING, Any
 
 from stega_core.broker import (
     ClientBroker,
@@ -41,7 +42,7 @@ from stega_core.uow import (
 
 if TYPE_CHECKING:
     import logging
-    from collections.abc import Callable, AsyncIterator
+    from collections.abc import AsyncIterator, Callable
 
     from stega_config import BaseConfig
 
@@ -144,12 +145,14 @@ class ServiceBuilder:
         dep_type: type[DepT],
         scope: Scope,
         provider: Callable[[], DepT],
-    ) -> ServiceBuilder: 
-        self._dependencies.append(Dependency(
-            dep_type=dep_type,
-            scope=scope,
-            provider=provider,
-        ))
+    ) -> ServiceBuilder:
+        self._dependencies.append(
+            Dependency(
+                dep_type=dep_type,
+                scope=scope,
+                provider=provider,
+            )
+        )
         return self
 
     def with_repository_runtime(self, runtime_field: str) -> ServiceBuilder:

@@ -2,14 +2,12 @@ import asyncio
 from datetime import datetime
 from decimal import Decimal
 
-import httpx
-
 from stega_core import HttpProviderChannel
-from stega_market_data.domain.price import SymbolResult
+
+from stega_market_data.domain.price import Price, SymbolResult
 
 
 class HttpPriceProvider:
-
     def __init__(
         self,
         channel: HttpProviderChannel,
@@ -42,9 +40,11 @@ class HttpPriceProvider:
         ]
 
     async def fetch_history(self, starts: dict[str, datetime], target: datetime) -> list[SymbolResult]:
-        return list(await asyncio.gather(
-            *(self._history_request(ticker, start, target) for ticker, start in starts.items()),
-        ))
+        return list(
+            await asyncio.gather(
+                *(self._history_request(ticker, start, target) for ticker, start in starts.items()),
+            )
+        )
 
     async def _history_request(self, ticker: str, start: datetime, target: datetime) -> SymbolResult:
         params = {
@@ -52,20 +52,17 @@ class HttpPriceProvider:
             "to": target.strftime("%Y-%m-%d"),
         }
         payload = await self._get(f"/eod/{ticker}.US", params)
-        return SymbolResult(
-            ticker=ticker,
-            prices=self._parse_history(ticker, payload)
-        )
+        return SymbolResult(ticker=ticker, prices=self._parse_history(ticker, payload))
 
     def _parse_latest(self, payload: dict) -> dict[str, list[Price]]:
         return {
             record["code"]: [
                 Price(
                     ticker=record["code"],
-                    dt=datetime.strptime(record["date"], "%Y-%m-%d"),
+                    dt=_parse_dt(record["date"]),
                     amount=Decimal(record["close"]),
                 ),
-            ] 
+            ]
             for record in payload
         }
 
@@ -73,8 +70,12 @@ class HttpPriceProvider:
         return [
             Price(
                 ticker=ticker,
-                dt=datetime.strptime(record["date"], "%Y-%m-%d"),
+                dt=_parse_dt(record["date"]),
                 amount=Decimal(record["close"]),
             )
             for record in payload
         ]
+
+
+def _parse_dt(dtstr: str, fmt: str = "%Y-%m-%d") -> datetime.datetime:
+    return datetime.strptime(dtstr, fmt).astimezone(datetime.timezone.utc)

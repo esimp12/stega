@@ -1,23 +1,24 @@
 from sqlalchemy import (
-    Table,
-    Column,
     BigInteger,
-    Integer,
-    String,
+    Column,
     Datetime,
-    Numeric,
-    UniqueConstraint,
+    ForeignKey,
     Index,
+    Integer,
+    Numeric,
+    String,
+    Table,
+    UniqueConstraint,
     create_engine,
     event,
-    ForeignKey,
+)
+from sqlalchemy import (
     Enum as SqlAlchemyEnum,
 )
 from sqlalchemy.orm import registry
-
-from stega_market_data.domain.price import PricePull, PullStatus
 from stega_contracts.market_data.command import PullKind
 
+from stega_market_data.domain.price import PricePull, PullStatus
 
 mapper_registry = registry()
 metadata = mapper_registry.metadata
@@ -77,5 +78,5 @@ def start_mappers() -> None:
     event.listen(
         PricePull,
         "load",
-        lambda: obj, _: obj.init_transients()
+        lambda obj, _: obj.init_transients(),
     )

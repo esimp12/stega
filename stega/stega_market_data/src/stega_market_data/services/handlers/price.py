@@ -1,6 +1,8 @@
-from stega_core import AbstractUnitOfWork
 from stega_contracts.market_data.command import PullPrices
+from stega_core import AbstractUnitOfWork
+
 from stega_market_data.domain.price import PricePull
+from stega_market_data.ports.provider.price.base import PriceProvider
 from stega_market_data.ports.repository.base import PricePullRepository
 
 

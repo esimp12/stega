@@ -5,11 +5,12 @@ from enum import Enum
 from typing import TYPE_CHECKING, ClassVar
 
 from stega_core import Aggregate
-from stega_contracts.market_data.command import PullKind
 
 if TYPE_CHECKING:
     from datetime import datetime
     from decimal import Decimal
+
+    from stega_contracts.market_data.command import PullKind
 
 
 @dataclass(frozen=True, kw_only=True, slots=True)

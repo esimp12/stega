@@ -1,9 +1,8 @@
-from stega_core import QueryResponse, QueryStatus
-
 from stega_contracts.portfolio.command import CreatePortfolio, DeletePortfolio, UpdatePortfolio
 from stega_contracts.portfolio.port import PortfolioServicePort
 from stega_contracts.portfolio.query import GetPortfolio, ListPortfolios
 from stega_contracts.portfolio.view import PortfolioListView, PortfolioView
+from stega_core import QueryResponse, QueryStatus
 
 
 async def get_portfolio(query: GetPortfolio, service: PortfolioServicePort) -> QueryResponse[PortfolioView]:

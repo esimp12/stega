@@ -1,10 +1,8 @@
 import httpx
-
 from stega_utils.limiter import RateLimiterStack
 
 
 class HttpProviderChannel:
-
     def __init__(
         self,
         base_url: str,
@@ -33,6 +31,6 @@ class HttpProviderChannel:
     async def get(self, path: str, params: dict | None = None) -> httpx.Response:
         async with self._limiters:
             return await self._client.get(path, params=params)
-    
+
     async def get_unmetered(self, path: str, params: dict | None = None) -> httpx.Response:
         return await self._client.get(path, params=params)

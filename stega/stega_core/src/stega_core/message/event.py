@@ -82,7 +82,7 @@ class Event(ABC):
         }
 
     def _serialize_payload(self) -> dict:
-        return {f.name: getattr(self, f.name) for f in fields(self) if f.name not in ("correlation_id",)}
+        return {f.name: getattr(self, f.name) for f in fields(self) if f.name != "correlation_id"}
 
     @classmethod
     def deserialize(cls, data: dict) -> Event:
