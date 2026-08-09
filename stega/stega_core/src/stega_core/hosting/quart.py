@@ -77,14 +77,15 @@ class ServerSentEvent:
     retry: int | None = None
 
     def encode(self) -> bytes:
-        message = f"data: {self.data}"
+        lines = []
         if self.event is not None:
-            message = f"{message}\nevent: {self.event}"
+            lines.append(f"event: {self.event}")
         if self.sse_id is not None:
-            message = f"{message}\nid: {self.sse_id}"
+            lines.append(f"id: {self.sse_id}")
         if self.retry is not None:
-            message = f"{message}\nretry: {self.retry}"
-        return message.encode("utf-8")
+            lines.append(f"retry: {self.retry}")
+        lines.append(f"data: {self.data}")
+        return ("\n".join(lines) + "\n\n").encode("utf-8") 
 
 
 async def deserialize(route: Route, request: Request) -> tuple[Message, dict[str, Any]]:

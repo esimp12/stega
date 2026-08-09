@@ -1,6 +1,6 @@
 import asyncio
 
-from stega_contracts.portfolio.routes import ROUTES as PORTFOLIO_ROUTES
+from stega_contracts.routes import ROUTES
 from stega_core import (
     SseRoute,
     build_quart_app,
@@ -11,7 +11,6 @@ from stega_core import (
 from stega_edge.bootstrap import build_service
 from stega_edge.config import create_config
 
-ROUTES = PORTFOLIO_ROUTES
 
 SSE_ROUTES = [
     SseRoute(

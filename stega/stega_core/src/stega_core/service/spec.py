@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 
 from stega_core.service.http import HttpChannel, HttpTransport
 from stega_core.service.memory import InMemoryChannel, InMemoryTransport
+from stega_core.service.socket import UnixSocketChannel, UnixSocketTransport
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -59,3 +60,17 @@ class InMemoryServiceSpec(ServiceSpec):
     @property
     def transport_type(self) -> type[AbstractTransport]:
         return InMemoryTransport
+
+
+@dataclass(frozen=True, kw_only=True)
+class UnixSocketServiceSpec(ServiceSpec):
+    runtime: RuntimeFlag
+    socket_path_field: str
+
+    def channel_factory(self, config: BaseConfig) -> Callable[[], Channel]:
+        socket_path = getattr(config, self.socket_path_field)
+        return lambda: UnixSocketChannel(socket_path)
+
+    @property
+    def transport_type(self) -> type[AbstractTransport]:
+        return UnixSocketTransport
