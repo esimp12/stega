@@ -1,36 +1,51 @@
-"""CLI entrypoint for stega portfolio management application."""
-
-import importlib
-from pathlib import Path
+import asyncio
+import json
 
 import click
+import httpx
 
-_IGNORE_MODULES = (
-    Path(__file__).name,
-    "__init__.py",
-    "utils.py",
-    "command.py",
-)
+from stega_cli.cli.generate import build_cli
+from stega_cli.cli.commands import CLI_COMMANDS, GROUPS
+from stega_cli.config import create_config
+from stega_cli.daemon.server import serve
 
 
 @click.group()
 def stega() -> None:
-    """CLI for stega portfolio management application."""
+    """CLI for stega application."""
 
 
-def register_commands() -> None:
-    """Register all click commands for each submodule in the current directory."""
-    file_import = __spec__.name
-    root_import = ".".join(file_import.split(".")[:-1])
-    root = Path(__file__).parent.resolve()
-    for path in root.iterdir():
-        if path.name in _IGNORE_MODULES:
-            continue
-        if path.is_file():
-            importlib.import_module(f"{root_import}.{path.stem}")
+@stega.group()
+def daemon() -> None:
+    """Manage the local stega daemon."""
+
+
+@daemon.command(name="run")
+def run_daemon() -> None:
+    """Run the daemon in the foreground."""
+    asyncio.run(serve(create_config()))
+
+
+@stega.group()
+def events() -> None:
+    """Inspect the edge event stream."""
+
+
+@click.argument("topic")
+@events.command()
+def watch(topic: str) -> None:
+    """Watch streamed events for a given topic."""
+    asyncio.run(_watch(topic))
+
+
+async def _watch(topic: str) -> None:
+    config = create_config()
+    url = f"{config.EDGE_SERVICE_URL}/api/events/{topic}"
+    async with httpx.AsyncClient(timeout=None) as client:
+        async for sse in source.aiter_sse():
+            click.echo(json.dumps(json.loads(sse.data), indent=2))
 
 
 def run() -> None:
-    """Run the stega CLI."""
-    register_commands()
+    build_cli(stega, CLI_COMMANDS, GROUPS)
     stega()
