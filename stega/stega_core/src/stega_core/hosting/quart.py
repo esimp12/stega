@@ -18,6 +18,7 @@ from stega_core.domain import (
 )
 from stega_core.hosting.marshal import marshal
 from stega_core.message import Command, Message, MessageResponse, Query
+from stega_core.hosting.sse import ServerSentEvent
 
 
 class Wire(StrEnum):
@@ -67,25 +68,6 @@ class Route:
 class SseRoute:
     path: str
     prefix: str | None = None
-
-
-@dataclass
-class ServerSentEvent:
-    data: str
-    event: str | None = None
-    sse_id: int | None = None
-    retry: int | None = None
-
-    def encode(self) -> bytes:
-        lines = []
-        if self.event is not None:
-            lines.append(f"event: {self.event}")
-        if self.sse_id is not None:
-            lines.append(f"id: {self.sse_id}")
-        if self.retry is not None:
-            lines.append(f"retry: {self.retry}")
-        lines.append(f"data: {self.data}")
-        return ("\n".join(lines) + "\n\n").encode("utf-8") 
 
 
 async def deserialize(route: Route, request: Request) -> tuple[Message, dict[str, Any]]:

@@ -3,6 +3,7 @@ import json
 
 import click
 import httpx
+from stega_core import decode
 
 from stega_cli.cli.generate import build_cli
 from stega_cli.cli.commands import CLI_COMMANDS, GROUPS
@@ -41,9 +42,10 @@ def watch(topic: str) -> None:
 async def _watch(topic: str) -> None:
     config = create_config()
     url = f"{config.EDGE_SERVICE_URL}/api/events/{topic}"
-    async with httpx.AsyncClient(timeout=None) as client:
-        async for sse in source.aiter_sse():
-            click.echo(json.dumps(json.loads(sse.data), indent=2))
+    async with httpx.AsyncClient(timeout=None) as client, client.stream("GET", url) as response:
+        response.raise_for_status()
+        async for event in decode(response.aiter_lines()):
+            click.echo(json.dumps(json.loads(event.data), indent=2))
 
 
 def run() -> None:

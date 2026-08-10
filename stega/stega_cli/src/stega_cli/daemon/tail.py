@@ -5,7 +5,7 @@ import json
 from typing import TYPE_CHECKING
 
 import httpx
-from stega_core import Event
+from stega_core import Event, decode
 
 from stega_cli.daemon.handlers import CACHE_HANDLERS
 from stega_cli.ports.cache import action as action_db
@@ -25,10 +25,11 @@ async def run_tail(config: CliConfig, topic: str) -> None:
     async with httpx.AsyncClient(timeout=None) as client:
         while True:
             try:
-                async with client.stream() as source:
+                async with client.stream("GET", url) as response:
+                    response.raise_for_status()
                     backoff = _BACKOFF_MIN
-                    async for sse in source.iter():
-                        await _apply(config, json.loads(sse.data))
+                    async for event in decode(response.aiter_lines()):
+                        await _apply(config, json.loads(event.data))
             except Exception:
                 await asyncio.sleep(backoff)
                 backoff = min(backoff * 2, _BACKOFF_MAX)

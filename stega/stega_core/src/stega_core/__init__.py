@@ -57,6 +57,8 @@ from stega_core.hosting import (
     Wire,
     build_quart_app,
     serve_hypercorn,
+    ServerSentEvent,
+    decode,
 )
 from stega_core.logging import (
     init_logger,
@@ -202,4 +204,6 @@ __all__ = [
     "make_service_publish_handler",
     "serve_hypercorn",
     "set_context",
+    "ServerSentEvent",
+    "decode",
 ]

@@ -9,6 +9,10 @@ from stega_core.hosting.quart import (
     Wire,
     build_quart_app,
 )
+from stega_core.hosting.sse import (
+    ServerSentEvent,
+    decode,
+)
 
 __all__ = [
     "Binding",
@@ -18,4 +22,6 @@ __all__ = [
     "Wire",
     "build_quart_app",
     "serve_hypercorn",
+    "ServerSentEvent",
+    "decode",
 ]
