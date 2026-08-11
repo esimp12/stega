@@ -1,8 +1,8 @@
 from enum import auto
 
 from stega_config import source
-from stega_core import HttpServiceSpec, RuntimeFlag, ServiceContract, StegaServicePort, UnixSocketServiceSpec
 from stega_contracts.routes import ROUTES
+from stega_core import HttpServiceSpec, RuntimeFlag, ServiceContract, StegaServicePort, UnixSocketServiceSpec
 
 
 class ClientPort(StegaServicePort): ...

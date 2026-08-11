@@ -11,7 +11,6 @@ from stega_core import (
 from stega_edge.bootstrap import build_service
 from stega_edge.config import create_config
 
-
 SSE_ROUTES = [
     SseRoute(
         path="/events/<string:topic>",

@@ -1,15 +1,22 @@
 from __future__ import annotations
 
 import asyncio
+import re
 import subprocess
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import click
 
 from stega_cli.config import create_config
-from stega_cli.daemon.server import serve
+from stega_cli.daemon.server import prepare, serve
+
+if TYPE_CHECKING:
+    from stega_cli.config import CliConfig
+
 
 _SYSTEMCTL: str = "/usr/bin/systemctl"
+_UNIT_RE: re.Pattern = re.compile(r"[A-Za-z0-9@._-]+\.service")
 _UNIT_TEMPLATE: str = """\
 [Unit]
 Description=stega CLI background daemon
@@ -40,7 +47,9 @@ def daemon() -> None:
 @daemon.command()
 def run() -> None:
     """Run the daemon in the foreground."""
-    asyncio.run(serve(create_config()))
+    config = create_config()
+    prepare(config)
+    asyncio.run(serve(config))
 
 
 @daemon.command()
@@ -70,7 +79,7 @@ def uninstall() -> None:
 def status() -> None:
     """Show the daemon systemd status."""
     unit = create_config().SERVICE_UNIT
-    proc = subprocess.run(
+    proc = subprocess.run(  # noqa: S603
         [_SYSTEMCTL, "--user", "status", unit],
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
@@ -79,5 +88,12 @@ def status() -> None:
     click.echo(proc.stdout.decode())
 
 
+def _unit(config: CliConfig) -> str:
+    if not _UNIT_RE.fullmatch(config.SERVICE_UNIT):
+        msg = f"invalid systemd unit name: {config.SERVICE_UNIT!r}"
+        raise click.ClickException(msg)
+    return config.SERVICE_UNIT
+
+
 def _systemctl(*args: str) -> None:
-    subprocess.run([_SYSTEMCTL, "--user", *args], check=True)
+    subprocess.run([_SYSTEMCTL, "--user", *args], check=True)  # noqa: S603

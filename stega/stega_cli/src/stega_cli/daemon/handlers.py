@@ -1,17 +1,17 @@
 from __future__ import annotations
 
-import sqlite3
 from typing import TYPE_CHECKING
 
 from stega_contracts.portfolio.event import (
     PortfolioCreated,
-    PortfolioUpdated,
     PortfolioDeleted,
+    PortfolioUpdated,
 )
 
 from stega_cli.ports.cache import portfolio as portfolio_db
 
 if TYPE_CHECKING:
+    import sqlite3
     from collections.abc import Callable
 
     from stega_core import Event

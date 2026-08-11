@@ -45,7 +45,6 @@ class UnixSocketChannel(Channel):
 
 
 class UnixSocketTransport(AbstractTransport[UnixSocketChannel]):
-
     async def dispatch(self, message: Message) -> ServiceResult:
         await write_frame(
             self._channel.writer,

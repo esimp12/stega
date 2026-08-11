@@ -18,10 +18,10 @@ __all__ = [
     "Binding",
     "Origin",
     "Route",
+    "ServerSentEvent",
     "SseRoute",
     "Wire",
     "build_quart_app",
-    "serve_hypercorn",
-    "ServerSentEvent",
     "decode",
+    "serve_hypercorn",
 ]

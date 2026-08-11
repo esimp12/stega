@@ -1,5 +1,5 @@
 services:
-  core:
+  edge:
     image: stega-edge:latest
     restart: always
     build:

@@ -36,23 +36,23 @@ async def handle_client(
         await write_frame(writer, response)
     finally:
         writer.close()
-        with supress(ConnectionError):
+        with suppress(ConnectionError):
             await writer.wait_closed()
 
 
-async def serve(config: CliConfig) -> None:
+def prepare(config: CliConfig) -> None:
     db.init_db(config.db_path)
+    Path(config.socket_path).unlink(missing_ok=True)
 
-    socket_path = Path(config.socket_path)
-    socket_path.unlink(missing_ok=True)
 
+async def serve(config: CliConfig) -> None:
     queue: asyncio.Queue = asyncio.Queue()
     port_factory = functools.partial(build_edge_port, config)
     dispatcher = RequestDispatcher(port_factory, queue)
 
-    server = await asyncio.start_unix_server(
+    await asyncio.start_unix_server(
         functools.partial(handle_client, dispatcher=dispatcher),
-        path=str(socket_path),
+        path=str(config.socket_path),
     )
 
     async with asyncio.TaskGroup() as tasks:

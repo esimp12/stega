@@ -1,8 +1,8 @@
 import click
 
+from stega_cli.cli.commands import CLI_COMMANDS, GROUPS
 from stega_cli.cli.generate import build_cli
 from stega_cli.cli.groups import STATIC_GROUPS
-from stega_cli.cli.commands import CLI_COMMANDS, GROUPS
 
 
 @click.group()

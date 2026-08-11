@@ -6,10 +6,12 @@ import httpx
 from stega_core import decode
 
 from stega_cli.config import create_config
-from stega_cli.daemon.server import serve
+
+# allow for idle reads for SSE routes
+_TIMEOUT: httpx.Timeout = httpx.Timeout(5.0, read=None)
 
 
-@stega.group()
+@click.group()
 def events() -> None:
     """Inspect the edge event stream."""
 
@@ -24,7 +26,7 @@ def watch(topic: str) -> None:
 async def _watch(topic: str) -> None:
     config = create_config()
     url = f"{config.EDGE_SERVICE_URL}/api/events/{topic}"
-    async with httpx.AsyncClient(timeout=None) as client, client.stream("GET", url) as response:
+    async with httpx.AsyncClient(timeout=_TIMEOUT) as client, client.stream("GET", url) as response:
         response.raise_for_status()
         async for event in decode(response.aiter_lines()):
             click.echo(json.dumps(json.loads(event.data), indent=2))

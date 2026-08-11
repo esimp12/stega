@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    cfrom collections.abc import AsyncIterator
+    from collections.abc import AsyncIterator
 
 
 @dataclass
@@ -23,7 +23,7 @@ class ServerSentEvent:
         if self.retry is not None:
             lines.append(f"retry: {self.retry}")
         lines.append(f"data: {self.data}")
-        return ("\n".join(lines) + "\n\n").encode("utf-8") 
+        return ("\n".join(lines) + "\n\n").encode("utf-8")
 
 
 async def decode(lines: AsyncIterator[str]) -> AsyncIterator[ServerSentEvent]:
@@ -40,8 +40,7 @@ async def decode(lines: AsyncIterator[str]) -> AsyncIterator[ServerSentEvent]:
         if line.startswith(":"):
             continue
         field, _, value = line.partition(":")
-        if value.startswith(" "):
-            value = value[1:]
+        value = value.removeprefix(" ")
         if field == "data":
             data.append(value)
         elif field == "event":

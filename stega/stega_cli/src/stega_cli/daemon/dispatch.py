@@ -13,7 +13,6 @@ if TYPE_CHECKING:
 
 
 class RequestDispatcher:
-
     def __init__(
         self,
         port_factory: Callable[[], StegaServicePort],

@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-import asyncio
 from typing import TYPE_CHECKING
 
 from stega_core import set_context
 
 if TYPE_CHECKING:
+    import asyncio
     from collections.abc import Callable
 
     from stega_core import StegaServicePort

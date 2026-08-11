@@ -4,7 +4,6 @@ import asyncio
 from typing import TYPE_CHECKING, Any
 
 import click
-
 from stega_core import AppError, CliCommand, CliParam, ParamKind, marshal
 
 from stega_cli.bootstrap import build_client_port
@@ -68,14 +67,17 @@ def build_message(spec: CliCommand, values: dict[str, Any]) -> Message:
     return marshal(spec.msg_type, payload)
 
 
-def make_callback(spec: CliCommand) -> Any:
-    def callback(**values: Any) -> None:
+def make_callback(spec: CliCommand) -> Any:  # noqa: ANN401
+    def callback(
+        **values: Any,  # noqa: ANN401
+    ) -> None:
         try:
             message = build_message(spec, values)
             result = asyncio.run(dispatch(message))
         except (AppError, OSError, ValueError) as exc:
             raise click.ClickException(str(exc)) from exc
         render(spec, result)
+
     return callback
 
 

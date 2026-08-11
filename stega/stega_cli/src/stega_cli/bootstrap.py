@@ -32,7 +32,7 @@ def build_edge_port(config: CliConfig | None = None) -> StegaServicePort:
 
 
 def _select(contract: ServiceContract, config: BaseConfig) -> ServiceSpec:
-    runtime = getattr(config, contrac.runtime_field)
+    runtime = getattr(config, contract.runtime_field)
     for spec in contract.specs:
         if spec.runtime is runtime:
             return spec

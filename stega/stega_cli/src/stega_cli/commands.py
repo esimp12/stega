@@ -1,5 +1,4 @@
 import uuid_utils as uuid
-
 from stega_contracts.portfolio.command import (
     CreatePortfolio,
     DeletePortfolio,
@@ -53,7 +52,7 @@ CLI_COMMANDS = [
         msg_type=UpdatePortfolio,
         help="Update an existing portfolio.",
         params=[
-            CliParam(key="portfolio_id", help="Portfolio identifier.") 
+            CliParam(key="portfolio_id", help="Portfolio identifier."),
             CliParam(
                 key="name",
                 kind=ParamKind.OPTION,

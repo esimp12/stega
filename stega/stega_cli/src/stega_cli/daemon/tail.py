@@ -17,22 +17,29 @@ if TYPE_CHECKING:
 
 _BACKOFF_MIN: float = 1.0
 _BACKOFF_MAX: float = 30.0
+# allow for idle reads for SSE routes
+_TIMEOUT: httpx.Timeout = httpx.Timeout(5.0, read=None)
 
 
 async def run_tail(config: CliConfig, topic: str) -> None:
     url = f"{config.EDGE_SERVICE_URL}/api/events/{topic}"
     backoff = _BACKOFF_MIN
-    async with httpx.AsyncClient(timeout=None) as client:
+    async with httpx.AsyncClient(timeout=_TIMEOUT) as client:
         while True:
             try:
                 async with client.stream("GET", url) as response:
-                    response.raise_for_status()
-                    backoff = _BACKOFF_MIN
-                    async for event in decode(response.aiter_lines()):
-                        await _apply(config, json.loads(event.data))
-            except Exception:
-                await asyncio.sleep(backoff)
-                backoff = min(backoff * 2, _BACKOFF_MAX)
+                    if response.is_success:
+                        backoff = _BACKOFF_MIN
+                        async for event in decode(response.aiter_lines()):
+                            await _apply(config, json.loads(event.data))
+                    elif response.is_client_error:
+                        response.raise_for_status()
+                    else:
+                        pass
+            except httpx.TransportError:
+                pass
+            await asyncio.sleep(backoff)
+            backoff = min(backoff * 2, _BACKOFF_MAX)
 
 
 async def _apply(config: CliConfig, data: dict) -> None:

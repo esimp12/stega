@@ -17,8 +17,8 @@ from stega_core.domain import (
     ResourceNotFoundError,
 )
 from stega_core.hosting.marshal import marshal
-from stega_core.message import Command, Message, MessageResponse, Query
 from stega_core.hosting.sse import ServerSentEvent
+from stega_core.message import Command, Message, MessageResponse, Query
 
 
 class Wire(StrEnum):
