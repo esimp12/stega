@@ -13,6 +13,7 @@ dependencies = [
     "sqlalchemy[asyncio]>=2.0.43",
     "quart>=0.20.0",
     "hypercorn>=0.18.0",
+    "psycopg2-binary>=2.9.12",
 ]
 
 [tool.stega]

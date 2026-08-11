@@ -47,25 +47,25 @@ class PortfolioConfig(
 class ProdConfig(PortfolioConfig):
     HOST: str = source("env", default="0.0.0.0")
 
-    REPOSITORY_DBNAME: str = source(
+    REPOSITORY_DBUSER: str = source(
         "file",
         path="/run/secrets",
         depends_on="REPOSITORY_RUNTIME",
         depends_value=RepositoryRuntime.POSTGRES,
     )
-    REPOSITORY_DBHOST: str = source(
+    REPOSITORY_DBPASS: str = source(
         "file",
         path="/run/secrets",
         depends_on="REPOSITORY_RUNTIME",
         depends_value=RepositoryRuntime.POSTGRES,
     )
-    READER_DBNAME: str = source(
+    READER_DBUSER: str = source(
         "file",
         path="/run/secrets",
         depends_on="READER_RUNTIME",
         depends_value=ReaderRuntime.POSTGRES,
     )
-    READER_DBHOST: str = source(
+    READER_DBPASS: str = source(
         "file",
         path="/run/secrets",
         depends_on="READER_RUNTIME",

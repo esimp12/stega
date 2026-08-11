@@ -408,16 +408,19 @@ class ServiceBuilder:
             )
 
         # construct container dependencies
+        def _provide_message_bus(container: DependencyContainer) -> MessageBus:
+            return MessageBus(
+                command_registry=command_registry,
+                query_registry=query_registry,
+                event_registry=event_registry,
+                container=container,
+            )
+
         deps.append(
             Dependency(
                 dep_type=MessageBus,
                 scope=Scope.SINGLETON,
-                provider=lambda: MessageBus(
-                    command_registry=command_registry,
-                    query_registry=query_registry,
-                    event_registry=event_registry,
-                    container=container,
-                ),
+                provider=_provide_message_bus,
                 requires=(ServiceBroker, ClientBroker),
             )
         )

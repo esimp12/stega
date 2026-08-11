@@ -22,7 +22,7 @@ class ServiceBrokerConfig:
         default=ServiceBrokerRuntime.RABBITMQ,
     )
 
-    SERVICE_BROKER_EXCHANGE: str = source(
+    SERVICE_BROKER_EXCHANGE_NAME: str = source(
         "env",
         default="events",
         depends_on="SERVICE_BROKER_RUNTIME",

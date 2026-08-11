@@ -59,16 +59,6 @@ def init_metadata(db_uri: str) -> None:
 
 def start_mappers() -> None:
     mapper_registry.map_imperatively(
-        PortfolioAsset,
-        asset_table,
-        properties={
-            "portfolio_id": asset_table.c.portfolio_id,
-            "symbol": asset_table.c.symbol,
-            "weight": asset_table.c.weight,
-        },
-        primary_key=[asset_table.c.portfolio_id, asset_table.c.symbol],
-    )
-    mapper_registry.map_imperatively(
         Portfolio,
         portfolio_table,
         properties={
@@ -84,6 +74,16 @@ def start_mappers() -> None:
         },
         primary_key=[portfolio_table.c.portfolio_id],
         version_id_col=portfolio_table.c.version_number,
+    )
+    mapper_registry.map_imperatively(
+        PortfolioAsset,
+        asset_table,
+        properties={
+            "portfolio_id": asset_table.c.portfolio_id,
+            "symbol": asset_table.c.symbol,
+            "weight": asset_table.c.weight,
+        },
+        primary_key=[asset_table.c.portfolio_id, asset_table.c.symbol],
     )
     event.listen(
         Portfolio,

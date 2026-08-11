@@ -38,6 +38,7 @@ class Dependency[DepT]:
     dep_type: type[DepT]
     scope: Scope
     provider: Callable[[], DepT]
+    requires: tuple[type, ...] = ()
 
 
 class MessageHandler[MessageT: Message, MessageResponseT: MessageResponse](Protocol):
@@ -61,6 +62,7 @@ class DependencyContainer:
             self._deps[d.dep_type] = d
 
         self._singletons: dict[type, object] = {}
+        self._singletons[DependencyContainer] = self
         self._building: set[type] = set()
         for dep_type, dep in self._deps.items():
             if dep.scope is Scope.SINGLETON:
@@ -111,7 +113,7 @@ class DependencyContainer:
         return cast("Dependency[DepT]", dep)
 
     def _singleton_start_order(self) -> list[type]:
-        singletons = [d for d in self._deps if d.scope is Scope.SINGLETON]
+        singletons = [d for d in self._deps.values() if d.scope is Scope.SINGLETON]
         index = {d.dep_type: i for i, d in enumerate(singletons)}
         indegree = {d.dep_type: 0 for d in singletons}
         adj: dict[type, list[type]] = {d.dep_type: [] for d in singletons}
