@@ -50,13 +50,13 @@ async def serve(config: CliConfig) -> None:
     port_factory = functools.partial(build_edge_port, config)
     dispatcher = RequestDispatcher(port_factory, queue)
 
-    await asyncio.start_unix_server(
+    server = await asyncio.start_unix_server(
         functools.partial(handle_client, dispatcher=dispatcher),
         path=str(config.socket_path),
     )
 
     async with asyncio.TaskGroup() as tasks:
-        tasks.create_task(serve.serve_forever())
+        tasks.create_task(server.serve_forever())
         tasks.create_task(run_writer(queue, port_factory))
         for event_type in SUBSCRIPTIONS:
             tasks.create_task(run_tail(config, event_type.topic))
