@@ -22,6 +22,11 @@ from stega_core.bus import (
     BusConfig,
     MessageBus,
 )
+from stega_core.cli import (
+    CliCommand,
+    CliParam,
+    ParamKind,
+)
 from stega_core.config import (
     ClientBrokerConfig,
     ReaderConfig,
@@ -58,6 +63,7 @@ from stega_core.hosting import (
     Wire,
     build_quart_app,
     decode,
+    marshal,
     serve_hypercorn,
 )
 from stega_core.logging import (
@@ -111,6 +117,11 @@ from stega_core.service import (
     ServiceResult,
     ServiceSpec,
     StegaServicePort,
+    UnixSocketChannel,
+    UnixSocketServiceSpec,
+    UnixSocketTransport,
+    read_frame,
+    write_frame,
 )
 from stega_core.uow import (
     AbstractUnitOfWork,
@@ -131,6 +142,8 @@ __all__ = [
     "Binding",
     "BusConfig",
     "Channel",
+    "CliCommand",
+    "CliParam",
     "ClientBroker",
     "ClientBrokerConfig",
     "ClientBrokerRuntime",
@@ -160,6 +173,7 @@ __all__ = [
     "MessageHandler",
     "MessageHandlerBinding",
     "Origin",
+    "ParamKind",
     "Query",
     "QueryRegistry",
     "QueryResponse",
@@ -195,6 +209,9 @@ __all__ = [
     "SseRoute",
     "StegaServicePort",
     "SubmissionStatus",
+    "UnixSocketChannel",
+    "UnixSocketServiceSpec",
+    "UnixSocketTransport",
     "View",
     "Wire",
     "bind_handler",
@@ -204,6 +221,9 @@ __all__ = [
     "init_logger",
     "make_client_publish_handler",
     "make_service_publish_handler",
+    "marshal",
+    "read_frame",
     "serve_hypercorn",
     "set_context",
+    "write_frame",
 ]

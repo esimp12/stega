@@ -1,6 +1,9 @@
 from stega_core.hosting.hypercorn import (
     serve_hypercorn,
 )
+from stega_core.hosting.marshal import (
+    marshal,
+)
 from stega_core.hosting.quart import (
     Binding,
     Origin,
@@ -23,5 +26,6 @@ __all__ = [
     "Wire",
     "build_quart_app",
     "decode",
+    "marshal",
     "serve_hypercorn",
 ]

@@ -1184,6 +1184,8 @@ source = { editable = "stega/stega_core" }
 dependencies = [
     { name = "aio-pika" },
     { name = "httpx" },
+    { name = "hypercorn" },
+    { name = "quart" },
     { name = "sqlalchemy", extra = ["asyncio"] },
 ]
 
@@ -1191,6 +1193,8 @@ dependencies = [
 requires-dist = [
     { name = "aio-pika", specifier = ">=9.6.2" },
     { name = "httpx", specifier = ">=0.28.1" },
+    { name = "hypercorn", specifier = ">=0.18.0" },
+    { name = "quart", specifier = ">=0.20.0" },
     { name = "sqlalchemy", extras = ["asyncio"], specifier = ">=2.0.43" },
 ]
 

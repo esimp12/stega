@@ -8,7 +8,7 @@ import httpx
 from stega_core import Event, decode
 
 from stega_cli.daemon.handlers import CACHE_HANDLERS
-from stega_cli.ports.cache import action as action_db
+from stega_cli.ports.cache import actions as action_db
 from stega_cli.ports.cache import db
 
 if TYPE_CHECKING:

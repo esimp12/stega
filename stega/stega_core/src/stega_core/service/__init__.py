@@ -15,10 +15,17 @@ from stega_core.service.memory import (
 from stega_core.service.port import (
     StegaServicePort,
 )
+from stega_core.service.socket import (
+    UnixSocketChannel,
+    UnixSocketTransport,
+    read_frame,
+    write_frame,
+)
 from stega_core.service.spec import (
     HttpServiceSpec,
     InMemoryServiceSpec,
     ServiceSpec,
+    UnixSocketServiceSpec,
 )
 from stega_core.service.transport import (
     AbstractTransport,
@@ -38,4 +45,9 @@ __all__ = [
     "ServiceResult",
     "ServiceSpec",
     "StegaServicePort",
+    "UnixSocketChannel",
+    "UnixSocketServiceSpec",
+    "UnixSocketTransport",
+    "read_frame",
+    "write_frame",
 ]
