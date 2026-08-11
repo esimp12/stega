@@ -1145,6 +1145,7 @@ source = { editable = "stega/stega_cli" }
 dependencies = [
     { name = "click" },
     { name = "stega-config" },
+    { name = "stega-contracts" },
     { name = "stega-core" },
 ]
 
@@ -1152,6 +1153,7 @@ dependencies = [
 requires-dist = [
     { name = "click", specifier = ">=8.2.1" },
     { name = "stega-config", editable = "stega/stega_config" },
+    { name = "stega-contracts", editable = "stega/stega_contracts" },
     { name = "stega-core", editable = "stega/stega_core" },
 ]
 
@@ -1200,6 +1202,7 @@ dependencies = [
     { name = "hypercorn" },
     { name = "quart" },
     { name = "stega-config" },
+    { name = "stega-contracts" },
     { name = "stega-core" },
     { name = "stega-utils" },
 ]
@@ -1209,6 +1212,7 @@ requires-dist = [
     { name = "hypercorn", specifier = ">=0.18.0" },
     { name = "quart", specifier = ">=0.20.0" },
     { name = "stega-config", editable = "stega/stega_config" },
+    { name = "stega-contracts", editable = "stega/stega_contracts" },
     { name = "stega-core", editable = "stega/stega_core" },
     { name = "stega-utils", editable = "stega/stega_utils" },
 ]

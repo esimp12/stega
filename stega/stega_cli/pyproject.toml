@@ -5,9 +5,10 @@ requires-python = ">=3.12"
 version = "0.1.0"
 description = "CLI tool for stega application"
 dependencies = [
-    "click>=8.2.1",
-    "stega_core",
     "stega_config",
+    "stega_contracts",
+    "stega_core",
+    "click>=8.2.1",
 ]
 
 [tool.stega]
@@ -21,5 +22,6 @@ requires = ["uv_build>=0.7.20,<0.8.0"]
 build-backend = "uv_build"
 
 [tool.uv.sources]
-stega_core = { workspace = true }
 stega_config = { workspace = true }
+stega_contracts = { workspace = true }
+stega_core = { workspace = true }

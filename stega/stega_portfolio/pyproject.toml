@@ -5,9 +5,9 @@ requires-python = ">=3.12"
 version = "0.1.0"
 description = "Portfolio microservice for stega application"
 dependencies = [
-    "stega_core",
     "stega_config",
     "stega_contracts",
+    "stega_core",
     "asyncpg>=0.31.0",
     "aiosqlite>=0.22.1",
     "sqlalchemy[asyncio]>=2.0.43",
@@ -35,9 +35,9 @@ dev = [
 ]
 
 [tool.uv.sources]
-stega_core = { workspace = true }
 stega_config = { workspace = true }
 stega_contracts = { workspace = true }
+stega_core = { workspace = true }
 
 [tool.alembic]
 script_location = "%(here)s/alembic"

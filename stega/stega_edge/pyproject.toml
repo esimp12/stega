@@ -5,11 +5,12 @@ requires-python = ">=3.12"
 version = "0.1.0"
 description = "Boundary services for stega application"
 dependencies = [
-    "hypercorn>=0.18.0",
-    "quart>=0.20.0",
     "stega_config",
+    "stega_contracts",
     "stega_core",
     "stega_utils",
+    "hypercorn>=0.18.0",
+    "quart>=0.20.0",
 ]
 
 [tool.stega]
@@ -24,5 +25,6 @@ build-backend = "uv_build"
 
 [tool.uv.sources]
 stega_config = { workspace = true }
+stega_contracts = { workspace = true }
 stega_core = { workspace = true }
 stega_utils = { workspace = true }
