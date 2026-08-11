@@ -17,6 +17,7 @@ class CliConfig(ClientConfig, EdgeServiceConfig, BaseConfig):
     CACHE_DIR: str = source("env", default="~/.cache/stega/cli")
     STATE_DIR: str = source("env", default="~/.local/share/stega/cli")
 
+    SERVICE_UNIT: str = source("env", default="stega-cli.service")
     SOCKET_FILE: str = source("env", default="stega.sock")
     DB_FILE: str = source("env", default="stega.db")
 
