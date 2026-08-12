@@ -386,24 +386,26 @@ class ServiceBuilder:
             self._client_events,
         )
 
+        def _service_port_provider(
+            pb: type[StegaServicePort],
+            cf: Callable[[], Channel],
+            tp: type[AbstractTransport],
+        ) -> Callable[[], StegaServicePort]:
+            def provider() -> StegaServicePort:
+                return pb(cf, tp)
+
+            return provider
+
         # construct service ports
         for pb, (runtime_field, specs_by_flag) in self._service_ports.items():
             spec = self._select(runtime_field, specs_by_flag)
             cf = spec.channel_factory(self._config)
             tp = spec.transport_type
-
-            def provider(
-                pb: type[StegaServicePort] = pb,
-                cf: Callable[[], Channel] = cf,
-                tp: type[AbstractTransport] = tp,
-            ) -> StegaServicePort:
-                return pb(cf, tp)
-
             deps.append(
                 Dependency(
                     dep_type=pb,
                     scope=Scope.DISPATCH,
-                    provider=provider,
+                    provider=_service_port_provider(pb, cf, tp),
                 )
             )
 

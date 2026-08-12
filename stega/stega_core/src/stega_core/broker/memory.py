@@ -41,4 +41,4 @@ class InMemoryBroker[InT, OutT](MessageBroker[InT, OutT]):
                     except ValueError:
                         pass
                     if not self._subscribers[topic]:
-                        del self._subscribers
+                        del self._subscribers[topic]

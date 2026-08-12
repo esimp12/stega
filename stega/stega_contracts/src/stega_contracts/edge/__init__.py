@@ -19,7 +19,7 @@ class EdgeServiceConfig:
     )
     EDGE_SERVICE_URL: str = source(
         "env",
-        default="http:localhost:20000",
+        default="http://localhost:20000",
         depends_on="EDGE_SERVICE_RUNTIME",
         depends_value=EdgeServiceRuntime.HTTP,
     )
