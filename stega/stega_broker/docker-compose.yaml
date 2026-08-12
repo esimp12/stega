@@ -9,11 +9,11 @@ services:
     volumes:
       - broker_data:/var/lib/rabbitmq
     healthcheck:
-      test: rabbitmq-diagnostics -q ping
-      interval: 30s
+      test: rabbitmq-diagnostics -q check_port_connectivity
+      interval: 10s
       timeout: 10s
       retries: 5
-      start_period: 10s
+      start_period: 15s
 
 volumes:
   broker_data:

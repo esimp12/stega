@@ -1,3 +1,4 @@
+import asyncio
 import json
 from collections.abc import AsyncIterator, Iterable
 from dataclasses import dataclass
@@ -29,18 +30,33 @@ class RabbitMqBroker[InT, OutT](MessageBroker[InT, OutT]):
         self._exchange: aio_pika.abc.AbstractExchange | None = None
 
     async def start(self) -> None:
-        self._connection = await aio_pika.connect(
-            host=self._connection_params.host,
-            port=self._connection_params.port,
-            login=self._connection_params.username,
-            password=self._connection_params.password,
-        )
+        self._connection = await self._connect_with_retry()
         self._channel = await self._connection.channel()
         self._exchange = await self._channel.declare_exchange(
             self._exchange_name,
             aio_pika.ExchangeType.DIRECT,
             durable=True,
         )
+
+    async def _connect_with_retry(
+        self,
+        attempts: int = 10,
+        base_delay: float = 0.5,
+        cap: float = 5.0,
+    ) -> aio_pika.abc.AbstractRobustConnection:
+        last: Exception | None = None
+        for n in range(attempts):
+            try:
+                return await aio_pika.connect_robust(
+                    host=self._connection_params.host,
+                    port=self._connection_params.port,
+                    login=self._connection_params.username,
+                    password=self._connection_params.password,
+                )
+            except (ConnectionError, aio_pika.exceptions.AMQPConnectionError) as exc:
+                last = exc
+                await asyncio.sleep(min(base_delay * 2**n, cap))
+        raise last
 
     async def stop(self) -> None:
         if self._channel is not None:

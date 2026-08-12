@@ -15,5 +15,11 @@ services:
       STEGA_EDGE_LOG_LEVEL: ${STEGA_EDGE_LOG_LEVEL}
       STEGA_EDGE_SERVICE_BROKER_USER: ${STEGA_EDGE_SERVICE_BROKER_USER}
       STEGA_EDGE_SERVICE_BROKER_PASS: ${STEGA_EDGE_SERVICE_BROKER_PASS}
+    healthcheck:
+      test: ["CMD-SHELL", "sh -c 'curl http://127.0.0.1:5000/api/health'"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
     ports:
       - "127.0.0.1:20000:5000"
