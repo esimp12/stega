@@ -22,8 +22,7 @@ _TIMEOUT: httpx.Timeout = httpx.Timeout(5.0, read=None)
 
 
 async def run_tail(config: CliConfig, topic: str) -> None:
-    url = f"{config.EDGE_SERVICE_URL}/api/events/{topic}"
-    backoff = _BACKOFF_MIN
+    url = f"{config.EDGE_SERVICE_URL}/api/events/{topic}" backoff = _BACKOFF_MIN
     async with httpx.AsyncClient(timeout=_TIMEOUT) as client:
         while True:
             try:
@@ -45,7 +44,6 @@ async def run_tail(config: CliConfig, topic: str) -> None:
 async def _apply(config: CliConfig, data: dict) -> None:
     event = Event.deserialize(data)
     with db.acquire_connection(config.db_path) as conn:
-        action_db.record(conn, event.correlation_id, event.topic)
         handler = CACHE_HANDLERS.get(type(event))
         if handler is not None:
             handler(conn, event)

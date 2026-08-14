@@ -9,7 +9,7 @@ if TYPE_CHECKING:
     from stega_core import ServiceResult
 
 
-def render(*, result: ServiceResult) -> None:
+def render(result: ServiceResult) -> None:
     if result.result is None:
         click.echo(result.msg)
         return

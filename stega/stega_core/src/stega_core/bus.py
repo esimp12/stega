@@ -1,5 +1,4 @@
 import asyncio
-import logging
 from dataclasses import dataclass
 from typing import cast
 
@@ -8,6 +7,7 @@ from stega_core.di import (
     DispatchScope,
     MessageHandlerBinding,
 )
+from stega_core.domain import AppError
 from stega_core.message import (
     Command,
     CommandResponse,
@@ -139,10 +139,9 @@ class MessageBus:
 
         try:
             response, _ = await self._invoke(binding, query, QueryResponse)
+        except AppError:
+            raise
         except Exception as exc:
-            logger = logging.getLogger("stega_portfolio")
-            logger.exception("Error handling query")
-
             return QueryResponse(
                 status=QueryStatus.FAILED,
                 error=f"{type(exc).__name__}: {exc}",

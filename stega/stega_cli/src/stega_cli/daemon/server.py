@@ -21,8 +21,7 @@ if TYPE_CHECKING:
 
 
 async def handle_client(
-    reader: asyncio.StreamReader,
-    writer: asyncio.StreamWriter,
+    reader: asyncio.StreamReader, writer: asyncio.StreamWriter,
     dispatcher: RequestDispatcher,
 ) -> None:
     try:
@@ -48,7 +47,7 @@ def prepare(config: CliConfig) -> None:
 async def serve(config: CliConfig) -> None:
     queue: asyncio.Queue = asyncio.Queue()
     port_factory = functools.partial(build_edge_port, config)
-    dispatcher = RequestDispatcher(port_factory, queue)
+    dispatcher = RequestDispatcher(port_factory, queue, config.db_path)
 
     server = await asyncio.start_unix_server(
         functools.partial(handle_client, dispatcher=dispatcher),

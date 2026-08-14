@@ -26,6 +26,9 @@ async def get_portfolio(
     async with qc:
         reader = qc.reader(PortfolioReader)
         view = await reader.get(query.portfolio_id)
+        if view is None:
+            err_msg = f"Portfolio with ID {query.portfolio_id} does not exist."
+            raise ResourceNotFoundError(err_msg)
         return QueryResponse(
             status=QueryStatus.OK,
             result=view,

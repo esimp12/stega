@@ -76,7 +76,7 @@ def make_callback(spec: CliCommand) -> Any:  # noqa: ANN401
             result = asyncio.run(dispatch(message))
         except (AppError, OSError, ValueError) as exc:
             raise click.ClickException(str(exc)) from exc
-        render(spec, result)
+        render(result)
 
     return callback
 
